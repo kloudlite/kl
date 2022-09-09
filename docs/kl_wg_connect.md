@@ -1,4 +1,4 @@
-## connect
+## kl wg connect
 
 connect selected device wireguard
 

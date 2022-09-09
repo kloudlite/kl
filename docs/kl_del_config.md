@@ -1,4 +1,4 @@
-## config
+## kl del config
 
 remove one config environment from your kl-config
 

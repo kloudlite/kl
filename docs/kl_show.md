@@ -1,4 +1,4 @@
-## show
+## kl show
 
 print your kl-config file and current context
 

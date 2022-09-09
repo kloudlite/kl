@@ -1,4 +1,4 @@
-## regions
+## kl list regions
 
 list all regions of selected device
 

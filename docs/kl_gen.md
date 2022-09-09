@@ -1,4 +1,4 @@
-## gen
+## kl gen
 
 add mount to your kl-config file by selection from the all the [ config | secret ] available selected project
 

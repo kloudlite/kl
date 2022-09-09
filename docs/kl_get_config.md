@@ -1,4 +1,4 @@
-## config
+## kl get config
 
 get config entries
 

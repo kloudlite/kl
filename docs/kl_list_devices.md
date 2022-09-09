@@ -1,4 +1,4 @@
-## devices
+## kl list devices
 
 list all your devices in selected account
 

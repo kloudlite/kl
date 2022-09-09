@@ -1,4 +1,4 @@
-## logout
+## kl auth logout
 
 logout from kloudlite
 

@@ -1,4 +1,4 @@
-## secrets
+## kl list secrets
 
 list all the secrets available in selected project
 

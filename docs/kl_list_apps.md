@@ -1,4 +1,4 @@
-## apps
+## kl list apps
 
 list all the apps available in selected project
 

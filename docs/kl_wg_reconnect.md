@@ -1,4 +1,4 @@
-## reconnect
+## kl wg reconnect
 
 reconnect the wireguard by disconnecting previous connected
 

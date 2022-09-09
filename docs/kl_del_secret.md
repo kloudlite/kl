@@ -1,4 +1,4 @@
-## secret
+## kl del secret
 
 remove one secret environment from your kl-config
 

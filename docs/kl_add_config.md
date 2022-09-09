@@ -1,4 +1,4 @@
-## config
+## kl add config
 
 add config to your kl-config file by selection from the all the config available in selected project
 

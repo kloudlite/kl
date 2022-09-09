@@ -1,4 +1,4 @@
-## disconnect
+## kl wg disconnect
 
 disconnect selected device wireguard
 

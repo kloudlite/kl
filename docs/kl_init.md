@@ -1,4 +1,4 @@
-## init
+## kl init
 
 Initialize your kl-config file with some sample values
 

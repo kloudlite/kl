@@ -1,4 +1,4 @@
-## completion
+## kl completion
 
 Generate the autocompletion script for the specified shell
 

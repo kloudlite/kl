@@ -1,4 +1,4 @@
-## device
+## kl use device
 
 select device to use later to intercept app or wireguard connect
 

@@ -1,4 +1,4 @@
-## get
+## kl get
 
 get [ config | secret ] entries
 

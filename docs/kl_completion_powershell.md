@@ -1,4 +1,4 @@
-## powershell
+## kl completion powershell
 
 Generate the autocompletion script for powershell
 

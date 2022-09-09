@@ -1,4 +1,4 @@
-## lambdas
+## kl list lambdas
 
 list all the lambdas available in selected project
 

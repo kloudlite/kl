@@ -1,4 +1,4 @@
-## accounts
+## kl list accounts
 
 list all the accounts accessible to you
 

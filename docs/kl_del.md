@@ -1,4 +1,4 @@
-## del
+## kl del
 
 delete [ secret | config | mres ] configuration from yourkl-config file
 

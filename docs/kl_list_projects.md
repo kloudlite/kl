@@ -1,4 +1,4 @@
-## projects
+## kl list projects
 
 list all the projects accessible to you in selected account
 

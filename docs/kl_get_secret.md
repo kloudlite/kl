@@ -1,4 +1,4 @@
-## secret
+## kl get secret
 
 get secret entries
 

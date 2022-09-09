@@ -1,4 +1,4 @@
-## configs
+## kl list configs
 
 list all the configs available in selected project
 

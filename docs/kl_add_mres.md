@@ -1,4 +1,4 @@
-## mres
+## kl add mres
 
 add mres to your kl-config file by selection from the all the mres available selected project
 

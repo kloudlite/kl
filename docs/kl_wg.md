@@ -1,4 +1,4 @@
-## wg
+## kl wg
 
 [connect | disconnect | reconnect] to wireguard service
 

@@ -1,4 +1,4 @@
-## add
+## kl add
 
 add [ secret | config | mres ] configuration to your kl-config file
 

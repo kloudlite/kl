@@ -1,4 +1,4 @@
-## fish
+## kl completion fish
 
 Generate the autocompletion script for fish
 

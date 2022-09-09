@@ -1,4 +1,4 @@
-## list
+## kl list
 
 accounts | projects | devices | configs | secrets | apps | lambdas | regions
 

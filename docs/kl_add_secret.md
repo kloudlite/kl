@@ -1,4 +1,4 @@
-## secret
+## kl add secret
 
 add secret to your kl-config file by selection from the all the secrets available in selected project
 
