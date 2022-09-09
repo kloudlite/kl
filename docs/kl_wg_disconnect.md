@@ -11,12 +11,14 @@ Examples:
   kl wg disconnect
 
   # disconnect the selected device with verbose
-  kl wg disconnect -v```
+  kl wg disconnect -v
+```
 
 ### Options
 
 ```bash
   -v, --verbose   show verbose
+  -h, --help   help for disconnect
 ```
 
 

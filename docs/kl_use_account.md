@@ -14,9 +14,14 @@ Examples:
 
   # select account with account id
   kl use account <accountId>
-	```
+	
+```
 
+### Options
 
+```bash
+  -h, --help   help for account
+```
 
 
 

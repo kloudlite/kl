@@ -12,9 +12,14 @@ Examples:
 
 	# list all the lambdas with projectId
   kl list lambdas <projectId>
+
 ```
 
+### Options
 
+```bash
+  -h, --help   help for lambdas
+```
 
 
 

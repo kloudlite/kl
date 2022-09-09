@@ -13,18 +13,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 func code(str string, lang string) string {
-	return fmt.Sprintf("```%s\n%s```", lang, str)
+	return fmt.Sprintf("```%s\n%s\n```", lang, str)
 }
 
 func getOptions(cmd *cobra.Command) string {
-	if cmd.Flags().FlagUsages() != "" {
-		return fmt.Sprintf(`### Options
+	return fmt.Sprintf(`### Options
 
-%s`, code(cmd.Flags().FlagUsages(), "bash"))
-	}
-	return ""
+%s`,
+		code(
+			fmt.Sprintf("%s  -h, --help   help for %s",
+				cmd.Flags().FlagUsages(), cmd.Name()),
+			"bash"))
+
 }
 
 func getSynopsis(cmd *cobra.Command) string {
@@ -44,7 +45,7 @@ func commandsList(cmd *cobra.Command) string {
 	result := "### SEE ALSO\n"
 
 	for _, c := range cmd.Commands() {
-		result = fmt.Sprintf("%s\n* [%s](%s)  - %s",
+		result = fmt.Sprintf("%s\n* [%s](%s.md)  - %s",
 			result, c.CommandPath(),
 			strings.ReplaceAll(c.CommandPath(), " ", "_"),
 			c.Short)
@@ -81,7 +82,6 @@ func generateDocs(cmd *cobra.Command, dir string) error {
 	return nil
 }
 
-
 func runDocGen(cmd *cobra.Command, _ []string) {
 
 	if _, er := os.Stat("./docs"); errors.Is(er, os.ErrNotExist) {
@@ -114,4 +114,3 @@ func runDocGen(cmd *cobra.Command, _ []string) {
 		common.PrintError(err)
 	}
 }
-

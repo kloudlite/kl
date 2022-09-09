@@ -18,13 +18,15 @@ Examples:
 
 	# add config by providing your key and refkey
 	kl add config <name> --map [ref_key]=[your_local_key]
-	```
+	
+```
 
 ### Options
 
 ```bash
       --map string    config_key=your_var_key
       --name string   config name
+  -h, --help   help for config
 ```
 
 

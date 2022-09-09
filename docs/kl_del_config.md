@@ -10,9 +10,14 @@ This command help you to delete environment that that is comming from config
 Examples:
   # remove config
   kl del config
-	```
+	
+```
 
+### Options
 
+```bash
+  -h, --help   help for config
+```
 
 
 

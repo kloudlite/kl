@@ -12,13 +12,15 @@ This command initialize a kl-config.
 Examples:
   # Initialize the kl-config file
   kl init
-	```
+	
+```
 
 ### Options
 
 ```bash
   -a, --accountId string   account id
   -p, --projectId string   project id
+  -h, --help   help for init
 ```
 
 

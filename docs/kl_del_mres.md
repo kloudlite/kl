@@ -10,9 +10,14 @@ This command help you to delete environment that that is comming from managed re
 Examples:
   # remove mres
   kl del mres
+
 ```
 
+### Options
 
+```bash
+  -h, --help   help for mres
+```
 
 
 

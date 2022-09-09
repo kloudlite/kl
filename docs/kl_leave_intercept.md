@@ -15,6 +15,7 @@ Examples:
 
 	# alternative way
 	kl leave intercept --device-id=<divice_id> --app-readable-id=<app_readable_id>
+
 ```
 
 ### Options
@@ -24,6 +25,7 @@ Examples:
       --app-readable-id string   app/lambda  readable id
       --device-id string         device id
       --device-name string       device name
+  -h, --help   help for intercept
 ```
 
 

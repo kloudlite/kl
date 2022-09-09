@@ -12,9 +12,14 @@ Examples:
 
 	# list all the devices with accountId
   kl list devices <accountId>
+
 ```
 
+### Options
 
+```bash
+  -h, --help   help for devices
+```
 
 
 

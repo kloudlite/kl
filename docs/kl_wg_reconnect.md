@@ -12,12 +12,14 @@ Examples:
 
   # reconnect the selected device with verbose
   kl wg reconnect -v
-	```
+	
+```
 
 ### Options
 
 ```bash
   -v, --verbose   show verbose
+  -h, --help   help for reconnect
 ```
 
 

@@ -13,13 +13,15 @@ Examples:
   # connect the selected device with verbose
   kl wg connect -v
 
-	```
+	
+```
 
 ### Options
 
 ```bash
       --foreground   
   -v, --verbose      show verbose
+  -h, --help   help for connect
 ```
 
 

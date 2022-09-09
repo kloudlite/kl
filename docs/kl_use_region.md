@@ -9,9 +9,14 @@ Select region
 Examples:
   # select region of selected device
   kl use region
-	```
+	
+```
 
+### Options
 
+```bash
+  -h, --help   help for region
+```
 
 
 

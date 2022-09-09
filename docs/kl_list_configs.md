@@ -12,9 +12,14 @@ Examples:
 
 	# list all the configs with projectId
   kl list configs <projectId>
+
 ```
 
+### Options
 
+```bash
+  -h, --help   help for configs
+```
 
 
 

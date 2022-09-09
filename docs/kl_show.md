@@ -5,9 +5,14 @@ print your kl-config file and current context
 ### Synopsis
 
 ```
-Show kl-config```
+Show kl-config
+```
 
+### Options
 
+```bash
+  -h, --help   help for show
+```
 
 
 

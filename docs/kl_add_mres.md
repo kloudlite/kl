@@ -14,6 +14,7 @@ Examples:
 
   # add managed resource providing resourceid and serviceid 
   kl add mres --resource=<resourceId> --service=<serviceId>
+
 ```
 
 ### Options
@@ -21,6 +22,7 @@ Examples:
 ```bash
       --resource string   managed resource name
       --service string    managed service name
+  -h, --help   help for mres
 ```
 
 

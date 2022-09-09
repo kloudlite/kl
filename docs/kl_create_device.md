@@ -11,9 +11,14 @@ Examples:
   kl create device <device_name>
 
 	# Note: device name must not contain space or special character
-	```
+	
+```
 
+### Options
 
+```bash
+  -h, --help   help for device
+```
 
 
 

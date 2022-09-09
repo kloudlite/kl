@@ -15,12 +15,14 @@ Examples:
 
   # get config entries in yaml format
   kl get config <configid> -o yaml
+
 ```
 
 ### Options
 
 ```bash
   -o, --output string   json | yaml (default "table")
+  -h, --help   help for config
 ```
 
 

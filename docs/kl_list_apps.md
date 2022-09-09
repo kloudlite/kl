@@ -12,9 +12,14 @@ Examples:
 
 	# list all the apps with projectId
   kl list apps <projectId>
-	```
+	
+```
 
+### Options
 
+```bash
+  -h, --help   help for apps
+```
 
 
 

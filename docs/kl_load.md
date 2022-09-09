@@ -29,9 +29,14 @@ Examples:
 
 	# example of env with zsh shell
 	kl load zsh
-	```
+	
+```
 
+### Options
 
+```bash
+  -h, --help   help for load
+```
 
 
 

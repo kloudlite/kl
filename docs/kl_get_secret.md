@@ -15,12 +15,14 @@ Examples:
 
   # get secret entries in yaml format
   kl get secret <secretid> -o yaml
+
 ```
 
 ### Options
 
 ```bash
   -o, --output string   json | yaml (default "table")
+  -h, --help   help for secret
 ```
 
 

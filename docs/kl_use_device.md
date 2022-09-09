@@ -17,9 +17,14 @@ Examples:
 
   # select device with device name
   kl use device <device_name>
+
 ```
 
+### Options
 
+```bash
+  -h, --help   help for device
+```
 
 
 

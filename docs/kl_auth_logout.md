@@ -13,9 +13,14 @@ Example:
   using above command you can expire your session from the current device shell.
 
   logging out will not delete your mounted config/secret files or kl-config file.
-	```
+	
+```
 
+### Options
 
+```bash
+  -h, --help   help for logout
+```
 
 
 

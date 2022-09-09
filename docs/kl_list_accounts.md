@@ -12,9 +12,14 @@ This command will help you to see list of all the accounts that's accessible to 
 Examples:
   # list accounts accessible to you
   kl list accounts
+
 ```
 
+### Options
 
+```bash
+  -h, --help   help for accounts
+```
 
 
 

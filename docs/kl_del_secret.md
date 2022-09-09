@@ -10,9 +10,14 @@ This command help you to delete environment that that is comming from secret
 Examples:
   # remov secret
   kl del secret
+
 ```
 
+### Options
 
+```bash
+  -h, --help   help for secret
+```
 
 
 

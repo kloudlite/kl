@@ -18,13 +18,15 @@ Examples:
 
 	# add secret by providing your key and refkey
 	kl add secret <name> --map [ref_key]=[your_local_key]
-	```
+	
+```
 
 ### Options
 
 ```bash
       --map string    secret_key=your_var_key
       --name string   secret name
+  -h, --help   help for secret
 ```
 
 

@@ -17,9 +17,14 @@ Examples:
 
   # select project with project readableId
   kl use project <project_readableId>
+
 ```
 
+### Options
 
+```bash
+  -h, --help   help for project
+```
 
 
 

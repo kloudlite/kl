@@ -6,9 +6,14 @@ Help about any command
 
 ```
 Help provides help for any command in the application.
-Simply type kl help [path to command] for full details.```
+Simply type kl help [path to command] for full details.
+```
 
+### Options
 
+```bash
+  -h, --help   help for help
+```
 
 
 

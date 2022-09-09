@@ -27,12 +27,14 @@ To load completions for every new session, execute once:
 	kl completion zsh > $(brew --prefix)/share/zsh/site-functions/_kl
 
 You will need to start a new shell for this setup to take effect.
+
 ```
 
 ### Options
 
 ```bash
       --no-descriptions   disable completion descriptions
+  -h, --help   help for zsh
 ```
 
 

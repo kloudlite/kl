@@ -14,6 +14,7 @@ Examples:
 
   # add secret to download at the time of load
   kl gen --secretName=<secret_name>
+
 ```
 
 ### Options
@@ -21,6 +22,7 @@ Examples:
 ```bash
       --config string   config name
       --secret string   secret name
+  -h, --help   help for gen
 ```
 
 

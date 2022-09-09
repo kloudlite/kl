@@ -14,9 +14,14 @@ Examples:
 	kl list projects <accountId>
 
 Note: selected project will be highlighted with green color.
-  ```
+  
+```
 
+### Options
 
+```bash
+  -h, --help   help for projects
+```
 
 
 

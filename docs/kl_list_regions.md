@@ -12,9 +12,14 @@ This command will help you to see list of all the regions of your selected devic
 Examples:
   # list regions of selected device
   kl list regions
+
 ```
 
+### Options
 
+```bash
+  -h, --help   help for regions
+```
 
 
 

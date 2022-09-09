@@ -13,6 +13,7 @@ Examples:
 
   # delete exposed port of selected device
 	kl expose port -d -p <port>:<your_local_port> 
+
 ```
 
 ### Options
@@ -20,6 +21,7 @@ Examples:
 ```bash
   -d, --delete             delete ports
   -p, --port stringArray   expose port <server_port>:<local_port>
+  -h, --help   help for expose
 ```
 
 

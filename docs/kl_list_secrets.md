@@ -12,9 +12,14 @@ Examples:
 
 	# list all the secrets with projectId
   kl list secrets <projectId>
+
 ```
 
+### Options
 
+```bash
+  -h, --help   help for secrets
+```
 
 
 

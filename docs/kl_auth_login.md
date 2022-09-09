@@ -12,9 +12,14 @@ Example:
 
   when you execute the above command a link will be opened on your browser. 
   visit your browser and approve there to access your account using this cli.
-	```
+	
+```
 
+### Options
 
+```bash
+  -h, --help   help for login
+```
 
 
 
