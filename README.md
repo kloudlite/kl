@@ -6,12 +6,12 @@ This CLI help you to work with kloudlite using your terminal.
 
 To install the latest version in Linux or Mac you can run the following command on terminal.
 
-###### Install latest with curl
+##### Install latest with curl
 ```sh
 curl https://i.jpillora.com/kloudlite/kl! | bash
 ```
 
-###### Install latest with wget
+##### Install latest with wget
 
 ```sh
 wget -qO- https://i.jpillora.com/kloudlite/kl! | bash
