@@ -61,12 +61,6 @@ Examples:
 
 		if strings.TrimSpace(wgInterface) != "" {
 			common.Log("[#] already connected")
-			_, err := wgc.Show(nil)
-
-			if err != nil {
-				common.PrintError(err)
-				return
-			}
 
 			common.Log("\n[#] reconnecting")
 
