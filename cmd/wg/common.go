@@ -3,7 +3,6 @@ package wg
 import (
 	"encoding/csv"
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -72,8 +71,6 @@ func configure(
 	// time.Sleep(time.Second * 2)
 
 	configuration := device.Configuration["config-"+device.Region]
-
-	fmt.Println(device.Configuration)
 
 	s.Start()
 	if verbose {
