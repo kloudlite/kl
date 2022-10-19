@@ -16,12 +16,13 @@ const (
 
 func connect(verbose bool) error {
 	success := false
-	startService(verbose)
 	defer func() {
 		if !success {
 			stopService(verbose)
 		}
 	}()
+
+	startService(verbose)
 
 	if err := startConfiguration(verbose); err != nil {
 		return err

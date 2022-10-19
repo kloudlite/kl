@@ -60,6 +60,13 @@ Examples:
 			return
 		}
 
+		if foreground {
+			if err := startService(connectVerbose); err != nil {
+				common.PrintError(err)
+				return
+			}
+		}
+
 		wgInterface, err := wgc.Show(&wgc.WgShowOptions{
 			Interface: "interfaces",
 		})
