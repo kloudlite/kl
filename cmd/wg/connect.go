@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// not required in linux
 func startServiceInBg() {
 	command := exec.Command("kl", "wg", "connect", "--foreground")
 	err := command.Start()
@@ -73,15 +74,12 @@ Examples:
 
 			common.Log("\n[#] reconnecting")
 
-			if err := stopService(reconnectVerbose); err != nil {
+			if err := disconnect(connectVerbose); err != nil {
 				common.PrintError(err)
 				return
 			}
 
-			common.Log("[#] disconnected")
-
-			startServiceInBg()
-			if err := startConfiguration(reconnectVerbose); err != nil {
+			if err := connect(connectVerbose); err != nil {
 				common.PrintError(err)
 				return
 			}
@@ -92,18 +90,23 @@ Examples:
 			return
 		}
 
-		if foreground {
-			if err := startService(connectVerbose); err != nil {
-				common.PrintError(err)
-				return
-			}
-		} else {
-			startServiceInBg()
-			if err := startConfiguration(connectVerbose); err != nil {
-				common.PrintError(err)
-				return
-			}
+		if err := connect(connectVerbose); err != nil {
+			common.PrintError(err)
+			return
 		}
+
+		// if foreground {
+		// 	if err := startService(connectVerbose); err != nil {
+		// 		common.PrintError(err)
+		// 		return
+		// 	}
+		// } else {
+		// 	startServiceInBg()
+		// 	if err := startConfiguration(connectVerbose); err != nil {
+		// 		common.PrintError(err)
+		// 		return
+		// 	}
+		// }
 
 		common.Log("[#] connected")
 	},

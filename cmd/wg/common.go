@@ -3,6 +3,7 @@ package wg
 import (
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -46,6 +47,7 @@ func startConfiguration(verbose bool) error {
 	if err != nil {
 		return err
 	}
+
 	if device.Region == "" {
 		return errors.New("region not selected in device please use 'kl use device' to select device")
 	}
@@ -70,6 +72,8 @@ func configure(
 	// time.Sleep(time.Second * 2)
 
 	configuration := device.Configuration["config-"+device.Region]
+
+	fmt.Println(device.Configuration)
 
 	s.Start()
 	if verbose {
