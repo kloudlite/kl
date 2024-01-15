@@ -95,10 +95,6 @@ func configure(
 		return e
 	}
 
-	if e := setDNS(cfg.DNS, verbose); e != nil {
-		return e
-	}
-
 	wg, err := wgctrl.New()
 	if err != nil {
 		return err
@@ -116,6 +112,17 @@ func configure(
 	for _, i2 := range cfg.Peers[0].AllowedIPs {
 		err = ipRouteAdd(i2.String(), cfg.Address[0].IP.String(), interfaceName, verbose)
 		if err != nil {
+			return err
+		}
+	}
+
+	dServers, err := getCurrentDns()
+	if err != nil {
+		return err
+	}
+
+	for _, v := range dServers {
+		if err = ipRouteAdd(v, cfg.Address[0].IP.String(), interfaceName, verbose); err != nil {
 			return err
 		}
 	}
