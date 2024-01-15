@@ -16,6 +16,7 @@ func configureDarwin(_ string, _ bool) error {
 	return nil
 }
 
+
 func getCurrentDns() ([]string, error) {
 	config, err := dns.ClientConfigFromFile("/etc/resolv.conf")
 
