@@ -17,7 +17,7 @@ Example:
   kl infra vpn switch
 
 	# switch to vpn device with device name
-	kl infra vpn switch --name <device_name>
+	kl infra vpn switch
 	`,
 	Run: func(cmd *cobra.Command, _ []string) {
 		name := ""

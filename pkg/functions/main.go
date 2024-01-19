@@ -40,6 +40,14 @@ func Log(str ...interface{}) {
 	_, _ = fmt.Fprintf(os.Stderr, fmt.Sprint(str...))
 }
 
+func Printf(format string, str ...interface{}) {
+	_, _ = fmt.Fprintf(os.Stdout, format, str...)
+}
+
+func Println(str ...interface{}) {
+	_, _ = fmt.Println(str...)
+}
+
 type resType struct {
 	Metadata struct {
 		Name string

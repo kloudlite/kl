@@ -13,7 +13,7 @@ var logoutCmd = &cobra.Command{
 	Long: `This command will logout your session from the cli
 Example:
   # Logout from kloudlite
-  kl logout
+  kl auth logout
 
   using above command you can expire your session from the current device shell.
 

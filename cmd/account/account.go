@@ -4,11 +4,14 @@ import "github.com/spf13/cobra"
 
 var Cmd = &cobra.Command{
 	Use:   "account",
-	Short: "switch account context",
-	Long: `Use this command to switch account context
+	Short: "switch and list account",
+	Long: `Use this command to switch and list accounts
 Examples:
-  # switch account context
-  kl account switch <account_name>
+		# list accounts accessible to you
+      kl account list
+
+    # switch account context
+      kl account switch
 	`,
 }
 

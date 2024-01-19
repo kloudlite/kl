@@ -19,7 +19,7 @@ Examples:
   kl env switch
 
   # switch to a different environment with environment name
-  kl env switch --envname <env_name> --projectname <project_name>
+  kl env switch 
 	`,
 
 	Run: func(cmd *cobra.Command, _ []string) {

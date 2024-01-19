@@ -23,7 +23,7 @@ Examples:
   # list accounts accessible to you
   kl account list
 
-Note: selected project will be highlighted with green color.
+Note: selected account will be highlighted with green color.
 
 `,
 	Run: func(cmd *cobra.Command, _ []string) {

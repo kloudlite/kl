@@ -11,11 +11,11 @@ import (
 
 var switchCmd = &cobra.Command{
 	Use:   "switch",
-	Short: "Switch account context",
-	Long: `Use this command to switch account context
+	Short: "Switch account",
+	Long: `Use this command to switch account
 Example:
   # switch account context
-  kl account switch <account name>
+  kl account switch
 	`,
 	Run: func(cmd *cobra.Command, _ []string) {
 		accountName := ""
