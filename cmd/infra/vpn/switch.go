@@ -1,7 +1,6 @@
 package vpn
 
 import (
-	"fmt"
 	"github.com/kloudlite/kl/domain/client"
 
 	"github.com/kloudlite/kl/domain/server"
@@ -45,7 +44,7 @@ Example:
 			return
 		}
 
-		fmt.Println("Selected vpn device: ", d.Metadata.Name)
+		fn.Log("Selected vpn device: ", d.Metadata.Name)
 
 	},
 }
