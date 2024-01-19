@@ -130,7 +130,7 @@ func Configure(
 	}
 
 	for _, i2 := range cfg.Peers[0].AllowedIPs {
-		err = IpRouteAdd(i2.String(), cfg.Address[0].IP.String(), interfaceName, verbose)
+		err = ipRouteAdd(i2.String(), cfg.Address[0].IP.String(), interfaceName, verbose)
 		if err != nil {
 			return err
 		}

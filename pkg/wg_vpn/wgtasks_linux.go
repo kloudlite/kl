@@ -52,7 +52,7 @@ func StartService(devName string, _ bool) error {
 	return nil
 }
 
-func IpRouteAdd(ip string, _ string, devName string, _ bool) error {
+func ipRouteAdd(ip string, _ string, devName string, _ bool) error {
 	_, dst, err := net.ParseCIDR(ip)
 	if err != nil {
 		return fmt.Errorf("failed to parse CIDR: %v", err)

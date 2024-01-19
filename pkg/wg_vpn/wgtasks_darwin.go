@@ -1,4 +1,4 @@
-package vpn
+package wg_vpn
 
 import (
 	"errors"
@@ -24,7 +24,6 @@ const (
 	ifName string = "utun2464"
 )
 
-
 func getCurrentDns() ([]string, error) {
 	config, err := dns.ClientConfigFromFile("/etc/resolv.conf")
 
@@ -33,29 +32,6 @@ func getCurrentDns() ([]string, error) {
 	}
 
 	return config.Servers, nil
-}
-
-func configureDarwin(devName string, verbose bool) error {
-	return configure(devName, ifName, verbose)
-}
-func connect(verbose bool) error {
-	success := false
-	defer func() {
-		if !success {
-			_ = stopService(verbose)
-		}
-	}()
-
-	startServiceInBg(ifName)
-	if err := startConfiguration(connectVerbose); err != nil {
-		return err
-	}
-
-	success = true
-	return nil
-}
-func disconnect(verbose bool) error {
-	return stopService(verbose)
 }
 
 func ipRouteAdd(ip string, interfaceIp string, deviceName string, verbose bool) error {
@@ -103,13 +79,11 @@ func getDNSServers(networkService string, verbose bool) ([]string, error) {
 	return dnsServers, nil
 }
 
-
-
-func setDeviceIp(deviceIp net.IPNet, _ string, verbose bool) error {
+func SetDeviceIp(deviceIp net.IPNet, _ string, verbose bool) error {
 	return execCmd(fmt.Sprintf("ifconfig %s %s %s", ifName, deviceIp.IP.String(), deviceIp.IP.String()), verbose)
 }
 
-func startService(_ string, verbose bool) error {
+func StartService(_ string, verbose bool) error {
 
 	t, err := tun.CreateTUN(ifName, device.DefaultMTU)
 	if err != nil {
@@ -169,7 +143,7 @@ func startService(_ string, verbose bool) error {
 	return nil
 }
 
-func stopService(verbose bool) error {
+func StopService(verbose bool) error {
 	output, err := exec.Command("pgrep", "-f", "kl vpn start-fg").Output()
 	if err != nil {
 		return err
@@ -185,7 +159,7 @@ func stopService(verbose bool) error {
 	if p == nil {
 		return errors.New("process not found")
 	}
-	
+
 	err = syscall.Kill(int(i), syscall.SIGTERM)
 	if err != nil {
 		return err
