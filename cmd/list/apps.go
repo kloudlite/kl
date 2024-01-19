@@ -2,7 +2,6 @@ package list
 
 import (
 	"errors"
-	"fmt"
 	"github.com/kloudlite/kl/domain/client"
 	"github.com/kloudlite/kl/domain/server"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -65,7 +64,7 @@ func listapps(cmd *cobra.Command, args []string) error {
 		rows = append(rows, table.Row{a.DisplayName, a.Metadata.Name})
 	}
 
-	fmt.Println(table.Table(&header, rows, cmd))
+	fn.Println(table.Table(&header, rows, cmd))
 
 	s := fn.ParseStringFlag(cmd, "output")
 	if s == "table" {

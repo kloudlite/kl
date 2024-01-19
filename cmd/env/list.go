@@ -2,8 +2,6 @@ package env
 
 import (
 	"errors"
-	"fmt"
-
 	"github.com/kloudlite/kl/domain/client"
 	"github.com/kloudlite/kl/domain/server"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -67,7 +65,7 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 		})
 	}
 
-	fmt.Println(table.Table(&header, rows))
+	fn.Println(table.Table(&header, rows))
 
 	if s := fn.ParseStringFlag(cmd, "output"); s == "table" {
 		table.TotalResults(len(envs), true)

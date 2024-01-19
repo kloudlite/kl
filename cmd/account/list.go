@@ -69,7 +69,7 @@ func listAccounts(cmd *cobra.Command) error {
 		})
 	}
 
-	fmt.Println(table.Table(&header, rows, cmd))
+	fn.Println(table.Table(&header, rows, cmd))
 
 	table.TotalResults(len(rows), true)
 	return nil

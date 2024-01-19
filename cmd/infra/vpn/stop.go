@@ -21,45 +21,52 @@ Example:
 	`,
 	Run: func(_ *cobra.Command, _ []string) {
 
-		if euid := os.Geteuid(); euid != 0 {
-			fn.Log(
-				text.Colored("make sure you are running command with sudo", 209),
-			)
-			return
-		}
-
-		wgInterface, err := wgc.Show(&wgc.WgShowOptions{
-			Interface: "interfaces",
-		})
-
+		err := stopInfraVPN()
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		if len(wgInterface) == 0 {
-			fn.Log(text.Colored("[#] no device connected yet", 209))
-			return
-		}
-
-		err = disconnect(disconnectVerbose)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		fn.Log("[#] disconnected")
-
-		s, err := client.CurrentInfraDeviceName()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		fn.Log(text.Bold(text.Green("\n[#]Selected Device:")),
-			text.Red(s),
-		)
 	},
+}
+
+func stopInfraVPN() error {
+
+	if euid := os.Geteuid(); euid != 0 {
+		fn.Log(
+			text.Colored("make sure you are running command with sudo", 209),
+		)
+		return nil
+	}
+
+	wgInterface, err := wgc.Show(&wgc.WgShowOptions{
+		Interface: "interfaces",
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if len(wgInterface) == 0 {
+		fn.Log(text.Colored("[#] no device connected yet", 209))
+		return nil
+	}
+
+	err = disconnect(disconnectVerbose)
+	if err != nil {
+		return err
+	}
+
+	fn.Log("[#] disconnected")
+
+	s, err := client.CurrentInfraDeviceName()
+	if err != nil {
+		return err
+	}
+
+	fn.Log(text.Bold(text.Green("\n[#]Selected Device:")),
+		text.Red(s),
+	)
+	return nil
 }
 
 func init() {

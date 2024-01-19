@@ -23,34 +23,42 @@ Examples:
 	`,
 
 	Run: func(cmd *cobra.Command, _ []string) {
-
-		envName := fn.ParseStringFlag(cmd, "envname")
-		projectName := fn.ParseStringFlag(cmd, "projectname")
-
-		env, err := server.SelectEnv(envName)
+		err := switchAccounts(cmd)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		proj, err := server.SelectProject(projectName)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		if err := server.UpdateDeviceEnv([]fn.Option{
-			fn.MakeOption("envName", env.Metadata.Name),
-			fn.MakeOption("projectName", proj.Metadata.Name),
-		}...); err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		fn.Log(text.Bold(text.Green("\nSelected Environment and Project:")),
-			text.Blue(fmt.Sprintf("\n%s (%s) and %s (%s)", env.DisplayName, env.Metadata.Name, proj.DisplayName, proj.Metadata.Name)),
-		)
 	},
+}
+
+func switchAccounts(cmd *cobra.Command) error {
+
+	envName := fn.ParseStringFlag(cmd, "envname")
+	projectName := fn.ParseStringFlag(cmd, "projectname")
+
+	env, err := server.SelectEnv(envName)
+	if err != nil {
+		fn.PrintError(err)
+		return err
+	}
+
+	proj, err := server.SelectProject(projectName)
+	if err != nil {
+		fn.PrintError(err)
+		return err
+	}
+
+	if err := server.UpdateDeviceEnv([]fn.Option{
+		fn.MakeOption("envName", env.Metadata.Name),
+		fn.MakeOption("projectName", proj.Metadata.Name),
+	}...); err != nil {
+		return err
+	}
+
+	fn.Log(text.Bold(text.Green("\nSelected Environment and Project:")),
+		text.Blue(fmt.Sprintf("\n%s (%s) and %s (%s)", env.DisplayName, env.Metadata.Name, proj.DisplayName, proj.Metadata.Name)),
+	)
+	return nil
 }
 
 func init() {

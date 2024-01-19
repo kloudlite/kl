@@ -1,6 +1,7 @@
 package context
 
 import (
+	"errors"
 	"fmt"
 	"github.com/kloudlite/kl/domain/client"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -20,48 +21,55 @@ Example:
   kl infra context [remove|rm]
 	`,
 	Run: func(cmd *cobra.Command, _ []string) {
-		name := ""
 
-		if cmd.Flags().Changed("name") {
-			name, _ = cmd.Flags().GetString("name")
-		}
-
-		c, err := client.GetInfraContexts()
+		err := removeInfraContext(cmd)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		if len(c.InfraContexts) == 0 {
-			fn.PrintError(fmt.Errorf("no infra context found"))
-			return
-		}
-
-		if name == "" {
-			n, err := fzf.FindOne(func() []string {
-				var infraContexts []string
-				for _, ctx := range c.InfraContexts {
-					infraContexts = append(infraContexts, ctx.Name)
-				}
-				return infraContexts
-			}(), func(item string) string {
-				return item
-			})
-			if err != nil {
-				fn.PrintError(err)
-				return
-			}
-
-			name = *n
-		}
-
-		if err := client.DeleteInfraContext(name); err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		fn.Log(fmt.Sprintf("infra context %s removed", name))
 	},
+}
+
+func removeInfraContext(cmd *cobra.Command) error {
+
+	name := ""
+
+	if cmd.Flags().Changed("name") {
+		name, _ = cmd.Flags().GetString("name")
+	}
+
+	c, err := client.GetInfraContexts()
+	if err != nil {
+		return err
+	}
+
+	if len(c.InfraContexts) == 0 {
+		return errors.New("no infra context found")
+	}
+
+	if name == "" {
+		n, err := fzf.FindOne(func() []string {
+			var infraContexts []string
+			for _, ctx := range c.InfraContexts {
+				infraContexts = append(infraContexts, ctx.Name)
+			}
+			return infraContexts
+		}(), func(item string) string {
+			return item
+		})
+		if err != nil {
+			return err
+		}
+
+		name = *n
+	}
+
+	if err := client.DeleteInfraContext(name); err != nil {
+		return err
+	}
+
+	fn.Log(fmt.Sprintf("infra context %s removed", name))
+	return nil
 }
 
 func init() {

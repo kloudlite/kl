@@ -23,22 +23,31 @@ Examples:
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		pName := ""
-		if len(args) > 1 {
-			pName = args[0]
-		}
-
-		sec, err := server.ListSecrets(fn.MakeOption("projectName", pName))
+		err := listSecrets(cmd, args)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		if err := printSecrets(cmd, sec); err != nil {
-			fn.PrintError(err)
-			return
-		}
 	},
+}
+
+func listSecrets(cmd *cobra.Command, args []string) error {
+
+	pName := ""
+	if len(args) > 1 {
+		pName = args[0]
+	}
+
+	sec, err := server.ListSecrets(fn.MakeOption("projectName", pName))
+	if err != nil {
+		return err
+	}
+
+	if err := printSecrets(cmd, sec); err != nil {
+		fn.PrintError(err)
+		return err
+	}
+	return nil
 }
 
 func printSecrets(cmd *cobra.Command, secrets []server.Secret) error {
@@ -58,7 +67,7 @@ func printSecrets(cmd *cobra.Command, secrets []server.Secret) error {
 		rows = append(rows, table.Row{a.DisplayName, a.Metadata.Name, fmt.Sprintf("%d", len(a.StringData))})
 	}
 
-	fmt.Println(table.Table(&header, rows))
+	fn.Println(table.Table(&header, rows))
 
 	pName, _ := client.CurrentProjectName()
 

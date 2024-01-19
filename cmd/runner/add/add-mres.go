@@ -24,79 +24,86 @@ Examples:
   kl add mres --resource=<resourceId> --service=<serviceId>
 `,
 	Run: func(cmd *cobra.Command, _ []string) {
-		mresName := fn.ParseStringFlag(cmd, "resource")
 
-		mres, err := server.SelectMres([]fn.Option{
-			fn.MakeOption("mresName", mresName),
-		}...)
-
+		err := selectAndAddMres(cmd)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
+	},
+}
 
-		mresKey, err := server.SelectMresKey([]fn.Option{
-			fn.MakeOption("mresName", mres.Metadata.Name),
-		}...)
+func selectAndAddMres(cmd *cobra.Command) error {
 
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+	mresName := fn.ParseStringFlag(cmd, "resource")
 
-		kt, err := client.GetKlFile(nil)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+	mres, err := server.SelectMres([]fn.Option{
+		fn.MakeOption("mresName", mresName),
+	}...)
 
-		if kt.Mres == nil {
-			kt.Mres = []client.ResType{
-				{
-					Name: mres.Metadata.Name,
-					Env: []client.ResEnvType{
-						{
-							Key:    fmt.Sprintf("%s_%s", mres.Metadata.Name, *mresKey),
-							RefKey: *mresKey,
-						},
-					},
-				},
-			}
-		}
+	if err != nil {
+		return err
+	}
 
-		if kt.Mres != nil {
-			matchedMres := false
-			for i, rt := range kt.Mres {
-				if rt.Name == mres.Metadata.Name {
-					kt.Mres[i].Env = append(kt.Mres[i].Env, client.ResEnvType{
+	mresKey, err := server.SelectMresKey([]fn.Option{
+		fn.MakeOption("mresName", mres.Metadata.Name),
+	}...)
+
+	if err != nil {
+		return err
+	}
+
+	kt, err := client.GetKlFile(nil)
+	if err != nil {
+		return err
+	}
+
+	if kt.Mres == nil {
+		kt.Mres = []client.ResType{
+			{
+				Name: mres.Metadata.Name,
+				Env: []client.ResEnvType{
+					{
 						Key:    fmt.Sprintf("%s_%s", mres.Metadata.Name, *mresKey),
 						RefKey: *mresKey,
-					})
-					matchedMres = true
-					break
-				}
-			}
-
-			if !matchedMres {
-				kt.Mres = append(kt.Mres, client.ResType{
-					Name: mres.Metadata.Name,
-					Env: []client.ResEnvType{
-						{
-							Key:    fmt.Sprintf("%s_%s", mres.Metadata.Name, *mresKey),
-							RefKey: *mresKey,
-						},
 					},
+				},
+			},
+		}
+	}
+
+	if kt.Mres != nil {
+		matchedMres := false
+		for i, rt := range kt.Mres {
+			if rt.Name == mres.Metadata.Name {
+				kt.Mres[i].Env = append(kt.Mres[i].Env, client.ResEnvType{
+					Key:    fmt.Sprintf("%s_%s", mres.Metadata.Name, *mresKey),
+					RefKey: *mresKey,
 				})
+				matchedMres = true
+				break
 			}
 		}
 
-		if err := client.WriteKLFile(*kt); err != nil {
-			fn.PrintError(err)
-			return
+		if !matchedMres {
+			kt.Mres = append(kt.Mres, client.ResType{
+				Name: mres.Metadata.Name,
+				Env: []client.ResEnvType{
+					{
+						Key:    fmt.Sprintf("%s_%s", mres.Metadata.Name, *mresKey),
+						RefKey: *mresKey,
+					},
+				},
+			})
 		}
+	}
 
-		fn.Log(fmt.Sprintf("added mres %s/%s to your kl-file", mres.Metadata.Name, *mresKey))
-	},
+	if err := client.WriteKLFile(*kt); err != nil {
+		return err
+	}
+
+	fn.Log(fmt.Sprintf("added mres %s/%s to your kl-file", mres.Metadata.Name, *mresKey))
+	return nil
 }
 
 func init() {

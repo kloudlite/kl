@@ -52,81 +52,83 @@ Example:
   sudo kl vpn start
 	`,
 	Run: func(_ *cobra.Command, _ []string) {
-		if euid := os.Geteuid(); euid != 0 {
-			fn.Log(
-				text.Colored("make sure you are running command with sudo", 209),
-			)
-			return
-		}
-
-		wgInterface, err := wgc.Show(&wgc.WgShowOptions{
-			Interface: "interfaces",
-		})
-
+		err := startVPN()
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
+	},
+}
 
-		if len(wgInterface) != 0 {
-			fn.Log("[#] already connected")
+func startVPN() error {
 
-			fn.Log("\n[#] reconnecting")
+	if euid := os.Geteuid(); euid != 0 {
+		fn.Log(
+			text.Colored("make sure you are running command with sudo", 209),
+		)
+		return nil
+	}
 
-			if err := disconnect(connectVerbose); err != nil {
-				fn.PrintError(err)
-				return
-			}
+	wgInterface, err := wgc.Show(&wgc.WgShowOptions{
+		Interface: "interfaces",
+	})
 
-			devName, err := client.CurrentDeviceName()
-			if err != nil {
-				fn.PrintError(err)
-				return
-			}
-			startServiceInBg(devName)
+	if err != nil {
+		return err
+	}
 
-			if err := connect(connectVerbose); err != nil {
-				fn.PrintError(err)
-				return
-			}
+	if len(wgInterface) != 0 {
+		fn.Log("[#] already connected")
 
-			fn.Log("[#] connected")
-			fn.Log("[#] reconnection done")
+		fn.Log("\n[#] reconnecting")
 
-			return
+		if err := disconnect(connectVerbose); err != nil {
+			return err
 		}
 
 		devName, err := client.CurrentDeviceName()
 		if err != nil {
-			fn.PrintError(err)
-			return
+			return err
 		}
 		startServiceInBg(devName)
 
 		if err := connect(connectVerbose); err != nil {
-			fn.PrintError(err)
-			return
+			return err
 		}
 
 		fn.Log("[#] connected")
+		fn.Log("[#] reconnection done")
 
-		_, err = wgc.Show(nil)
+		return nil
+	}
 
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+	devName, err := client.CurrentDeviceName()
+	if err != nil {
+		return err
+	}
+	startServiceInBg(devName)
 
-		s, err := client.CurrentDeviceName()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+	if err := connect(connectVerbose); err != nil {
+		return err
+	}
 
-		fn.Log(text.Bold(text.Green("\n[#]Selected Device:")),
-			text.Red(s),
-		)
-	},
+	fn.Log("[#] connected")
+
+	_, err = wgc.Show(nil)
+
+	if err != nil {
+		return err
+	}
+
+	s, err := client.CurrentDeviceName()
+	if err != nil {
+		return err
+	}
+
+	fn.Log(text.Bold(text.Green("\n[#]Selected Device:")),
+		text.Red(s),
+	)
+	return nil
 }
 
 func init() {

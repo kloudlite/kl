@@ -7,7 +7,6 @@ import (
 	"github.com/kloudlite/kl/domain/server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
-
 	"github.com/spf13/cobra"
 )
 
@@ -25,22 +24,30 @@ This command will provide the list of all the configs for the provided project n
   kl list configs <projectName>
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		pName := ""
-		if len(args) > 1 {
-			pName = args[0]
-		}
-
-		config, err := server.ListConfigs(fn.MakeOption("projectName", pName))
+		err := listConfigs(cmd, args)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		if err := printConfigs(cmd, config); err != nil {
-			fn.PrintError(err)
-			return
-		}
 	},
+}
+
+func listConfigs(cmd *cobra.Command, args []string) error {
+
+	pName := ""
+	if len(args) > 1 {
+		pName = args[0]
+	}
+
+	config, err := server.ListConfigs(fn.MakeOption("projectName", pName))
+	if err != nil {
+		return err
+	}
+
+	if err := printConfigs(cmd, config); err != nil {
+		return err
+	}
+	return nil
 }
 
 func printConfigs(cmd *cobra.Command, configs []server.Config) error {
@@ -60,7 +67,7 @@ func printConfigs(cmd *cobra.Command, configs []server.Config) error {
 		rows = append(rows, table.Row{a.DisplayName, a.Metadata.Name, fmt.Sprintf("%d", len(a.Data))})
 	}
 
-	fmt.Println(table.Table(&header, rows, cmd))
+	fn.Println(table.Table(&header, rows, cmd))
 
 	if s := fn.ParseStringFlag(cmd, "output"); s == "table" {
 		pName, _ := client.CurrentProjectName()

@@ -52,88 +52,86 @@ Example:
   sudo kl infra vpn start
 	`,
 	Run: func(_ *cobra.Command, _ []string) {
-		if euid := os.Geteuid(); euid != 0 {
-			fn.Log(
-				text.Colored("make sure you are running command with sudo", 209),
-			)
-			return
-		}
-
-		wgInterface, err := wgc.Show(&wgc.WgShowOptions{
-			Interface: "interfaces",
-		})
-
+		err := startInfraVPN()
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
+	},
+}
 
-		if len(wgInterface) != 0 {
-			fn.Log("[#] already connected")
+func startInfraVPN() error {
 
-			fn.Log("\n[#] reconnecting")
+	if euid := os.Geteuid(); euid != 0 {
+		fn.Log(
+			text.Colored("make sure you are running command with sudo", 209),
+		)
+		return nil
+	}
 
-			if err := disconnect(connectVerbose); err != nil {
-				fn.PrintError(err)
-				return
-			}
+	wgInterface, err := wgc.Show(&wgc.WgShowOptions{
+		Interface: "interfaces",
+	})
 
-			devName, err := client.CurrentInfraDeviceName()
-			if err != nil {
-				fn.PrintError(err)
-				return
-			}
+	if err != nil {
+		return err
+	}
 
-			startServiceInBg(devName)
+	if len(wgInterface) != 0 {
+		fn.Log("[#] already connected")
 
-			if err := connect(connectVerbose); err != nil {
-				fn.PrintError(err)
-				return
-			}
+		fn.Log("\n[#] reconnecting")
 
-			fn.Log("[#] connected")
-			fn.Log("[#] reconnection done")
-
-			return
+		if err := disconnect(connectVerbose); err != nil {
+			return err
 		}
 
 		devName, err := client.CurrentInfraDeviceName()
 		if err != nil {
-			fn.PrintError(err)
-			return
+			return err
 		}
 
 		startServiceInBg(devName)
 
 		if err := connect(connectVerbose); err != nil {
-			fn.PrintError(err)
-			return
+			return err
 		}
-
-		// if err := startConfiguration(connectVerbose); err != nil {
-		// 	fn.PrintError(err)
-		// 	return
-		// }
 
 		fn.Log("[#] connected")
+		fn.Log("[#] reconnection done")
 
-		_, err = wgc.Show(nil)
+		return nil
+	}
 
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+	devName, err := client.CurrentInfraDeviceName()
+	if err != nil {
+		return err
+	}
 
-		s, err := client.CurrentInfraDeviceName()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+	startServiceInBg(devName)
 
-		fn.Log(text.Bold(text.Green("\n[#]Selected Device:")),
-			text.Red(s),
-		)
-	},
+	if err := connect(connectVerbose); err != nil {
+		return err
+	}
+
+	fn.Log("[#] connected")
+
+	_, err = wgc.Show(nil)
+
+	if err != nil {
+		fn.PrintError(err)
+		return err
+	}
+
+	s, err := client.CurrentInfraDeviceName()
+	if err != nil {
+		return err
+	}
+
+	fn.Log(text.Bold(text.Green("\n[#]Selected Device:")),
+		text.Red(s),
+	)
+	return nil
 }
 
 func init() {

@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"fmt"
-
 	"github.com/kloudlite/kl/domain/server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -24,7 +22,7 @@ Example:
 			fn.PrintError(err)
 			return
 		} else {
-			fmt.Printf("You are logged in as %s (%s)\n",
+			fn.Printf("You are logged in as %s (%s)\n",
 				text.Blue(u.Name),
 				text.Blue(u.Email),
 			)

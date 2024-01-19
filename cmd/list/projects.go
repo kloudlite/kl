@@ -82,7 +82,7 @@ func listProjects(cmd *cobra.Command, accountName string) error {
 		})
 	}
 
-	fmt.Println(table.Table(&header, rows, cmd))
+	fn.Println(table.Table(&header, rows, cmd))
 
 	if s := fn.ParseStringFlag(cmd, "output"); s == "table" {
 

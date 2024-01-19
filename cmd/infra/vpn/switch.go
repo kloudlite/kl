@@ -20,33 +20,41 @@ Example:
 	kl infra vpn switch
 	`,
 	Run: func(cmd *cobra.Command, _ []string) {
-		name := ""
-		if cmd.Flags().Changed("name") {
-			name, _ = cmd.Flags().GetString("name")
-		}
 
-		d, err := server.SelectInfraDevice(name)
+		err := switchInfraVPN(cmd)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		activeInfraContext, err := client.GetActiveInfraContext()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		activeInfraContext.DeviceName = d.Metadata.Name
-
-		err = client.WriteInfraContextFile(*activeInfraContext)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		fn.Log("Selected vpn device: ", d.Metadata.Name)
-
 	},
+}
+
+func switchInfraVPN(cmd *cobra.Command) error {
+
+	name := ""
+	if cmd.Flags().Changed("name") {
+		name, _ = cmd.Flags().GetString("name")
+	}
+
+	d, err := server.SelectInfraDevice(name)
+	if err != nil {
+		return err
+	}
+
+	activeInfraContext, err := client.GetActiveInfraContext()
+	if err != nil {
+		return err
+	}
+	activeInfraContext.DeviceName = d.Metadata.Name
+
+	err = client.WriteInfraContextFile(*activeInfraContext)
+	if err != nil {
+		return err
+	}
+
+	fn.Log("Selected vpn device: ", d.Metadata.Name)
+
+	return nil
 }
 
 func init() {

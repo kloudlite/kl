@@ -1,6 +1,7 @@
 package vpn
 
 import (
+	"errors"
 	"github.com/kloudlite/kl/domain/server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
@@ -15,22 +16,31 @@ Example:
   kl infra vpn activate -n <namespace>
 	`,
 	Run: func(cmd *cobra.Command, _ []string) {
-		ns := ""
-
-		if cmd.Flags().Changed("name") {
-			ns, _ = cmd.Flags().GetString("name")
-		}
-		if ns == "" {
-			fn.Log("namespace is missing, please provide using kl infra vpn activate -n <namespace>")
-			return
-		}
-		if err := server.UpdateInfraDeviceNS(ns); err != nil {
+		err := activateInfraVPN(cmd)
+		if err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		fn.Log("namespace updated successfully")
 	},
+}
+
+func activateInfraVPN(cmd *cobra.Command) error {
+
+	ns := ""
+
+	if cmd.Flags().Changed("name") {
+		ns, _ = cmd.Flags().GetString("name")
+	}
+	if ns == "" {
+		return errors.New("namespace is missing, please provide using kl infra vpn activate -n <namespace>")
+	}
+	if err := server.UpdateInfraDeviceNS(ns); err != nil {
+		fn.PrintError(err)
+		return err
+	}
+
+	fn.Log("namespace updated successfully")
+	return nil
 }
 
 func init() {

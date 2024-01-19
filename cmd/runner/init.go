@@ -24,55 +24,62 @@ Examples:
 
 	Run: func(cmd *cobra.Command, _ []string) {
 
-		pName := fn.ParseStringFlag(cmd, "project")
-		aName := fn.ParseStringFlag(cmd, "account")
-
-		initFile, err := client.GetKlFile(nil)
-
+		err := initializeKLFile(cmd)
 		if err != nil {
-
-			acc, err := server.EnsureAccount(
-				fn.MakeOption("accountName", aName),
-			)
-			if err != nil {
-				fn.PrintError(err)
-				return
-			}
-
-			prj, err := server.EnsureProject(
-				[]fn.Option{
-					fn.MakeOption("accountName", aName),
-					fn.MakeOption("projectName", pName),
-				}...,
-			)
-			if err != nil {
-				fn.PrintError(err)
-				return
-			}
-
-			initFile = &client.KLFileType{
-				Version: "v1",
-				Project: fmt.Sprintf("%s/%s", acc, prj),
-				Mres:    make([]client.ResType, 0),
-				Configs: make([]client.ResType, 0),
-				Secrets: make([]client.ResType, 0),
-				Env:     []client.EnvType{{Key: "SAMPLE_ENV", Value: "sample_value"}},
-				FileMount: client.MountType{
-					MountBasePath: "./.mounts",
-					Mounts:        make([]client.FileEntry, 0),
-				},
-			}
-		} else {
-			fn.Log("file already present")
-		}
-
-		if err = client.WriteKLFile(*initFile); err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		fn.Log("Initialized file", client.GetConfigPath())
 	},
+}
+
+func initializeKLFile(cmd *cobra.Command) error {
+
+	pName := fn.ParseStringFlag(cmd, "project")
+	aName := fn.ParseStringFlag(cmd, "account")
+
+	initFile, err := client.GetKlFile(nil)
+
+	if err != nil {
+
+		acc, err := server.EnsureAccount(
+			fn.MakeOption("accountName", aName),
+		)
+		if err != nil {
+			return err
+		}
+
+		prj, err := server.EnsureProject(
+			[]fn.Option{
+				fn.MakeOption("accountName", aName),
+				fn.MakeOption("projectName", pName),
+			}...,
+		)
+		if err != nil {
+			return err
+		}
+
+		initFile = &client.KLFileType{
+			Version: "v1",
+			Project: fmt.Sprintf("%s/%s", acc, prj),
+			Mres:    make([]client.ResType, 0),
+			Configs: make([]client.ResType, 0),
+			Secrets: make([]client.ResType, 0),
+			Env:     []client.EnvType{{Key: "SAMPLE_ENV", Value: "sample_value"}},
+			FileMount: client.MountType{
+				MountBasePath: "./.mounts",
+				Mounts:        make([]client.FileEntry, 0),
+			},
+		}
+	} else {
+		fn.Log("file already present")
+	}
+
+	if err = client.WriteKLFile(*initFile); err != nil {
+		return err
+	}
+
+	fn.Log("Initialized file", client.GetConfigPath())
+	return nil
 }
 
 func init() {

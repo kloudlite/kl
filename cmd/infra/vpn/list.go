@@ -73,7 +73,7 @@ func listDevices() error {
 		})
 	}
 
-	fmt.Println(table.Table(&header, rows))
+	fn.Println(table.Table(&header, rows))
 	table.TotalResults(len(devices), true)
 
 	return nil

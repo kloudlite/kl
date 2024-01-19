@@ -2,8 +2,6 @@ package get
 
 import (
 	"encoding/json"
-	"fmt"
-
 	"github.com/kloudlite/kl/domain/server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -27,23 +25,31 @@ Examples:
   kl get secret <secretname> -o yaml
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		secName := ""
-
-		if len(args) >= 1 {
-			secName = args[0]
-		}
-
-		sec, err := server.EnsureSecret(fn.MakeOption("secretName", secName))
+		err := getSecrets(cmd, args)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		if err := printSecret(sec, cmd); err != nil {
-			fn.PrintError(err)
-			return
-		}
 	},
+}
+
+func getSecrets(cmd *cobra.Command, args []string) error {
+
+	secName := ""
+
+	if len(args) >= 1 {
+		secName = args[0]
+	}
+
+	sec, err := server.EnsureSecret(fn.MakeOption("secretName", secName))
+	if err != nil {
+		return err
+	}
+
+	if err := printSecret(sec, cmd); err != nil {
+		return err
+	}
+	return nil
 }
 
 func printSecret(secret *server.Secret, cmd *cobra.Command) error {
@@ -77,7 +83,7 @@ func printSecret(secret *server.Secret, cmd *cobra.Command) error {
 			})
 		}
 
-		fmt.Println(table.Table(&header, rows))
+		fn.Println(table.Table(&header, rows))
 		table.KVOutput("Showing entries of secret:", secret.Metadata.Name, true)
 		table.TotalResults(len(secret.StringData), true)
 	}

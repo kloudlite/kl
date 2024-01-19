@@ -21,53 +21,60 @@ var Cmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if len(args) == 0 {
-			cmd.Help()
-			return
-		}
-
-		var fn func() error
-		fn = func() error {
-
-			accountName := cmd.Flag("account").Value.String()
-			clusterName := cmd.Flag("cluster").Value.String()
-
-			var err error
-			clusterName, err = server.EnsureCluster([]functions.Option{
-				functions.MakeOption("accountName", accountName),
-				functions.MakeOption("clusterName", clusterName),
-			}...)
-
-			if err != nil {
-				return err
-			}
-
-			functions.Log(
-				text.Bold(text.Green("\nSelected Cluster:")),
-				text.Blue(fmt.Sprintf("%s", clusterName)),
-			)
-
-			configPath, err := server.SyncKubeConfig([]functions.Option{
-				functions.MakeOption("accountName", accountName),
-				functions.MakeOption("clusterName", clusterName),
-			}...)
-
-			if err != nil {
-				return err
-			}
-			if err := run(map[string]string{
-				"KUBECONFIG": *configPath,
-			}, args); err != nil {
-				return err
-			}
-			return nil
-		}
-		if err := fn(); err != nil {
+		err := runInfra(cmd, args)
+		if err != nil {
 			functions.PrintError(err)
 			return
 		}
-
 	},
+}
+
+func runInfra(cmd *cobra.Command, args []string) error {
+
+	if len(args) == 0 {
+		return cmd.Help()
+	}
+
+	var fn func() error
+	fn = func() error {
+
+		accountName := cmd.Flag("account").Value.String()
+		clusterName := cmd.Flag("cluster").Value.String()
+
+		var err error
+		clusterName, err = server.EnsureCluster([]functions.Option{
+			functions.MakeOption("accountName", accountName),
+			functions.MakeOption("clusterName", clusterName),
+		}...)
+
+		if err != nil {
+			return err
+		}
+
+		functions.Log(
+			text.Bold(text.Green("\nSelected Cluster:")),
+			text.Blue(fmt.Sprintf("%s", clusterName)),
+		)
+
+		configPath, err := server.SyncKubeConfig([]functions.Option{
+			functions.MakeOption("accountName", accountName),
+			functions.MakeOption("clusterName", clusterName),
+		}...)
+
+		if err != nil {
+			return err
+		}
+		if err := run(map[string]string{
+			"KUBECONFIG": *configPath,
+		}, args); err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := fn(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func run(envs map[string]string, args []string) error {

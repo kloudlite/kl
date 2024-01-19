@@ -2,12 +2,9 @@ package get
 
 import (
 	"encoding/json"
-	"fmt"
-
 	"github.com/kloudlite/kl/domain/server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
-
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -27,23 +24,31 @@ Examples:
   kl get config <configname> -o yaml
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		configName := ""
-
-		if len(args) >= 1 {
-			configName = args[0]
-		}
-
-		config, err := server.EnsureConfig(fn.MakeOption("configName", configName))
+		err := getConfigs(cmd, args)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
-
-		if err := printConfig(config, cmd); err != nil {
-			fn.PrintError(err)
-			return
-		}
 	},
+}
+
+func getConfigs(cmd *cobra.Command, args []string) error {
+
+	configName := ""
+
+	if len(args) >= 1 {
+		configName = args[0]
+	}
+
+	config, err := server.EnsureConfig(fn.MakeOption("configName", configName))
+	if err != nil {
+		return err
+	}
+
+	if err := printConfig(config, cmd); err != nil {
+		return err
+	}
+	return nil
 }
 
 func printConfig(config *server.Config, cmd *cobra.Command) error {
@@ -77,7 +82,7 @@ func printConfig(config *server.Config, cmd *cobra.Command) error {
 			})
 		}
 
-		fmt.Println(table.Table(&header, rows))
+		fn.Println(table.Table(&header, rows))
 
 		table.KVOutput("Showing entries of config:", config.Metadata.Name, true)
 

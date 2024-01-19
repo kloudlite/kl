@@ -75,7 +75,7 @@ func configure(
 	}
 
 	if device.Spec.ActiveNamespace == "" {
-		return errors.New(fmt.Sprintf("no env name found for device %s, please use env using kl env switch\n", devName))
+		return errors.New(fmt.Sprintf("no namespace found for device %s, please use env using kl infra vpn activate\n", devName))
 	}
 	if len(device.Spec.Ports) == 0 {
 		return errors.New(fmt.Sprintf("no ports found for device %s, please export ports using kl infra vpn expose\n", devName))
