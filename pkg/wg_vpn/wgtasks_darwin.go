@@ -20,6 +20,11 @@ import (
 	"golang.zx2c4.com/wireguard/tun"
 )
 
+const (
+	ifName string = "utun2464"
+)
+
+
 func getCurrentDns() ([]string, error) {
 	config, err := dns.ClientConfigFromFile("/etc/resolv.conf")
 
@@ -30,6 +35,9 @@ func getCurrentDns() ([]string, error) {
 	return config.Servers, nil
 }
 
+func configureDarwin(devName string, verbose bool) error {
+	return configure(devName, ifName, verbose)
+}
 func connect(verbose bool) error {
 	success := false
 	defer func() {
@@ -46,7 +54,6 @@ func connect(verbose bool) error {
 	success = true
 	return nil
 }
-
 func disconnect(verbose bool) error {
 	return stopService(verbose)
 }
@@ -95,6 +102,8 @@ func getDNSServers(networkService string, verbose bool) ([]string, error) {
 	}
 	return dnsServers, nil
 }
+
+
 
 func setDeviceIp(deviceIp net.IPNet, _ string, verbose bool) error {
 	return execCmd(fmt.Sprintf("ifconfig %s %s %s", ifName, deviceIp.IP.String(), deviceIp.IP.String()), verbose)
@@ -176,7 +185,7 @@ func stopService(verbose bool) error {
 	if p == nil {
 		return errors.New("process not found")
 	}
-
+	
 	err = syscall.Kill(int(i), syscall.SIGTERM)
 	if err != nil {
 		return err

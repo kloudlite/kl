@@ -11,8 +11,14 @@ const (
 	KlWgInterface = "wgkl"
 )
 
-func getCurrentDns() ([]string, error) {
+func configureDarwin(_ string, _ bool) error {
+	// not required to implement
+	return nil
+}
 
+
+func getCurrentDns() ([]string, error) {
+	
 	return []string{}, nil
 }
 
