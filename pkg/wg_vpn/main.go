@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -14,6 +15,18 @@ import (
 	"github.com/kloudlite/kl/pkg/wg_vpn/wgc"
 	"golang.zx2c4.com/wireguard/wgctrl"
 )
+
+func isSystemdReslov() bool {
+	if runtime.GOOS != "linux" {
+		return false
+	}
+
+	if err := execCmd("systemctl status systemd-resolved", false); err != nil {
+		return false
+	}
+
+	return true
+}
 
 func execCmd(cmdString string, verbose bool) error {
 	r := csv.NewReader(strings.NewReader(cmdString))
@@ -75,6 +88,7 @@ func Configure(
 	if e := cfg.UnmarshalText(configuration); e != nil {
 		return e
 	}
+
 	s.Stop()
 	if len(cfg.Address) == 0 {
 		return errors.New("device ip not found")
@@ -91,36 +105,54 @@ func Configure(
 		fn.Log("[#] setting up connection")
 	}
 
-	dServers, err := getCurrentDns()
-	if err != nil {
+	dnsServers := make([]net.IPNet, 0)
+	isSystemdReslov := isSystemdReslov()
+
+	if err := func() error {
+		if isSystemdReslov {
+			return nil
+		}
+
+		dServers, err := getCurrentDns()
+		if err != nil {
+			return err
+		}
+
+		dnsServers = func() []net.IPNet {
+			var ipNet []net.IPNet
+			for _, v := range dServers {
+				ip := net.ParseIP(v)
+				if ip == nil {
+					continue
+				}
+				in := net.IPNet{
+					IP: ip,
+					Mask: func() net.IPMask {
+						if ip.To4() != nil {
+							return net.CIDRMask(32, 32)
+						}
+						return net.CIDRMask(128, 128)
+					}(),
+				}
+				ipNet = append(ipNet, in)
+			}
+
+			return ipNet
+		}()
+
+		emptydns := []net.IP{}
+		cfg.DNS = emptydns
+
+		return nil
+	}(); err != nil {
 		return err
 	}
 
-	dnsServers := func() []net.IPNet {
-
-		var ipNet []net.IPNet
-		for _, v := range dServers {
-			ip := net.ParseIP(v)
-			if ip == nil {
-				continue
-			}
-			in := net.IPNet{
-				IP: ip,
-				Mask: func() net.IPMask {
-					if ip.To4() != nil {
-						return net.CIDRMask(32, 32)
-					}
-					return net.CIDRMask(128, 128)
-				}(),
-			}
-			ipNet = append(ipNet, in)
+	if isSystemdReslov || runtime.GOOS == "darwin" {
+		if err := setDnsServer(cfg.DNS[0], interfaceName, verbose); err != nil {
+			return err
 		}
-
-		return ipNet
-	}()
-
-	emptydns := []net.IP{}
-	cfg.DNS = emptydns
+	}
 
 	cfg.Peers[0].AllowedIPs = append(cfg.Peers[0].AllowedIPs, dnsServers...)
 

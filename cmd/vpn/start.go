@@ -139,7 +139,7 @@ func startConnecting(verbose bool, options ...fn.Option) error {
 
 func init() {
 	startCmd.Flags().BoolVarP(&connectVerbose, "verbose", "v", false, "show verbose")
-	startCmd.Flags().BoolP("no-dns", "n", false, "do not update dns")
+	startCmd.Flags().BoolP("skip-dns", "s", false, "do not update dns")
 
 	startCmd.Aliases = append(stopCmd.Aliases, "connect")
 
