@@ -107,7 +107,7 @@ func startConfiguration(verbose bool, options ...fn.Option) error {
 	if wg_vpn.IsSystemdReslov() {
 		if err := wg_vpn.ExecCmd(fmt.Sprintf("resolvectl domain %s %s", device.Metadata.Name, func() string {
 			if device.Spec.ActiveNamespace != "" {
-				return device.Spec.ActiveNamespace
+				return fmt.Sprintf("%s.svc.cluster.local", device.Spec.ActiveNamespace)
 			}
 
 			return "~."
