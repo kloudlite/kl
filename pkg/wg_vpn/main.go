@@ -16,30 +16,32 @@ import (
 	"golang.zx2c4.com/wireguard/wgctrl"
 )
 
-func isSystemdReslov() bool {
+func IsSystemdReslov() bool {
 	if runtime.GOOS != "linux" {
 		return false
 	}
 
-	if err := execCmd("systemctl status systemd-resolved", false); err != nil {
+	if err := ExecCmd("systemctl status systemd-resolved", false); err != nil {
 		return false
 	}
 
 	return true
 }
 
-func execCmd(cmdString string, verbose bool) error {
+func ExecCmd(cmdString string, verbose bool) error {
 	r := csv.NewReader(strings.NewReader(cmdString))
 	r.Comma = ' '
 	cmdArr, err := r.Read()
 	if err != nil {
 		return err
 	}
+
 	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
 	if verbose {
 		fn.Log("[#] " + strings.Join(cmdArr, " "))
 		cmd.Stdout = os.Stdout
 	}
+
 	cmd.Stderr = os.Stderr
 	// s.Start()
 	err = cmd.Run()
@@ -61,7 +63,7 @@ func StartServiceInBg(devName string, configFolder string) error {
 	}
 
 	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
-		if err = execCmd(fmt.Sprintf("chown %s %s", usr, configFolder+"/wgpid"),
+		if err = ExecCmd(fmt.Sprintf("chown %s %s", usr, configFolder+"/wgpid"),
 			false); err != nil {
 			fn.PrintError(err)
 			return err
@@ -106,7 +108,7 @@ func Configure(
 	}
 
 	dnsServers := make([]net.IPNet, 0)
-	isSystemdReslov := isSystemdReslov()
+	isSystemdReslov := IsSystemdReslov()
 
 	if err := func() error {
 		if isSystemdReslov {

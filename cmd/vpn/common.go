@@ -95,10 +95,26 @@ func startConfiguration(verbose bool, options ...fn.Option) error {
 		return err
 	}
 
-	return wg_vpn.Configure(configuration, devName, func() string {
+	if err := wg_vpn.Configure(configuration, devName, func() string {
 		if runtime.GOOS == "darwin" {
 			return ifName
 		}
 		return devName
-	}(), verbose)
+	}(), verbose); err != nil {
+		return err
+	}
+
+	if wg_vpn.IsSystemdReslov() {
+		if err := wg_vpn.ExecCmd(fmt.Sprintf("resolvectl domain %s %s", device.Metadata.Name, func() string {
+			if device.Spec.ActiveNamespace != "" {
+				return device.Spec.ActiveNamespace
+			}
+
+			return "~."
+		}()), false); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

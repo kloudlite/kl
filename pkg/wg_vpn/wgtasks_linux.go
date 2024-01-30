@@ -105,7 +105,7 @@ func StopService(verbose bool) error {
 }
 
 func setDnsServer(dnsServer net.IP, deviceName string, verbose bool) error {
-	return execCmd(fmt.Sprintf("resolvectl dns %s %s", deviceName, dnsServer.String()), verbose)
+	return ExecCmd(fmt.Sprintf("resolvectl dns %s %s", deviceName, dnsServer.String()), verbose)
 }
 
 func SetDeviceIp(ip net.IPNet, deviceName string, _ bool) error {
