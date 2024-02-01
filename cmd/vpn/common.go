@@ -14,6 +14,7 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/pkg/wg_vpn"
+	wg_svc "github.com/kloudlite/kl/pkg/wg_vpn/wg_service"
 )
 
 const (
@@ -95,6 +96,15 @@ func startConfiguration(verbose bool, options ...fn.Option) error {
 		return err
 	}
 
+	if runtime.GOOS != "linux" {
+
+		if err := wg_svc.StartVpn(configuration); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
 	if err := wg_vpn.Configure(configuration, devName, func() string {
 		if runtime.GOOS == "darwin" {
 			return ifName
@@ -115,6 +125,5 @@ func startConfiguration(verbose bool, options ...fn.Option) error {
 			return err
 		}
 	}
-
 	return nil
 }

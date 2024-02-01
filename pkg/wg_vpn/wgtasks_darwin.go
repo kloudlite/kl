@@ -167,7 +167,6 @@ func StopService(verbose bool) error {
 	return nil
 }
 
-func setDnsServer(dnsServer net.IP, deviceName string, verbose bool) error {
-	return nil
-	// return ExecCmd(fmt.Sprintf("resolvectl dns %s %s", deviceName, dnsServer.String()), verbose)
+func setDnsServer(dnsServer net.IP, _ string, verbose bool) error {
+	return ExecCmd(fmt.Sprintf("networksetup -setdnsservers %s %s", ifName, dnsServer.String()), verbose)
 }
