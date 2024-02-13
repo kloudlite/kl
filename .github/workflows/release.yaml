@@ -45,6 +45,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install gcc libgtk-3-dev libayatana-appindicator3-dev
+
+      - name: Set up QEMU
+        if: matrix.arch == 'arm64' && matrix.os == 'ubuntu-latest'
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+
       - name: Check Go version
         run: |
           go version
