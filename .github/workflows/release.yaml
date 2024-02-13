@@ -56,9 +56,9 @@ jobs:
       #     docker-machine start default
       #     eval $(docker-machine env default)
 
-      - name: Set up QEMU and Docker Buildx (for ARM architecture)
-        if: matrix.arch == 'arm64'
-        uses: docker/setup-qemu-action@v3.0.0
+      # - name: Set up QEMU and Docker Buildx (for ARM architecture)
+      #   if: matrix.arch == 'arm64'
+      #   uses: docker/setup-qemu-action@v3.0.0
 
       - name: Build
         run: |
