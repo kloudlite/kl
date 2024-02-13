@@ -60,7 +60,8 @@ jobs:
 
       - name: Extract tag name
         id: tag_name
-        run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
+        # run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
+        run: echo "::set-output name=TAG_NAME::v1.0.5-nightly"
 
       - name: Build
         env:
