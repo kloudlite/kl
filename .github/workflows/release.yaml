@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: Build ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }}
+    name: Build ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
