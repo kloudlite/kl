@@ -100,11 +100,17 @@ jobs:
             fi
           done
 
+      - name: Extract tag name
+        id: tag_name
+        # run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
+        run: echo "::set-output name=TAG_NAME::v1.0.5-nightly"
+
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: artifacts/**
+          tag_name: ${{ steps.tag_name.outputs.TAG_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
