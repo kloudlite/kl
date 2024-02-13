@@ -5,7 +5,8 @@ on:
     types: [created]
   push:
     branches:
-      - '**'
+      - 'release-*'
+      - 'fix-*'
 
 jobs:
   build:
