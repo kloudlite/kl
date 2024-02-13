@@ -75,10 +75,11 @@ jobs:
 
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
           mkdir bin
+          mkdir out
           go build -o bin/${{ matrix.app }} main.go
 
-          zip -j bin/$RELEASE_NAME.zip bin/${{ matrix.app }}
-          tar -czvf bin/$RELEASE_NAME.tar.gz bin/${{ matrix.app }}
+          zip -j out/$RELEASE_NAME.zip bin/${{ matrix.app }}
+          tar -czvf out/$RELEASE_NAME.tar.gz bin/${{ matrix.app }}
 
       - name: Build Windows
         if: matrix.goos == 'windows'
@@ -96,7 +97,7 @@ jobs:
           go build -o bin/${{ matrix.app }}.exe main.go
 
           tar.exe -czvf out/$RELEASE_NAME.tar.gz bin/${{ matrix.app }}.exe
-          tar.exe -a -c -f out/${{ matrix.app }}.exe bin/${{ matrix.app }}.exe
+          tar.exe -a -c -f out/${{ matrix.app }}.zip bin/${{ matrix.app }}.exe
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
