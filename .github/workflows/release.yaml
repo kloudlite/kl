@@ -4,8 +4,8 @@ on:
   release:
     types: [created]
   push:
-    tags:
-      - '*'
+    branches:
+      - '**'
 
 jobs:
   build:
