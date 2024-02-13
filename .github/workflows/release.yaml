@@ -85,10 +85,20 @@ jobs:
         with:
           path: ${{ github.workspace }}/artifacts
 
+      - name: Compress each binary individually (zip, tar)
+        run: |
+          for file in ${{ github.workspace }}/artifacts/*; do
+            if [ -f "$file" ]; then
+              echo "Compressing $file"
+              zip -j $file.zip $file
+              tar -czvf $file.tar.gz $file
+            fi
+          done
+
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: artifacts/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
