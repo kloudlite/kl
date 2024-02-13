@@ -62,6 +62,7 @@ jobs:
 
       - name: Build
         run: |
+          echo "GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}, ${{ matrix.buildType }}"
           go build -o myapp-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }} ${{ github.workspace }}
 
