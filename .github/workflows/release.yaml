@@ -8,6 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        app: [kl,kli]
         os: [ubuntu-latest, windows-latest, macos-latest, macos-14]
         arch: [amd64, arm64]
         buildType: [release]
@@ -72,8 +73,8 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: myapp-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }}
-          path: myapp-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }}
+          name: ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }}
+          path: ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }}
 
   release:
     needs: build
