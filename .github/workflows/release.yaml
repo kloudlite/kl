@@ -4,31 +4,40 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: Build on ${{ matrix.platform }} - ${{ matrix.buildType }}
+    name: Build on ${{ matrix.os }} ${{ matrix.arch }} - ${{ matrix.buildType }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest]
+        arch: [amd64, arm64]
+        buildType: [debug, release]
         include:
-          - platform: ubuntu-latest
-            buildType: debug
-            os: linux
-          - platform: windows-latest
-            buildType: release
-            os: windows
-    runs-on: ${{ matrix.platform }}
+          - os: ubuntu-latest
+            goos: linux
+            platform: linux
+          - os: windows-latest
+            goos: windows
+            platform: windows
+        exclude:
+          # Example: Exclude ARM builds on Windows
+          - os: windows-latest
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
           go-version: '^1.18'
-      
-      - name: Build Debug on Linux
-        if: matrix.os == 'linux' && matrix.buildType == 'debug'
-        run: echo "Run Linux Debug specific commands"
-        # Replace echo with your Linux debug build commands
-      
-      - name: Build Release on Windows
-        if: matrix.os == 'windows' && matrix.buildType == 'release'
-        run: echo "Run Windows Release specific commands"
-        # Replace echo with your Windows release build commands
+
+      - name: Set up QEMU and Docker Buildx (for ARM architecture)
+        if: matrix.arch == 'arm64'
+        uses: docker/setup-qemu-action@v1
+
+      - name: Build
+        run: |
+          echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}, ${{ matrix.buildType }}"
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.arch }} go build -o myapp-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }}
+
