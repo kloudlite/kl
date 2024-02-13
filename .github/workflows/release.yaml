@@ -4,14 +4,13 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }} ${{ matrix.arch }} - ${{ matrix.buildType }}
+    name: Build ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }}
     strategy:
       fail-fast: false
       matrix:
         app: [kl,kli]
         os: [ubuntu-latest, windows-latest, macos-latest, macos-14]
         arch: [amd64, arm64]
-        buildType: [release]
         include:
           - os: ubuntu-latest
             goos: linux
@@ -67,14 +66,14 @@ jobs:
         run: |
           echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
-          echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}, ${{ matrix.buildType }}"
-          go build -o myapp-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }} ${{ github.workspace }}
+          echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
+          go build -o ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }} ${{ github.workspace }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }}
-          path: ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }}
+          name: ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}
+          path: ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}
 
   release:
     needs: build
