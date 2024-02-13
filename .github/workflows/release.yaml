@@ -1,6 +1,11 @@
 name: Conditional Builds Workflow
 
-on: [push, pull_request]
+on:
+  release:
+    types: [created]
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -58,10 +63,29 @@ jobs:
           go version
           echo "[PRE] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
-      - name: Extract tag name
+      - name: Create Image Tag from branch name
+        if: startsWith(github.ref, 'refs/heads/release-')
+        run: |
+          set +e
+          TAG=$(echo ${GITHUB_REF#refs/heads/release-})
+          echo "$TAG" | grep -i '\-nightly$'
+          if [ $? -ne 0 ]; then
+            TAG="$TAG-nightly"
+          fi
+          set -e
+
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Create Image Tag from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG=$(echo ${GITHUB_REF#refs/tags/})
+
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Set Tag Output
         id: tag_name
-        # run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
-        run: echo "::set-output name=TAG_NAME::v1.0.5-nightly"
+        run: echo "::set-output name=TAG_NAME::${TAG}"
 
       - name: Build Linux & Mac
         if: matrix.goos == 'linux' || matrix.goos == 'darwin'
@@ -108,18 +132,36 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    # if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
           path: ${{ github.workspace }}/artifacts
 
-      - name: Extract tag name
-        id: tag_name
-        # run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
-        run: echo "::set-output name=TAG_NAME::v1.0.5-nightly"
+      - name: Create Image Tag from branch name
+        if: startsWith(github.ref, 'refs/heads/release-')
+        run: |
+          set +e
+          TAG=$(echo ${GITHUB_REF#refs/heads/release-})
+          echo "$TAG" | grep -i '\-nightly$'
+          if [ $? -ne 0 ]; then
+            TAG="$TAG-nightly"
+          fi
+          set -e
 
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Create Image Tag from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG=$(echo ${GITHUB_REF#refs/tags/})
+
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Set Tag Output
+        id: tag_name
+        run: echo "::set-output name=TAG_NAME::${TAG}"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
