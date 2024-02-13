@@ -46,23 +46,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install gcc libgtk-3-dev libayatana-appindicator3-dev
 
-      # - name: Install docker # Taken from https://github.com/actions/virtual-environments/issues/1143#issuecomment-652264388
-      #   if: matrix.arch == 'arm64' && !(matrix.os == 'ubuntu-latest')
-      #   run: |
-      #     mkdir -p ~/.docker/machine/cache
-      #     curl -Lo ~/.docker/machine/cache/boot2docker.iso https://github.com/boot2docker/boot2docker/releases/download/v19.03.12/boot2docker.iso
-      #     brew install docker docker-machine
-      #     docker-machine create --driver virtualbox default
-      #     docker-machine start default
-      #     eval $(docker-machine env default)
-
-      # - name: Set up QEMU and Docker Buildx (for ARM architecture)
-      #   if: matrix.arch == 'arm64'
-      #   uses: docker/setup-qemu-action@v3.0.0
-
       - name: Build
         run: |
-          echo "GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
+          echo "[PRE] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
+
+          export GOOS=${{ matrix.goos }}
+          export GOARCH=${{ matrix.arch }}
+
+          echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
+
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}, ${{ matrix.buildType }}"
           go build -o myapp-${{ matrix.platform }}-${{ matrix.arch }}-${{ matrix.buildType }} ${{ github.workspace }}
 
