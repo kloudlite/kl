@@ -30,7 +30,7 @@ jobs:
             arch: amd64
           - os: macos-latest
             arch: arm64
-          - os: linux-latest
+          - os: ubuntu-latest
             arch: arm64
     runs-on: ${{ matrix.os }}
 
