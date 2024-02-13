@@ -24,10 +24,12 @@ jobs:
           - os: macos-latest-xlarge
             goos: darwin
             platform: darwin
-        # exclude:
-          # Example: Exclude ARM builds on Windows
-          # - os: windows-latest
-          #   arch: arm64
+        exclude:
+          Example: Exclude ARM builds on Windows
+          - os: macos-latest-xlarge
+            arch: amd64
+          - os: macos-latest
+            arch: arm64
     runs-on: ${{ matrix.os }}
 
     steps:
