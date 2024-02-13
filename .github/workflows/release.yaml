@@ -92,16 +92,17 @@ jobs:
 
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
           mkdir bin
+          mkdir out
           go build -o bin/${{ matrix.app }}.exe main.go
 
-          tar.exe -czvf bin/$RELEASE_NAME.tar.gz bin/${{ matrix.app }}.exe
-          tar.exe -a -c -f bin/${{ matrix.app }}.exe bin/${{ matrix.app }}.exe
+          tar.exe -czvf out/$RELEASE_NAME.tar.gz bin/${{ matrix.app }}.exe
+          tar.exe -a -c -f out/${{ matrix.app }}.exe bin/${{ matrix.app }}.exe
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}
-          path: bin/*
+          path: out/*
 
   release:
     needs: build
