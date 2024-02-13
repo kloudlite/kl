@@ -63,7 +63,8 @@ jobs:
         # run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
         run: echo "::set-output name=TAG_NAME::v1.0.5-nightly"
 
-      - name: Build
+      - name: Build Linux & Mac
+        if: matrix.goos == 'linux' || matrix.goos == 'darwin'
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
@@ -78,6 +79,23 @@ jobs:
 
           zip -j bin/$RELEASE_NAME.zip bin/${{ matrix.app }}
           tar -czvf bin/$RELEASE_NAME.tar.gz bin/${{ matrix.app }}
+
+      - name: Build Windows
+        if: matrix.goos == 'windows'
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.arch }}
+          FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }} -X github.com/kloudlite/kl/flags.DevMode=true"
+          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
+        run: |
+          echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
+
+          echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
+          mkdir bin
+          go build -o bin/${{ matrix.app }}.exe main.go
+
+          tar.exe -czvf bin/$RELEASE_NAME.tar.gz bin/${{ matrix.app }}.exe
+          zip.exe -j bin/$RELEASE_NAME.zip bin/${{ matrix.app }}.exe
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
