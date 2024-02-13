@@ -4,7 +4,6 @@ import (
 	"github.com/getlantern/systray"
 	ns "github.com/kloudlite/kl/app/handler/name-conts"
 	"github.com/kloudlite/kl/domain/client"
-	"os"
 	"time"
 )
 
@@ -93,23 +92,41 @@ func (h *handler) ReconAccount() {
 	//		}
 	//	}
 	//}()
-	var acc *systray.MenuItem
+	var cluster *systray.MenuItem
 
-	if h.itemMap[ns.AccountTitle] != nil {
-		acc = h.itemMap[ns.AccountTitle]
+	//if h.itemMap[ns.AccountTitle] != nil {
+	//	acc = h.itemMap[ns.AccountTitle]
+	//} else {
+	//	acc = systray.AddMenuItem("", "Selected Account")
+	//	h.AddItem(ns.AccountTitle, acc)
+	//}
+
+	if h.itemMap[ns.ClusterBtn] != nil {
+		cluster = h.itemMap[ns.ClusterBtn]
 	} else {
-		acc = systray.AddMenuItem("", "Selected Account")
-		h.AddItem(ns.AccountTitle, acc)
+		cluster = systray.AddMenuItem("", "Selected cluster")
+		h.AddItem(ns.ClusterBtn, cluster)
 	}
+
 	go func() {
 		for {
-			file, err := client.GetMainCtx()
-			if os.IsNotExist(err) || file.AccountName == "" {
-				acc.SetTitle("No Account")
+			//file, err := client.GetMainCtx()
+			//if os.IsNotExist(err) || file.AccountName == "" {
+			//	acc.SetTitle("No Account")
+			//} else {
+			//	acc.SetTitle(fmt.Sprintf("Account: %s", file.AccountName))
+			//}
+
+			devCluster, _ := client.GetDevInfo()
+
+			if devCluster == "" {
+				cluster.SetTitle("No Cluster")
 			} else {
-				acc.SetTitle(file.AccountName)
+				cluster.SetTitle(devCluster)
 			}
-			acc.Disable()
+
+			//acc.Disable()
+			cluster.Disable()
 
 			<-time.After(1 * time.Second)
 		}
