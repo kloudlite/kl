@@ -14,9 +14,9 @@ jobs:
         go-version: [1.19.x]
         os: [linux, windows, macos]
         arch: [amd64, arm64]
-        exclude:
-          - os: macos
-            arch: arm64 # Exclude this combination if your project doesn't support it.
+        # exclude:
+        #   - os: macos
+        #     arch: arm64 # Exclude this combination if your project doesn't support it.
     steps:
       - name: Set up Go
         uses: actions/setup-go@v3
