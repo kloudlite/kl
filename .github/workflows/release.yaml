@@ -45,14 +45,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install gcc libgtk-3-dev libayatana-appindicator3-dev
-
-      - name: Build
+      - name: Check Go version
         run: |
+          go version
           echo "[PRE] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
-          export GOOS=${{ matrix.goos }}
-          export GOARCH=${{ matrix.arch }}
-
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
           echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}, ${{ matrix.buildType }}"
