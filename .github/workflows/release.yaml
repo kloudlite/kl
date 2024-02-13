@@ -68,17 +68,22 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
           FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }} -X github.com/kloudlite/kl/flags.DevMode=true"
+          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
         run: |
           echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
-          go build -o ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }} main.go
+          mkdir bin
+          go build -o bin/${{ matrix.app }} main.go
+
+          zip -j bin/$RELEASE_NAME.zip bin/${{ matrix.app }}
+          tar -czvf bin/$RELEASE_NAME.tar.gz bin/${{ matrix.app }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
-          path: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
+          name: ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}
+          path: bin/*
 
   release:
     needs: build
@@ -95,8 +100,8 @@ jobs:
           for file in ${{ github.workspace }}/artifacts/*; do
             if [ -f "$file" ]; then
               echo "Compressing $file"
-              zip -j $file.zip $file
-              tar -czvf $file.tar.gz $file
+              zip -j "$file".zip $file
+              tar -czvf "$file".tar.gz $file
             fi
           done
 
@@ -113,39 +118,3 @@ jobs:
           tag_name: ${{ steps.tag_name.outputs.TAG_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-# on:
-#   release:
-#     types: [created]
-#
-# jobs:
-#   releases-matrix:
-#     name: Release Go Binary
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
-#         goos: [linux, windows, darwin]
-#         goarch: ["386", amd64, arm64]
-#         exclude:
-#           - goarch: "386"
-#             goos: darwin
-#           - goarch: arm64
-#             goos: windows
-#     steps:
-#     - uses: actions/checkout@v3
-#     - name: Extract tag name
-#       id: tag_name
-#       run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
-#     - uses: wangyoucao577/go-release-action@v1.30
-#       with:
-#         github_token: ${{ secrets.GITHUB_TOKEN }}
-#         goos: ${{ matrix.goos }}
-#         goarch: ${{ matrix.goarch }}
-#         goversion: "https://dl.google.com/go/go1.19.1.linux-amd64.tar.gz"
-#         project_path: "."
-#         ldflags: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ steps.determine_cli.outputs.CLI_TO_BUILD }}"
-#         binary_name: ${{ steps.determine_cli.outputs.CLI_TO_BUILD }}
-#         extra_files: LICENSE README.md
-#
