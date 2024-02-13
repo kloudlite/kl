@@ -116,5 +116,6 @@ jobs:
         with:
           files: artifacts/**
           tag_name: ${{ steps.tag_name.outputs.TAG_NAME }}
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
