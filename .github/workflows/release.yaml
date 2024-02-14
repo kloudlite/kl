@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - 'release-*'
-      - 'fix-*'
 
 jobs:
   build:
@@ -64,7 +63,6 @@ jobs:
           echo "[PRE] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
       - name: Setup Python
-        if: matrix.arch == 'arm64' && matrix.os == 'macos-14'
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
