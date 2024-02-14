@@ -122,7 +122,10 @@ jobs:
       - name: Decode and Sign on Windows
         if: matrix.goos == 'windows'
         run: |
-          echo -e "${{ secrets.CERT_PFX }}" | base64 --decode > certificate.pfx
+          cat > ./secret.txt <<EOF
+          ${{secrets.CERT_PFX}}
+          EOF
+          cat ./secret.txt | base64 --decode > certificate.pfx
           cat certificate.pfx
           $certPassword = ""
           $filePath = "bin/${{ matrix.app }}.exe"
