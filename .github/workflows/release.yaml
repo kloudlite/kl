@@ -129,7 +129,7 @@ jobs:
               if (-not $signtoolPath) {
                 throw "Signtool.exe not found"
               }
-              & $signtoolPath sign /f certificate.pfx /p $certPassword /tr http://timestamp.digicert.com /td sha256 /fd sha256 $filePath
+              & $signtoolPath sign /f certificate.pfx /tr http://timestamp.digicert.com /td sha256 /fd sha256 $filePath
         shell: pwsh
         
       - name: Zip and Tar Application with OS-specific Naming
