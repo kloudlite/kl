@@ -125,7 +125,11 @@ jobs:
           echo "${{ secrets.CERT_PFX }}" | base64 --decode > certificate.pfx
           $certPassword = ""
           $filePath = "bin/${{ matrix.app }}.exe"
-          signtool sign /f certificate.pfx /p $certPassword /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a $filePath
+          $signtoolPath = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin\" -Filter signtool.exe -Recurse | Select-Object -ExpandProperty FullName -First 1
+          if (-not $signtoolPath) {
+            throw "Signtool.exe not found"
+          }
+          & $signtoolPath sign /f certificate.pfx /p $certPassword /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a $filePath
         shell: pwsh
         
       - name: Zip and Tar Application with OS-specific Naming
