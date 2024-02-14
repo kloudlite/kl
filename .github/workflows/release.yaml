@@ -86,8 +86,8 @@ jobs:
           with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
               env_file.write(f"TAG={tag}\n")
 
-
-          print(f"::set-output name=tag::{tag}")
+          with open(os.getenv('GITHUB_STATE'), 'a') as env_state:
+              env_state.write(f"TAG_NAME={tag}\n")
         shell: python
 
 
