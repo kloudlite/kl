@@ -68,7 +68,10 @@ jobs:
           python-version: '3.x'
 
       - name: Create and Set Image Tag
+<<<<<<< HEAD
         id: tag_name
+=======
+>>>>>>> release-v1.0.2
         run: |
           import re
           import os
@@ -85,9 +88,12 @@ jobs:
 
           with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
               env_file.write(f"TAG={tag}\n")
+<<<<<<< HEAD
 
           with open(os.getenv('GITHUB_OUTPUT'), 'a') as env_out:
               env_out.write(f"TAG_NAME={tag}\n")
+=======
+>>>>>>> release-v1.0.2
         shell: python
 
 
@@ -152,6 +158,42 @@ jobs:
 
         shell: python
 
+<<<<<<< HEAD
+=======
+      - name: Zip and Tar Application with OS-specific Naming
+        env:
+          RELEASE_NAME: ${{ needs.setup.outputs.RELEASE_NAME }} # Adjust as necessary
+          APP_NAME: ${{ matrix.app }} # Assume this is the base app name without .exe
+        run: |
+          import os
+          import zipfile
+          import tarfile
+
+          release_name = os.getenv('RELEASE_NAME')
+          app_name = os.getenv('APP_NAME')
+          # Append .exe to the app name if the script is running on Windows
+          if os.name == 'nt':
+              app_name += '.exe'
+
+          out_dir = "out"
+          bin_dir = "bin"
+
+          # Ensure the output directory exists
+          os.makedirs(out_dir, exist_ok=True)
+
+          # Create ZIP file
+          zip_path = os.path.join(out_dir, f"{release_name}.zip")
+          with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+              zipf.write(os.path.join(bin_dir, app_name), arcname=app_name)
+
+          # Create TAR.GZ file
+          tar_path = os.path.join(out_dir, f"{release_name}.tar.gz")
+          with tarfile.open(tar_path, "w:gz") as tarf:
+              tarf.add(os.path.join(bin_dir, app_name), arcname=app_name)
+
+        shell: python
+
+>>>>>>> release-v1.0.2
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
@@ -201,3 +243,39 @@ jobs:
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+# on:
+#   release:
+#     types: [created]
+#
+# jobs:
+#   releases-matrix:
+#     name: Release Go Binary
+#     runs-on: ubuntu-latest
+#     strategy:
+#       matrix:
+#         # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
+#         goos: [linux, windows, darwin]
+#         goarch: ["386", amd64, arm64]
+#         exclude:
+#           - goarch: "386"
+#             goos: darwin
+#           - goarch: arm64
+#             goos: windows
+#     steps:
+#     - uses: actions/checkout@v3
+#     - name: Extract tag name
+#       id: tag_name
+#       run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
+#     - uses: wangyoucao577/go-release-action@v1.30
+#       with:
+#         github_token: ${{ secrets.GITHUB_TOKEN }}
+#         goos: ${{ matrix.goos }}
+#         goarch: ${{ matrix.goarch }}
+#         goversion: "https://dl.google.com/go/go1.19.1.linux-amd64.tar.gz"
+#         project_path: "."
+#         ldflags: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ steps.determine_cli.outputs.CLI_TO_BUILD }}"
+#         binary_name: ${{ steps.determine_cli.outputs.CLI_TO_BUILD }}
+#         extra_files: LICENSE README.md
+#
