@@ -172,7 +172,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}
-          path: out/*
+          path: bin/*
 
   release:
     needs: build
