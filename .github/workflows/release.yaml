@@ -96,7 +96,7 @@ jobs:
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
-          FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }} -X github.com/kloudlite/kl/flags.DevMode=true"
+          FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }}"
         run: |
           echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
@@ -110,7 +110,7 @@ jobs:
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
-          FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }} -X github.com/kloudlite/kl/flags.DevMode=true"
+          FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }}"
         run: |
           echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
