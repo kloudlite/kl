@@ -97,14 +97,13 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
           FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }}"
-          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
         run: |
           echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
           mkdir bin
           mkdir out
-          go build -o bin/$RELEASE_NAME -ldflags "${{ env.FLAGS }}" main.go
+          go build -o bin/${{ matrix.app }} -ldflags "${{ env.FLAGS }}" main.go
 
       - name: Build Windows
         if: matrix.goos == 'windows'
@@ -112,14 +111,13 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
           FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }}"
-          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
         run: |
           echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
           mkdir bin
           mkdir out
-          go build -o bin/$RELEASE_NAME.exe -ldflags "${{ env.FLAGS }}" main.go
+          go build -o bin/${{ matrix.app }}.exe -ldflags "${{ env.FLAGS }}" main.go
 
       # - name: Decode and Sign on Windows
       #   if: matrix.goos == 'windows'
@@ -207,14 +205,22 @@ jobs:
               env_out.write(f"TAG_NAME={tag}\n")
         shell: python
 
+      - name: Compress to Zip and gzip
+        run: |
+          mkdir out
+          cd ${{ github.workspace }}/artifacts
+          for f in *; do
+            if [ -d "$f" ]; then
+              zip -r "out/$f.zip" "$f"
+              tar -czvf "out/$f.tar.gz" "$f"
+            fi
+          done
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/**
+          files: out/**
           tag_name: ${{ steps.tag_name.outputs.TAG_NAME }}
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
