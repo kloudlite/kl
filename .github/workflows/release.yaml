@@ -103,7 +103,7 @@ jobs:
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
           mkdir bin
           mkdir out
-          go build -o bin/${{ matrix.app }} main.go
+          go build -o bin/${{ matrix.app }} -ldflags "${{ env.FLAGS }}" main.go
 
       - name: Build Linux & Mac
         if: matrix.goos == 'windows'
@@ -117,7 +117,7 @@ jobs:
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
           mkdir bin
           mkdir out
-          go build -o bin/${{ matrix.app }}.exe main.go
+          go build -o bin/${{ matrix.app }}.exe -ldflags "${{ env.FLAGS }}" main.go
 
       - name: Zip and Tar Application with OS-specific Naming
         env:
