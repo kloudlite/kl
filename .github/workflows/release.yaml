@@ -191,7 +191,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**
+          files: artifacts/**/**
           tag_name: ${{ steps.tag_name.outputs.TAG_NAME }}
           prerelease: true
         env:
