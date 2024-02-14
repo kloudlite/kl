@@ -207,12 +207,14 @@ jobs:
 
       - name: Compress to Zip and gzip
         run: |
-          mkdir out
+          out_dir=${{ github.workspace }}/out
+          mkdir -p $out_dir
+
           cd ${{ github.workspace }}/artifacts
           for f in *; do
             if [ -d "$f" ]; then
-              zip -r "out/$f.zip" "$f"
-              tar -czvf "out/$f.tar.gz" "$f"
+              zip -r "$out_dir/$f.zip" "$f"
+              tar -czvf "$out_dir/$f.tar.gz" "$f"
             fi
           done
 
