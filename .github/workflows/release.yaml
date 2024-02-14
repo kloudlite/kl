@@ -86,8 +86,8 @@ jobs:
           with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
               env_file.write(f"TAG={tag}\n")
 
-          with open(os.getenv('GITHUB_STATE'), 'a') as env_state:
-              env_state.write(f"TAG_NAME={tag}\n")
+          with open(os.getenv('GITHUB_OUTPUT'), 'a') as env_out:
+              env_out.write(f"TAG_NAME={tag}\n")
         shell: python
 
 
@@ -97,7 +97,6 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
           FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }} -X github.com/kloudlite/kl/flags.DevMode=true"
-          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
         run: |
           echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
@@ -189,7 +188,11 @@ jobs:
 
           with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
               env_file.write(f"TAG={tag}\n")
+
+          with open(os.getenv('GITHUB_OUTPUT'), 'a') as env_out:
+              env_out.write(f"TAG_NAME={tag}\n")
         shell: python
+
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
