@@ -94,7 +94,6 @@ jobs:
       - name: Build Linux & Mac
         if: matrix.goos == 'linux' || matrix.goos == 'darwin'
         env:
-          CGO_ENABLED: 0
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
           FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }}"
