@@ -102,6 +102,21 @@ jobs:
           mkdir out
           go build -o bin/${{ matrix.app }} main.go
 
+      - name: Build Linux & Mac
+        if: matrix.goos == 'windows'
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.arch }}
+          FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }} -X github.com/kloudlite/kl/flags.DevMode=true"
+          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
+        run: |
+          echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
+
+          echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
+          mkdir bin
+          mkdir out
+          go build -o bin/${{ matrix.app }}.exe main.go
+
       - name: Zip and Tar Application with OS-specific Naming
         env:
           RELEASE_NAME: ${{ needs.setup.outputs.RELEASE_NAME }} # Adjust as necessary
