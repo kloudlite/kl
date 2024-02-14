@@ -120,7 +120,7 @@ jobs:
 
       - name: Zip and Tar Application with OS-specific Naming
         env:
-          RELEASE_NAME: ${{ needs.setup.outputs.RELEASE_NAME }} # Adjust as necessary
+          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
           APP_NAME: ${{ matrix.app }} # Assume this is the base app name without .exe
         run: |
           import os
