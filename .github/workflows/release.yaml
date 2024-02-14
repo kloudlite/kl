@@ -102,10 +102,10 @@ jobs:
           mkdir out
           go build -o bin/${{ matrix.app }} main.go
 
-      - name: Zip and Tar Application
+      - name: Zip and Tar Application with OS-specific Naming
         env:
-          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
-          APP_NAME: ${{ matrix.app }}
+          RELEASE_NAME: ${{ needs.setup.outputs.RELEASE_NAME }} # Adjust as necessary
+          APP_NAME: ${{ matrix.app }} # Assume this is the base app name without .exe
         run: |
           import os
           import zipfile
@@ -113,6 +113,10 @@ jobs:
 
           release_name = os.getenv('RELEASE_NAME')
           app_name = os.getenv('APP_NAME')
+          # Append .exe to the app name if the script is running on Windows
+          if os.name == 'nt':
+              app_name += '.exe'
+
           out_dir = "out"
           bin_dir = "bin"
 
@@ -130,6 +134,7 @@ jobs:
               tarf.add(os.path.join(bin_dir, app_name), arcname=app_name)
 
         shell: python
+
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
