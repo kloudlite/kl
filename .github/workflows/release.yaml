@@ -63,7 +63,7 @@ jobs:
           go version
           echo "[PRE] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
-      - name: Create Image Tag
+      - name: Create and Set Image Tag
         run: |
           import re
           import os
@@ -72,14 +72,16 @@ jobs:
           if ref.startswith('refs/heads/release-'):
               tag = ref.replace('refs/heads/release-', '')
               if not re.search('-nightly$', tag):
-                  tag = f"{tag}-nightly"
+                  tag += "-nightly"
           elif ref.startswith('refs/tags/'):
               tag = ref.replace('refs/tags/', '')
           else:
-              tag = 'default-tag' # Fallback tag, adjust as needed
+              tag = 'default-tag'  # Adjust this fallback tag as necessary
 
-          print(f"::set-env name=TAG::{tag}")
+          with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
+              env_file.write(f"TAG={tag}\n")
         shell: python
+
 
       - name: Build Linux & Mac
         if: matrix.goos == 'linux' || matrix.goos == 'darwin'
