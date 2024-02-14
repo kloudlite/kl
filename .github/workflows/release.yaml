@@ -97,13 +97,14 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
           FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }}"
+          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
         run: |
           echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
           mkdir bin
           mkdir out
-          go build -o bin/${{ matrix.app }} -ldflags "${{ env.FLAGS }}" main.go
+          go build -o bin/$RELEASE_NAME -ldflags "${{ env.FLAGS }}" main.go
 
       - name: Build Windows
         if: matrix.goos == 'windows'
@@ -111,13 +112,14 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
           FLAGS: "-X github.com/kloudlite/kl/flags.Version=${{ steps.tag_name.outputs.TAG_NAME }} -X github.com/kloudlite/kl/flags.CliName=${{ matrix.app }}"
+          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
         run: |
           echo "[POST] GOOS: $(go env GOOS) GOARCH: $(go env GOARCH)"
 
           echo "Building for ${{ matrix.goos }}, ${{ matrix.arch }}"
           mkdir bin
           mkdir out
-          go build -o bin/${{ matrix.app }}.exe -ldflags "${{ env.FLAGS }}" main.go
+          go build -o bin/$RELEASE_NAME.exe -ldflags "${{ env.FLAGS }}" main.go
 
       # - name: Decode and Sign on Windows
       #   if: matrix.goos == 'windows'
@@ -132,38 +134,38 @@ jobs:
       #         & $signtoolPath sign /f certificate.pfx /tr http://timestamp.digicert.com /td sha256 /fd sha256 $filePath
       #   shell: pwsh
         
-      - name: Zip and Tar Application with OS-specific Naming
-        env:
-          RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
-          APP_NAME: ${{ matrix.app }} # Assume this is the base app name without .exe
-        run: |
-          import os
-          import zipfile
-          import tarfile
+      # - name: Zip and Tar Application with OS-specific Naming
+      #   env:
+      #     RELEASE_NAME: ${{ matrix.app }}-${{ steps.tag_name.outputs.TAG_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
+      #     APP_NAME: ${{ matrix.app }} # Assume this is the base app name without .exe
+      #   run: |
+      #     import os
+      #     import zipfile
+      #     import tarfile
 
-          release_name = os.getenv('RELEASE_NAME')
-          app_name = os.getenv('APP_NAME')
-          # Append .exe to the app name if the script is running on Windows
-          if os.name == 'nt':
-              app_name += '.exe'
+      #     release_name = os.getenv('RELEASE_NAME')
+      #     app_name = os.getenv('APP_NAME')
+      #     # Append .exe to the app name if the script is running on Windows
+      #     if os.name == 'nt':
+      #         app_name += '.exe'
 
-          out_dir = "out"
-          bin_dir = "bin"
+      #     out_dir = "out"
+      #     bin_dir = "bin"
 
-          # Ensure the output directory exists
-          os.makedirs(out_dir, exist_ok=True)
+      #     # Ensure the output directory exists
+      #     os.makedirs(out_dir, exist_ok=True)
 
-          # Create ZIP file
-          zip_path = os.path.join(out_dir, f"{release_name}.zip")
-          with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-              zipf.write(os.path.join(bin_dir, app_name), arcname=app_name)
+      #     # Create ZIP file
+      #     zip_path = os.path.join(out_dir, f"{release_name}.zip")
+      #     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+      #         zipf.write(os.path.join(bin_dir, app_name), arcname=app_name)
 
-          # Create TAR.GZ file
-          tar_path = os.path.join(out_dir, f"{release_name}.tar.gz")
-          with tarfile.open(tar_path, "w:gz") as tarf:
-              tarf.add(os.path.join(bin_dir, app_name), arcname=app_name)
+      #     # Create TAR.GZ file
+      #     tar_path = os.path.join(out_dir, f"{release_name}.tar.gz")
+      #     with tarfile.open(tar_path, "w:gz") as tarf:
+      #         tarf.add(os.path.join(bin_dir, app_name), arcname=app_name)
 
-        shell: python
+      #   shell: python
 
 
       - name: Upload Artifact
