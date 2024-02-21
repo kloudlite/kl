@@ -31,11 +31,19 @@ Example:
 }
 
 func loadEnv(cmd *cobra.Command) error {
+	accountName := fn.ParseStringFlag(cmd, "account")
+	clusterName := fn.ParseStringFlag(cmd, "cluster")
+
 	newEnv := exec.Command("kli -- printenv").Environ()
 	var err error
 	switch flags.CliName {
 	case constants.CoreCliName:
-
+		_, err = server.EnsureAccount([]fn.Option{
+			fn.MakeOption("accountName", accountName),
+		}...)
+		if err != nil {
+			return err
+		}
 		klfile, err := client.GetKlFile("")
 		if err != nil {
 			return err
@@ -72,9 +80,6 @@ func loadEnv(cmd *cobra.Command) error {
 		newEnv = append(newEnv, fmt.Sprintf("KL_MOUNT_PATH=%s", path.Join(cwd, klfile.FileMount.MountBasePath)))
 
 	case constants.InfraCliName:
-
-		accountName := fn.ParseStringFlag(cmd, "account")
-		clusterName := fn.ParseStringFlag(cmd, "cluster")
 
 		clusterName, err = server.EnsureCluster([]fn.Option{
 			fn.MakeOption("accountName", accountName),
