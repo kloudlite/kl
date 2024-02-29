@@ -209,7 +209,7 @@ func getDnsSearchDomain(networkService string) ([]string, error) {
 	}
 	domains := strings.Split(strings.TrimSpace(string(d)), "\n")
 	if domains[0] == constants.NoExistingSearchDomainError {
-		return nil, errors.New("no existing search domain found")
+		return domains, errors.New("no existing search domain found")
 	}
 	return domains, nil
 }
