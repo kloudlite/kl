@@ -71,8 +71,8 @@ func connect(verbose bool, options ...fn.Option) error {
 		return err
 	}
 
-	searchDomains, _ := wg_vpn.GetDnsSearchDomain(constants.NetworkService)
-	if searchDomains[0] != constants.NoExistingSearchDomainError {
+	searchDomains, err := wg_vpn.GetDnsSearchDomain(constants.NetworkService)
+	if err != nil {
 		searchDomains = append(searchDomains, constants.LocalSearchDomains)
 		searchDomains = fn.RemoveDuplicates(searchDomains)
 		err1 := wg_vpn.SetDnsSearchDomain(constants.NetworkService, searchDomains)

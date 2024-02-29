@@ -3,6 +3,7 @@ package wg_vpn
 import (
 	"errors"
 	"fmt"
+	"github.com/kloudlite/kl/constants"
 	"net"
 	"os"
 	"os/exec"
@@ -207,5 +208,8 @@ func GetDnsSearchDomain(networkService string) ([]string, error) {
 		return nil, err
 	}
 	domains := strings.Split(strings.TrimSpace(string(d)), "\n")
+	if domains[0] == constants.NoExistingSearchDomainError {
+		return nil, errors.New("no existing search domain found")
+	}
 	return domains, nil
 }
