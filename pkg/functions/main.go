@@ -245,15 +245,6 @@ func Truncate(str string, length int) string {
 	return fmt.Sprintf("%s...", str[0:length])
 }
 
-func StringExists(target string, array []string) bool {
-	for _, s := range array {
-		if s == target {
-			return true
-		}
-	}
-	return false
-}
-
 func RemoveFromArray(target string, arr []string) []string {
 	var result []string
 	for _, s := range arr {
