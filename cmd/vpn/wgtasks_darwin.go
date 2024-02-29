@@ -70,21 +70,8 @@ func connect(verbose bool, options ...fn.Option) error {
 	if err := client.SaveExtraData(data); err != nil {
 		return err
 	}
-
-	searchDomains, err := wg_vpn.GetDnsSearchDomain(constants.NetworkService)
-	if err != nil {
-		searchDomains = append(searchDomains, constants.LocalSearchDomains)
-		searchDomains = fn.RemoveDuplicates(searchDomains)
-		err1 := wg_vpn.SetDnsSearchDomain(constants.NetworkService, searchDomains)
-		if err1 != nil {
-			return nil
-		}
-	} else {
-		searchDomains[0] = constants.LocalSearchDomains
-		err1 := wg_vpn.SetDnsSearchDomain(constants.NetworkService, searchDomains)
-		if err1 != nil {
-			return nil
-		}
+	if err = wg_vpn.SetDnsSearch(); err != nil {
+		return err
 	}
 	return nil
 }
@@ -106,7 +93,9 @@ func disconnect(verbose bool) error {
 	if err := client.SaveExtraData(data); err != nil {
 		return err
 	}
-
+	if err = wg_vpn.UnsetDnsSearch(); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -245,14 +245,21 @@ func Truncate(str string, length int) string {
 	return fmt.Sprintf("%s...", str[0:length])
 }
 
-func RemoveDuplicates(arr []string) []string {
-	uniqueMap := make(map[string]bool)
-	var uniqueSlice []string
-	for _, str := range arr {
-		if !uniqueMap[str] {
-			uniqueSlice = append(uniqueSlice, str)
-			uniqueMap[str] = true
+func StringExists(target string, array []string) bool {
+	for _, s := range array {
+		if s == target {
+			return true
 		}
 	}
-	return uniqueSlice
+	return false
+}
+
+func RemoveFromArray(target string, arr []string) []string {
+	var result []string
+	for _, s := range arr {
+		if s != target {
+			result = append(result, s)
+		}
+	}
+	return result
 }
