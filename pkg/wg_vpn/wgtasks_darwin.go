@@ -198,13 +198,7 @@ func setDnsServer(dnsServer net.IP, d string, verbose bool) error {
 }
 
 func SetDnsSearchDomain(networkService string, localSearchDomains []string) error {
-	return ExecCmd(fmt.Sprintf("networksetup -setsearchdomains %s %s", networkService, func() string {
-		var s []string
-		for _, val := range localSearchDomains {
-			s = append(s, val)
-		}
-		return strings.Join(s, " ")
-	}()), false)
+	return ExecCmd(fmt.Sprintf("networksetup -setsearchdomains %s %s", networkService, strings.Join(localSearchDomains, " "), false))
 }
 
 func GetDnsSearchDomain(networkService string) ([]string, error) {
