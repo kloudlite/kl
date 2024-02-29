@@ -261,5 +261,8 @@ func RemoveFromArray(target string, arr []string) []string {
 			result = append(result, s)
 		}
 	}
+	if len(result) == 0 {
+		return nil
+	}
 	return result
 }
