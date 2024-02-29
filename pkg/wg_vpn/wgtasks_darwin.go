@@ -196,3 +196,22 @@ func StopService(verbose bool) error {
 func setDnsServer(dnsServer net.IP, d string, verbose bool) error {
 	return ExecCmd(fmt.Sprintf("networksetup -setdnsservers %s %s", d, dnsServer.String()), verbose)
 }
+
+func SetDnsSearchDomain(networkService string, localSearchDomains []string) error {
+	return ExecCmd(fmt.Sprintf("networksetup -setsearchdomains %s %s", networkService, func() string {
+		var s []string
+		for _, val := range localSearchDomains {
+			s = append(s, val)
+		}
+		return strings.Join(s, " ")
+	}()), false)
+}
+
+func GetDnsSearchDomain(networkService string) ([]string, error) {
+	d, err := exec.Command("networksetup", "-getsearchdomains", networkService).Output()
+	if err != nil {
+		return nil, err
+	}
+	domains := strings.Split(strings.TrimSpace(string(d)), "\n")
+	return domains, nil
+}
