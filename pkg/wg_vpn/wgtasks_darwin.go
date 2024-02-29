@@ -217,7 +217,7 @@ func getDnsSearchDomain(networkService string) ([]string, error) {
 func SetDnsSearch() error {
 	searchDomains, err := getDnsSearchDomain(constants.NetworkService)
 	if err != nil {
-		if fn.StringExists(constants.LocalSearchDomains, searchDomains) {
+		if functions.StringExists(constants.LocalSearchDomains, searchDomains) {
 			return nil
 		}
 		searchDomains = append(searchDomains, constants.LocalSearchDomains)
@@ -253,7 +253,7 @@ func UnsetDnsSearch() error {
 		if err != nil {
 			return err
 		}
-		searchDomains = fn.RemoveFromArray(constants.LocalSearchDomains, searchDomains)
+		searchDomains = functions.RemoveFromArray(constants.LocalSearchDomains, searchDomains)
 		if err = setDnsSearchDomain(constants.NetworkService, searchDomains); err != nil {
 			return err
 		}
