@@ -115,11 +115,12 @@ func sshBox(cmd *cobra.Command, args []string) error {
 		fn.Log(command.String())
 	}
 
-	command.Stderr = os.Stderr
+	//command.Stderr = os.Stderr
 	command.Stdin = os.Stdin
 	command.Stdout = os.Stdout
 	if err := command.Run(); err != nil {
-		return fmt.Errorf(("error opening ssh to kl-box container. Please ensure that container is running, or wait for it to start. %s"), err)
+		fn.Warnf("error opening ssh to kl-box container. Please ensure that container is running, \nor wait for it to start. [%s]", err.Error())
+		return nil
 	}
 	return nil
 }
