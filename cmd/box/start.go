@@ -5,20 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/adrg/xdg"
+	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path"
 	"runtime"
-	"strings"
-
-	"github.com/adrg/xdg"
-	"github.com/kloudlite/kl/domain/server"
 
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/client"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
 )
@@ -62,22 +60,35 @@ func startBox(cmd *cobra.Command, args []string) error {
 	foreground := fn.ParseBoolFlag(cmd, "foreground")
 	debug := fn.ParseBoolFlag(cmd, "debug")
 
-	s := spinner.NewSpinner("starting container please wait")
-
-	s.Start()
-	defer s.Stop()
-
-	if isPortInUse("1729") {
-		fn.Log("Port 1729 is not being used by any other container. Please stop that container first.")
-		return nil
+	cont, err := getRunningContainer()
+	if err != nil {
+		return err
 	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	if cwd != cont.Path && cont.Path != "" {
+		fn.Log(fmt.Sprintf("container is already running in workspace %s, \nDo you want to stop it and start a new container with current workspace? [y/N] ", cont.Path))
+		var response string
+		_, _ = fmt.Scanln(&response)
+		if response != "y" {
+			return errors.New("could not start container in current workspace")
+		}
+		if err := stopBox(cmd, args); err != nil {
+			return err
+		}
+	}
+
+	s := spinner.NewSpinner("starting container please wait")
 
 	imageName = constants.BoxDockerImage
 	if len(args) > 0 {
 		imageName = args[0]
 	}
 
-	cwd, _ := os.Getwd()
 	if debug {
 		fn.Logf("starting container in: %s", text.Blue(cwd))
 	}
@@ -121,7 +132,10 @@ func startBox(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
+		s.Start()
 		ensureBoxRunning()
+		defer s.Stop()
+
 	}
 
 	if debug {
@@ -343,22 +357,6 @@ func ensureBoxRunning() {
 	if err != nil {
 		fn.PrintError(errors.New("error starting kl-box container"))
 	}
-}
-
-func isPortInUse(port string) bool {
-	command := exec.Command("docker", "ps", "--format", "{{.Ports}}")
-	output, err := command.Output()
-	if err != nil {
-		fn.PrintError(errors.New("error checking docker containers"))
-		return false
-	}
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		if strings.Contains(line, port) {
-			return true
-		}
-	}
-	return false
 }
 
 func init() {

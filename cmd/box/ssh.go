@@ -86,31 +86,19 @@ func sshBox(cmd *cobra.Command, args []string) error {
 		if err := startBox(cmd, args); err != nil {
 			return err
 		}
-
 		s.Start()
 		time.Sleep(5 * time.Second)
 		s.Stop()
-	} else if fmt.Sprintf("/%s", containerName) != cont.Name {
 
-		fn.Log(fmt.Sprintf("container is already running in workspace %s, \nDo you want to stop it and start a new container with current workspace? [y/N] ", cont.Path))
-		var response string
-		_, _ = fmt.Scanln(&response)
-		if response != "y" {
-			return nil
-		}
+	} else if fmt.Sprintf("/%s", containerName) != cont.Name {
 
 		if debug {
 			fn.Logf("already running in: %s", text.Blue(cont.Path))
 		}
 
-		if err := stopBox(cmd, args); err != nil {
-			return err
-		}
-
 		if err := startBox(cmd, args); err != nil {
 			return err
 		}
-
 		s.Start()
 		time.Sleep(5 * time.Second)
 		s.Stop()

@@ -3,8 +3,7 @@ package box
 import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
-	"os/exec"
-	"strings"
+	"os"
 )
 
 var restartCmd = &cobra.Command{
@@ -19,33 +18,25 @@ var restartCmd = &cobra.Command{
 	},
 }
 
-func restartBox(_ *cobra.Command, _ []string) error {
-	containerName := "kl-box-" + getCwdHash()
-	isRunning, err := isContainerRunning(containerName)
+func restartBox(cmd *cobra.Command, args []string) error {
+	cont, err := getRunningContainer()
 	if err != nil {
 		return err
 	}
-	if isRunning {
-		if err := stopBox(nil, nil); err != nil {
+	dir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	if dir == cont.Path && cont.Path != "" {
+		if err := stopBox(cmd, args); err != nil {
 			return err
 		}
 	}
-
-	if err := startBox(nil, nil); err != nil {
+	if err := startBox(cmd, args); err != nil {
 		return err
 	}
 	return nil
-}
-
-func isContainerRunning(containerName string) (bool, error) {
-	cmd := exec.Command("docker", "inspect", "-f", "{{.State.Running}}", containerName)
-	output, err := cmd.Output()
-	if err != nil {
-		return false, nil
-	}
-
-	running := strings.TrimSpace(string(output))
-	return running == "true", nil
 }
 
 func init() {
