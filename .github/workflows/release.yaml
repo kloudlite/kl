@@ -57,6 +57,7 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/release-') || startsWith(github.ref, 'refs/tags/')
         env:
           IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
+          OVERRIDE_PUSHED_IMAGE: "false"
         run: |
           set +e
           image_name="ghcr.io/kloudlite/kl/box"
@@ -69,8 +70,10 @@ jobs:
           fi
 
           set -e
+
+          cd klbox-docker
           
-          docker buildx build --platform linux/amd64,linux/arm64 -t "$image_name:$IMAGE_TAG" --build-context project=.. klbox-docker --push
+          docker buildx build --platform linux/amd64,linux/arm64 -t "$image_name:$IMAGE_TAG" --build-context project=.. . --push
 
   build:
     name: Build ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}
