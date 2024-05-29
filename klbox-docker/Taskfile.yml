@@ -2,7 +2,7 @@ version: 3
 
 
 vars:
-  ImageRegistry: "ghcr.io/kloudlite/operator/components/kl-box"
+  ImageRegistry: "ghcr.io/kloudlite/kl/box"
 
 tasks:
   clean:
