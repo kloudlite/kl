@@ -73,7 +73,7 @@ jobs:
 
           set -e
 
-          docker buildx build --platform linux/amd64,linux/arm64 -t "$image_name:$IMAGE_TAG" --build-context project=.. klbox-docker --push
+          docker buildx build --platform linux/amd64,linux/arm64 -t "$image_name:$IMAGE_TAG" --build-context project=. klbox-docker --push
 
   build:
     name: Build ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}
