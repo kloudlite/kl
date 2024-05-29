@@ -71,7 +71,7 @@ jobs:
 
           set -e
 
-          cd klbox-docker
+          ls
           
           docker buildx build --platform linux/amd64,linux/arm64 -t "$image_name:$IMAGE_TAG" --build-context project=.. . --push
 
