@@ -33,7 +33,7 @@ func (c *client) Reload() error {
 		return err
 	}
 
-	if err := os.WriteFile("/home/.kl/devbox/devbox.json", conf, os.ModePerm); err != nil {
+	if err := os.WriteFile("/home/kl/.kl/devbox/devbox.json", conf, os.ModePerm); err != nil {
 		return err
 	}
 
