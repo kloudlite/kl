@@ -40,14 +40,15 @@ func (c *client) Ssh() error {
 		return c.doSSHWithCname(cname)
 	}
 
-	_, err := cl.GetKlFile("")
-	if err != nil {
-		if err == confighandler.ErrKlFileNotExists {
+	_, err2 := cl.GetKlFile("")
+	if err2 != nil {
+		if err2 == confighandler.ErrKlFileNotExists {
 			conts, err := c.listContainer(map[string]string{
 				CONT_MARK_KEY: "true",
 			})
-			if err != nil {
-				return err
+
+			if err != nil && err != notFoundErr {
+				return fmt.Errorf("kl.yml in current dir not found, and also no any running container found")
 			}
 
 			cnt, err := fzf.FindOne(conts, func(item Cntr) string {
@@ -61,7 +62,7 @@ func (c *client) Ssh() error {
 
 		}
 
-		return err
+		return err2
 	}
 
 	cr, err := c.getContainer(map[string]string{

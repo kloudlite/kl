@@ -14,7 +14,7 @@ KL_DEVBOX_PATH=/home/kl/.kl/devbox
 
 mkdir -p $KL_DEVBOX_PATH
 
-cp /tmp/sample.json $KL_DEVBOX_PATH/devbox.json
+cp /tmp/kl-file.json $KL_DEVBOX_PATH/devbox.json
 
 if [ -f "/home/kl/workspace/kl.lock" ]; then
     cp /home/kl/workspace/kl.lock $KL_DEVBOX_PATH/devbox.lock
@@ -32,7 +32,7 @@ if [ -f "$KL_DEVBOX_PATH/devbox.lock" ]; then
   cp "$KL_DEVBOX_PATH/devbox.lock" /home/kl/workspace/kl.lock
 fi
 
-sudo /mounter --conf /tmp/sample.json
+sudo /mounter --conf /tmp/kl-file.json
 
 # if running bash
 if [ -n "$BASH_VERSION" ]; then
