@@ -56,7 +56,7 @@ func DoSSH(sc SSHConfig) error {
 	session.Stdin = os.Stdin
 
 	// Start the session with a pseudo-terminal
-	if err := session.RequestPty("xterm", 80, 40, ssh.TerminalModes{}); err != nil {
+	if err := session.RequestPty("xterm", 0, 0, ssh.TerminalModes{}); err != nil {
 		return fmt.Errorf("Failed to start pseudo-terminal: %s, please try again", err)
 	}
 
