@@ -7,7 +7,7 @@ import (
 	cl "github.com/kloudlite/kl/domain/client"
 	proxy "github.com/kloudlite/kl/domain/dev-proxy"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/pkg/fwd"
+	"github.com/kloudlite/kl/pkg/sshclient"
 	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
@@ -58,7 +58,7 @@ func (c *client) Stop() error {
 			return err
 		}
 
-		if _, err := p.RemoveAllFwd(fwd.StartCh{
+		if _, err := p.RemoveAllFwd(sshclient.StartCh{
 			SshPort: fmt.Sprint(localEnv.SSHPort),
 		}); err != nil {
 			return err
@@ -143,7 +143,7 @@ func (c *client) StopCont(cr *Cntr) error {
 			return err
 		}
 
-		if _, err := p.RemoveAllFwd(fwd.StartCh{
+		if _, err := p.RemoveAllFwd(sshclient.StartCh{
 			SshPort: fmt.Sprint(localEnv.SSHPort),
 		}); err != nil {
 			return err
