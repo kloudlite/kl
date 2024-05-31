@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"os"
 
 	"github.com/kloudlite/kl/domain/client"
 )
@@ -275,4 +276,70 @@ func GetLoadMaps() (map[string]string, MountMap, error) {
 	}
 
 	return result, mountMap, nil
+}
+
+// this function will fetch real envs from api and return DevboxKlfile with real envs
+func LoadDevboxConfig() (*client.DevboxKlFile, error) {
+	envs, mm, err := GetLoadMaps()
+	if err != nil {
+		return nil, err
+	}
+
+	kf, err := client.GetKlFile("")
+	if err != nil {
+		return nil, err
+	}
+
+	// read kl.yml into struct
+	klConfig := &client.DevboxKlFile{
+		Packages: kf.Packages,
+	}
+
+	kt, err := client.GetKlFile("")
+	if err != nil {
+		return nil, err
+	}
+
+	fm := map[string]string{}
+
+	for _, fe := range kt.Mounts.GetMounts() {
+		pth := fe.Path
+		if pth == "" {
+			pth = fe.Key
+		}
+
+		fm[pth] = mm[pth]
+	}
+
+	ev := map[string]string{}
+	for k, v := range envs {
+		ev[k] = v
+	}
+
+	for _, ne := range kf.EnvVars.GetEnvs() {
+		ev[ne.Key] = ne.Value
+	}
+
+	klConfig.Env = ev
+	klConfig.Mounts = fm
+
+	return klConfig, nil
+}
+
+func SyncDevboxJsonFile() error {
+	kConf, err := LoadDevboxConfig()
+	if err != nil {
+		return err
+	}
+
+	b, err := kConf.ToJson()
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(client.DEVBOX_JSON_PATH, b, os.ModePerm); err != nil {
+		return err
+	}
+
+	return nil
 }

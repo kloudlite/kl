@@ -12,6 +12,7 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/sshclient"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
@@ -32,7 +33,7 @@ func getDomainFromPath(pth string) string {
 }
 
 func (c *client) Ssh() error {
-	defer c.spinner.Start("preparing to ssh")()
+	defer spinner.Client.Start("preparing to ssh")()
 
 	cname := fn.ParseStringFlag(c.cmd, "name")
 	if cname != "" {
@@ -89,7 +90,7 @@ func (c *client) Ssh() error {
 		return fmt.Errorf("container not running")
 	}
 
-	c.spinner.Stop()
+	spinner.Client.Stop()
 	c.ensureVpnConnected()
 
 	count := 0
@@ -108,7 +109,7 @@ func (c *client) Ssh() error {
 		time.Sleep(1 * time.Second)
 	}
 
-	c.spinner.Stop()
+	spinner.Client.Stop()
 	// command := exec.Command("ssh", fmt.Sprintf("kl@%s", getDomainFromPath(c.cwd)), "-p", fmt.Sprint(localEnv.SSHPort), "-i", path.Join(xdg.Home, ".ssh", "id_rsa"), "-oStrictHostKeyChecking=no")
 
 	fn.Logf("%s %s %s\n", text.Bold("command:"), text.Blue("ssh"), text.Blue(strings.Join([]string{fmt.Sprintf("kl@%s", getDomainFromPath(c.cwd)), "-p", fmt.Sprint(localEnv.SSHPort), "-oStrictHostKeyChecking=no"}, " ")))
@@ -163,7 +164,7 @@ func (c *client) doSSHWithCname(name string) error {
 		return fmt.Errorf("container not running")
 	}
 
-	c.spinner.Stop()
+	spinner.Client.Stop()
 	c.ensureVpnConnected()
 
 	count := 0
@@ -181,7 +182,7 @@ func (c *client) doSSHWithCname(name string) error {
 		time.Sleep(1 * time.Second)
 	}
 
-	c.spinner.Stop()
+	spinner.Client.Stop()
 	// command := exec.Command("ssh", fmt.Sprintf("kl@%s", getDomainFromPath(pth)), "-p", fmt.Sprint(localEnv.SSHPort), "-i", path.Join(xdg.Home, ".ssh", "id_rsa"), "-oStrictHostKeyChecking=no")
 
 	fn.Logf("%s %s %s\n", text.Bold("command:"), text.Blue("ssh"), text.Blue(strings.Join([]string{fmt.Sprintf("kl@%s", getDomainFromPath(pth)), "-p", fmt.Sprint(localEnv.SSHPort), "-oStrictHostKeyChecking=no"}, " ")))

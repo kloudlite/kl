@@ -8,11 +8,12 @@ import (
 	proxy "github.com/kloudlite/kl/domain/dev-proxy"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/sshclient"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
 func (c *client) Stop() error {
-	defer c.spinner.Start("stopping container please wait")()
+	defer spinner.Client.Start("stopping container please wait")()
 
 	// if err := c.StopContVpn(); err != nil {
 	// 	fn.Warnf("failed to stop vpn container: %s", err.Error())
@@ -72,7 +73,7 @@ func (c *client) Stop() error {
 }
 
 func (c *client) StopAll() error {
-	defer c.spinner.Start("stopping container please wait")()
+	defer spinner.Client.Start("stopping container please wait")()
 
 	crs, err := c.listContainer(map[string]string{
 		CONT_MARK_KEY: "true",
@@ -114,7 +115,7 @@ func (c *client) StopAll() error {
 }
 
 func (c *client) StopCont(cr *Cntr) error {
-	defer c.spinner.Start("stopping container please wait")()
+	defer spinner.Client.Start("stopping container please wait")()
 
 	crPath := cr.Labels[CONT_PATH_KEY]
 
