@@ -9,29 +9,6 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
-type DevboxKlFile struct {
-	Packages []string          `yaml:"packages" json:"packages"`
-	Env      map[string]string `yaml:"envVars" json:"env"`
-	Mounts   map[string]string `yaml:"mounts" json:"mounts"`
-}
-
-func (k *DevboxKlFile) ToJson() ([]byte, error) {
-
-	if k == nil {
-		return nil, fmt.Errorf("kl file is nil")
-	}
-
-	return json.Marshal(*k)
-}
-
-func (k *DevboxKlFile) ParseJson(b []byte) error {
-	if k == nil {
-		return fmt.Errorf("kl file is nil")
-	}
-
-	return json.Unmarshal(b, k)
-}
-
 type KLFileType struct {
 	Version    string   `json:"version" yaml:"version"`
 	DefaultEnv string   `json:"defaultEnv" yaml:"defaultEnv"`
@@ -41,6 +18,8 @@ type KLFileType struct {
 	// Secrets    []ResType `json:"secrets"`
 	EnvVars EnvVars `json:"envVars" yaml:"envVars"`
 	Mounts  Mounts  `json:"mounts" yaml:"mounts"`
+
+	InitScripts []string `json:"initScripts" yaml:"initScripts"`
 }
 
 func (k *KLFileType) ToJson() ([]byte, error) {
@@ -72,24 +51,10 @@ func GetConfigPath() string {
 }
 
 func WriteKLFile(fileObj KLFileType) error {
-
 	if err := confighandler.WriteConfig(GetConfigPath(), fileObj, 0644); err != nil {
 		fn.PrintError(err)
 		return err
 	}
-
-	// file, err := yaml.Marshal(fileObj)
-	// if err != nil {
-	// 	fn.PrintError(err)
-	// 	return nil
-	// }
-	//
-	// writeContent := fmt.Sprint("# To generate this config file please visit ", constants.ServerURL, "\n\n", string(file))
-
-	// err = os.WriteFile(GetConfigPath(), []byte(writeContent), 0644)
-	// if err != nil {
-	// 	fn.PrintError(err)
-	// }
 
 	return nil
 }

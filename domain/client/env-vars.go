@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kloudlite/kl/klbox-docker/devboxfile"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
@@ -250,7 +251,7 @@ func ExecPackageCommand(cmd string) error {
 		return err
 	}
 
-	devboxContext := DevboxKlFile{}
+	devboxContext := devboxfile.DevboxConfig{}
 	devboxContext.Packages = klContext.Packages
 
 	devboxConfig, err := devboxContext.ToJson()

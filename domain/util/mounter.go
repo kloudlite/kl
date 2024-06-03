@@ -13,7 +13,7 @@ const (
 	MountPath = "./.kl-mounts"
 )
 
-func MountEnv(args []string) error {
+func MountEnv() error {
 	klfile, err := client.GetKlFile("")
 	if err != nil {
 		return err

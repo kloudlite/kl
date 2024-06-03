@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/klbox-docker/devboxfile"
 	"github.com/kloudlite/kl/pkg/functions"
 )
 
@@ -282,7 +283,7 @@ func GetLoadMaps() (map[string]string, MountMap, error) {
 }
 
 // this function will fetch real envs from api and return DevboxKlfile with real envs
-func LoadDevboxConfig() (*client.DevboxKlFile, error) {
+func LoadDevboxConfig() (*devboxfile.DevboxConfig, error) {
 	envs, mm, err := GetLoadMaps()
 	if err != nil {
 		return nil, err
@@ -294,7 +295,7 @@ func LoadDevboxConfig() (*client.DevboxKlFile, error) {
 	}
 
 	// read kl.yml into struct
-	klConfig := &client.DevboxKlFile{
+	klConfig := &devboxfile.DevboxConfig{
 		Packages: kf.Packages,
 	}
 
@@ -324,7 +325,7 @@ func LoadDevboxConfig() (*client.DevboxKlFile, error) {
 	}
 
 	klConfig.Env = ev
-	klConfig.Mounts = fm
+	klConfig.KlConfig.Mounts = fm
 
 	return klConfig, nil
 }
@@ -348,14 +349,14 @@ func SyncDevboxJsonFile() error {
 		return err
 	}
 
-	if err := MountEnvs(kConf); err != nil {
+	if err := MountEnvs(kConf.KlConfig); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func MountEnvs(c *client.DevboxKlFile) error {
+func MountEnvs(c devboxfile.KlConfig) error {
 	for k, v := range c.Mounts {
 		if err := os.MkdirAll(filepath.Dir(k), fs.ModePerm); err != nil {
 			functions.Warnf("failed to create dir %s", filepath.Dir(k))

@@ -1,14 +1,6 @@
 # syntax=docker/dockerfile:1.4
 FROM --platform=$TARGETPLATFORM golang:1.21 as builder
 
-WORKDIR /app
-
-COPY main.go main.go
-
-RUN go mod init mounter.io
-
-RUN go build -o mounter main.go
-
 COPY --from=project ./go.sum ./go.mod /kl-app/
 
 WORKDIR /kl-app
@@ -20,6 +12,8 @@ COPY --from=project . /kl-app
 ARG VERSION
 
 RUN go build --tags=box -ldflags="-X github.com/kloudlite/kl/flags.Version=${VERSION} -X github.com/kloudlite/kl/flags.CliName=kl" -o ./bin/kl main.go
+
+RUN cd klbox-docker && go build -o ./bin/mounter main.go
 
 FROM --platform=$TARGETPLATFORM ubuntu:latest
 
@@ -66,7 +60,7 @@ EOF
 
 COPY .bashrc .profile /tmp/
 
-COPY --from=builder /app/mounter /mounter
+COPY --from=builder /kl-app/bin/mounter /mounter
 COPY --from=builder /kl-app/bin/kl /usr/local/bin/kl
 
 
