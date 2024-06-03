@@ -11,9 +11,10 @@ COPY --from=project . /kl-app
 
 ARG VERSION
 
+RUN cd klbox-docker && go build -o ../bin/mounter main.go
+
 RUN go build --tags=box -ldflags="-X github.com/kloudlite/kl/flags.Version=${VERSION} -X github.com/kloudlite/kl/flags.CliName=kl" -o ./bin/kl main.go
 
-RUN cd klbox-docker && go build -o ./bin/mounter main.go
 
 FROM --platform=$TARGETPLATFORM ubuntu:latest
 
@@ -44,6 +45,10 @@ USER root
 
 RUN curl -fsSL https://get.jetify.com/devbox > /tmp/devbox.sh && chmod +x /tmp/devbox.sh 
 RUN /tmp/devbox.sh -f && rm /tmp/devbox.sh && sudo chown kl:kl /usr/local/bin/devbox
+
+RUN cd /tmp
+RUN devbox init
+# RUN rm /tmp/devbox.lock /tmp/devbox.json
 
 # COPY --from=nix /nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
 

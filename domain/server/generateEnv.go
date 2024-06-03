@@ -327,6 +327,8 @@ func LoadDevboxConfig() (*devboxfile.DevboxConfig, error) {
 	klConfig.Env = ev
 	klConfig.KlConfig.Mounts = fm
 
+	// klConfig.KlConfig.InitScripts = kt.InitScripts
+
 	return klConfig, nil
 }
 

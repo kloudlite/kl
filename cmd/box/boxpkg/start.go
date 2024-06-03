@@ -188,7 +188,7 @@ func (c *client) Start() error {
 
 		if len(cfg.DNS) > 0 {
 			args = append(args, []string{
-				// "--dns", cfg.DNS[0].To4().String(),
+				"--dns", cfg.DNS[0].To4().String(),
 				"--dns", "1.1.1.1",
 				"--dns-search", fmt.Sprintf("%s.svc.%s.local", e.Spec.TargetNamespace, e.ClusterName),
 			}...)

@@ -17,7 +17,7 @@ func (c *client) ListBox() error {
 	}
 
 	if err == notFoundErr {
-		fn.Logf("no running container found")
+		fn.Warnf("no running containers found in all workspaces")
 		return nil
 	}
 

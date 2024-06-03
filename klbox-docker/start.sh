@@ -41,7 +41,7 @@ if [ -d "/tmp/ssh2" ]; then
     echo "successfully copied ssh credentials"
 fi 
 
-sudo /mounter --conf $KL_DEVBOX_JSON_PATH
+# sudo /mounter --conf $KL_DEVBOX_JSON_PATH
 
 cat <<EOL > /home/kl/.kl/global-profile
 export SSH_PORT=$SSH_PORT

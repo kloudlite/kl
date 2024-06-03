@@ -8,16 +8,23 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"os/user"
+	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"syscall"
 
+	"github.com/kloudlite/kl/domain/client"
 	"github.com/kloudlite/kl/klbox-docker/devboxfile"
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
 func main() {
 	if err := Run(); err != nil {
-		panic(err)
+		fn.PrintError(err)
+		os.Exit(1)
 	}
 }
 
@@ -66,8 +73,19 @@ func Run() error {
 		}
 	}
 
-	for _, v := range c.KlConfig.InitScripts {
-		if err := RunScript(fmt.Sprintf("bash -c %q", v)); err != nil {
+	kt, err := client.GetKlFile(path.Join("/home/kl/workspace", "kl.yml"))
+	if err != nil {
+		fn.PrintError(err)
+		return nil
+	}
+
+	if len(kt.InitScripts) > 0 {
+		fn.Log(text.Blue("[#] Running init scripts"))
+		defer fn.Log(text.Blue("[#] Finished running init scripts"))
+	}
+
+	for _, v := range kt.InitScripts {
+		if err := RunScript(v); err != nil {
 			fn.PrintError(fmt.Errorf("error running init script: %q", v))
 		}
 	}
@@ -76,6 +94,7 @@ func Run() error {
 }
 
 func RunScript(script string) error {
+
 	r := csv.NewReader(strings.NewReader(script))
 	r.Comma = ' '
 	cmdArr, err := r.Read()
@@ -83,15 +102,43 @@ func RunScript(script string) error {
 		return err
 	}
 
+	username := "kl"
+
+	// Lookup the user
+	usr, err := user.Lookup(username)
+	if err != nil {
+		return fmt.Errorf("Error looking up user: %s", err.Error())
+	}
+
+	// Get the UID and GID
+	uid := usr.Uid
+	gid := usr.Gid
+
+	// Convert UID and GID to integers
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return fmt.Errorf("Invalid UID: %s", err.Error())
+	}
+	gidInt, err := strconv.Atoi(gid)
+	if err != nil {
+		return fmt.Errorf("Invalid GID: %s", err)
+	}
+
+	// Prepare the command
 	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
 
-	fn.Log("[#] " + strings.Join(cmdArr, " "))
+	// Set the UID and GID for the command
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Credential: &syscall.Credential{
+			Uid: uint32(uidInt),
+			Gid: uint32(gidInt),
+		},
+	}
+
+	fn.Logf("[%s] %s", text.Blue("+"), strings.Join(cmdArr, " "))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-
 	cmd.Dir = "/home/kl/workspace"
-	cmd.Stderr = os.Stderr
 
-	err = cmd.Run()
-	return err
+	return cmd.Run()
 }

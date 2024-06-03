@@ -6,9 +6,9 @@ import (
 )
 
 type KlConfig struct {
-	Mounts      map[string]string `yaml:"mounts" json:"mounts"`
-	Dns         string            `yaml:"dns" json:"dns"`
-	InitScripts []string          `yaml:"initScripts" json:"initScripts"`
+	Mounts map[string]string `yaml:"mounts" json:"mounts"`
+	Dns    string            `yaml:"dns" json:"dns"`
+	// InitScripts []string          `yaml:"initScripts" json:"initScripts"`
 }
 
 type DevboxConfig struct {
