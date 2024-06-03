@@ -47,8 +47,12 @@ func (c *client) Ssh() error {
 				CONT_MARK_KEY: "true",
 			})
 
-			if err != nil && err != notFoundErr {
+			if err != nil && err == notFoundErr {
 				return fmt.Errorf("kl.yml in current dir not found, and also no any running container found")
+			}
+
+			if err != nil {
+				return err
 			}
 
 			cnt, err := fzf.FindOne(conts, func(item Cntr) string {

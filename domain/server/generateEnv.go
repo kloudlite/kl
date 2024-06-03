@@ -2,9 +2,12 @@ package server
 
 import (
 	"encoding/json"
+	"io/fs"
 	"os"
+	"path/filepath"
 
 	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/pkg/functions"
 )
 
 type SecretEnv struct {
@@ -327,6 +330,10 @@ func LoadDevboxConfig() (*client.DevboxKlFile, error) {
 }
 
 func SyncDevboxJsonFile() error {
+	if !client.InsideBox() {
+		return nil
+	}
+
 	kConf, err := LoadDevboxConfig()
 	if err != nil {
 		return err
@@ -339,6 +346,26 @@ func SyncDevboxJsonFile() error {
 
 	if err := os.WriteFile(client.DEVBOX_JSON_PATH, b, os.ModePerm); err != nil {
 		return err
+	}
+
+	if err := MountEnvs(kConf); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func MountEnvs(c *client.DevboxKlFile) error {
+	for k, v := range c.Mounts {
+		if err := os.MkdirAll(filepath.Dir(k), fs.ModePerm); err != nil {
+			functions.Warnf("failed to create dir %s", filepath.Dir(k))
+			continue
+		}
+
+		if err := os.WriteFile(k, []byte(v), fs.ModePerm); err != nil {
+			functions.Warnf("failed to write file %s", k)
+			continue
+		}
 	}
 
 	return nil

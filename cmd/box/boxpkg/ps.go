@@ -21,7 +21,7 @@ func (c *client) ListBox() error {
 		return nil
 	}
 
-	header := table.Row{table.HeaderText("container name"), table.HeaderText("path")}
+	header := table.Row{table.HeaderText("container name"), table.HeaderText("path"), table.HeaderText("state")}
 	rows := make([]table.Row, 0)
 
 	for _, a := range conts {
@@ -34,6 +34,14 @@ func (c *client) ListBox() error {
 			}(),
 			func() string {
 				pth := fn.TrimePref(a.Labels[CONT_PATH_KEY], 50)
+
+				if a.Name == c.containerName {
+					return text.Colored(pth, 2)
+				}
+				return pth
+			}(),
+			func() string {
+				pth := fn.TrimePref(string(a.State), 50)
 
 				if a.Name == c.containerName {
 					return text.Colored(pth, 2)

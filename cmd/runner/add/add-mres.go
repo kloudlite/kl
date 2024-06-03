@@ -56,12 +56,6 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 		env.Name = kt.DefaultEnv
 	}
 
-	// mresRespValues, err := server.GetMresConfigValue(env.Name, *mresKey, mres.Metadata.Name)
-	// if err != nil {
-	// 	fn.PrintError(err)
-	// 	return
-	// }
-
 	currMreses := kt.EnvVars.GetMreses()
 
 	if currMreses == nil {
