@@ -43,6 +43,8 @@ var switchCmd = &cobra.Command{
 			return
 		}
 
+		fn.Warn("configuration changes have been applied. To ensure these changes take effect, please restart your SSH/IDE sessions.")
+
 	},
 }
 

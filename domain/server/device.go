@@ -59,8 +59,6 @@ func createDevice(devName string) (*Device, error) {
 		return nil, err
 	}
 
-	fmt.Printf("%#v %s", cn, devName)
-
 	dn := devName
 	if !cn.Result {
 		if len(cn.SuggestedNames) == 0 {
