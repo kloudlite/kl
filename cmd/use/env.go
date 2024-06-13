@@ -43,13 +43,15 @@ var switchCmd = &cobra.Command{
 			return
 		}
 
-		fn.Warn("configuration changes have been applied. To ensure these changes take effect, please restart your SSH/IDE sessions.")
+		if err := client.SyncDevboxShellEnvFile(); err != nil {
+			fn.PrintError(err)
+			return
+		}
 
 	},
 }
 
 func init() {
-
 	switchCmd.Aliases = append(switchCmd.Aliases, "switch")
 
 	switchCmd.Flags().StringP("envname", "e", "", "environment name")

@@ -6,6 +6,8 @@ set -o pipefail
 
 trap "echo kloudlite-entrypoint:CRASHED >&2" EXIT SIGINT SIGTERM
 
+sudo kl app start-dns &
+
 # KL_LOCK_PATH=/home/kl/workspace/kl.lock
 #
 KL_DEVBOX_PATH=$HOME/.kl/devbox
@@ -34,7 +36,7 @@ export IN_DEV_BOX="true"
 
 pushd "$HOME/workspace"
 echo "kloudlite-entrypoint:INSTALLING_PACKAGES"
-kl box reload && echo 'echo kloudlite-entrypoint:INSTALLING_PACKAGES_DONE'
+kl box reload -s && echo 'echo kloudlite-entrypoint:INSTALLING_PACKAGES_DONE'
 popd
 
 if [ -d "/tmp/ssh2" ]; then
@@ -48,6 +50,7 @@ fi
 cat <<EOL > /home/kl/.kl/global-profile
 export SSH_PORT=$SSH_PORT
 export IN_DEV_BOX="true"
+export KL_WORKSPACE=$KL_WORKSPACE
 EOL
 
 # trap - EXIT SIGTERM SIGINT

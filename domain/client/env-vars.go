@@ -221,24 +221,32 @@ func SyncDevboxShellEnvFile() error {
 	devBoxDir := filepath.Dir(DEVBOX_JSON_PATH)
 
 	command := exec.Command("devbox", "shellenv")
+	command.Stderr = os.Stderr
 	command.Dir = devBoxDir
+
+	envs := map[string]string{
+		"PATH": os.Getenv("PATH"),
+		"HOME": os.Getenv("HOME"),
+	}
+
+	command.Env = []string{}
+	for k, v := range envs {
+		command.Env = append(command.Env, fmt.Sprintf("%s=%s", k, v))
+	}
 
 	out, err := command.Output()
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(path.Join(devBoxDir, "devbox-env.sh"), out, os.ModePerm)
-}
+	if err := os.WriteFile(path.Join(devBoxDir, "devbox-env.sh"), out, os.ModePerm); err != nil {
+		return err
+	}
 
-/*
-Steps performed in ExecPackageCommand:
-1. Sync devbox.lock with kl.lock
-2. Update devbox.json by combining kl.json
-3. Run devbox command
-4. Copy devbox.json to workspace/kl.json
-5. Update workspace/kl.lock
-*/
+	fn.Warn("environments has been updated please use `kl box reload` to restart the container, or `refresh` to reload the current shell")
+
+	return nil
+}
 
 func ExecPackageCommand(cmd string) error {
 	if !InsideBox() {

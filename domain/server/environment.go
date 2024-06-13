@@ -113,9 +113,10 @@ func SelectEnv(envName string, options ...fn.Option) (*Env, error) {
 				}
 
 				if err := persistSelectedEnv(client.Env{
-					Name:     a.Metadata.Name,
-					SSHPort:  port,
-					TargetNs: a.Spec.TargetNamespace,
+					Name:        a.Metadata.Name,
+					SSHPort:     port,
+					TargetNs:    a.Spec.TargetNamespace,
+					ClusterName: a.ClusterName,
 				}); err != nil {
 					return nil, err
 				}
@@ -138,8 +139,10 @@ func SelectEnv(envName string, options ...fn.Option) (*Env, error) {
 	}
 
 	if err := persistSelectedEnv(client.Env{
-		Name:     env.Metadata.Name,
-		TargetNs: env.Spec.TargetNamespace,
+		Name:        env.Metadata.Name,
+		TargetNs:    env.Spec.TargetNamespace,
+		SSHPort:     oldEnv.SSHPort,
+		ClusterName: env.ClusterName,
 	}); err != nil {
 		return nil, err
 	}

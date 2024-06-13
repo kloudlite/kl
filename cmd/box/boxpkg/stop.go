@@ -19,17 +19,27 @@ func (c *client) Stop() error {
 	// 	fn.Warnf("failed to stop vpn container: %s", err.Error())
 	// }
 
-	cr, err := c.getContainer(map[string]string{
+	cr, err := c.GetContainer(map[string]string{
 		CONT_MARK_KEY: "true",
 		CONT_NAME_KEY: c.containerName,
 	})
-	if err != nil && err != notFoundErr {
+	if err != nil && err != NotFoundErr {
 		return err
 	}
 
-	if err == notFoundErr {
-		c.ListBox()
-		return fmt.Errorf("no running container found in current workspace")
+	if err == NotFoundErr {
+
+		conts, err2 := c.ListAllBoxes()
+		if err != nil && err != NotFoundErr {
+			return err2
+		}
+
+		if err2 == nil {
+			c.PrintBoxes(conts)
+			return fmt.Errorf("no running container found in current workspace")
+		}
+
+		return nil
 	}
 
 	crPath := cr.Labels[CONT_PATH_KEY]
@@ -78,13 +88,13 @@ func (c *client) StopAll() error {
 	crs, err := c.listContainer(map[string]string{
 		CONT_MARK_KEY: "true",
 	})
-	if err != nil && err != notFoundErr {
+
+	if err != nil && err != NotFoundErr {
 		return err
 	}
 
-	if err == notFoundErr {
-		c.ListBox()
-		return fmt.Errorf("no running container found in current workspace")
+	if err == NotFoundErr {
+		fn.Warnf("no running containers found in any workspace")
 	}
 
 	for _, cr := range crs {

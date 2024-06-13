@@ -18,6 +18,10 @@ type Container struct {
 	Path string
 }
 
+func (c *client) SetCwd(cwd string) {
+	c.cwd = cwd
+}
+
 func (c *client) getVPNContainer() (Container, error) {
 	defCr := Container{}
 

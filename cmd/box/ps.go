@@ -16,7 +16,13 @@ var psCmd = &cobra.Command{
 			return
 		}
 
-		if err := c.ListBox(); err != nil {
+		conts, err := c.ListAllBoxes()
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		if err := c.PrintBoxes(conts); err != nil {
 			fn.PrintError(err)
 			return
 		}
