@@ -3,10 +3,12 @@ package server
 import (
 	"errors"
 	"fmt"
+
 	"github.com/kloudlite/kl/domain/client"
 	"github.com/kloudlite/kl/flags"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
 type Account struct {
@@ -86,19 +88,23 @@ func EnsureAccount(options ...fn.Option) (string, error) {
 		return "", err
 	}
 
-	if accountName != "" {
-		if kt.AccountName != "" && kt.AccountName != accountName {
-			return "", errors.New("slected account is not the same as the current workspace account")
+	returnAcc := func(an string) (string, error) {
+		if kt.AccountName != "" && kt.AccountName != an {
+			return "", fmt.Errorf("selected account(%s) is not same as current workspace account (%s), please select account using '%s'", text.Yellow(an), text.Yellow(kt.AccountName), text.Bold("kl use account"))
 		}
 
 		if kt.AccountName == "" {
-			kt.AccountName = accountName
+			kt.AccountName = an
 			if err := client.WriteKLFile(*kt); err != nil {
 				return "", err
 			}
 		}
 
-		return accountName, nil
+		return an, nil
+	}
+
+	if accountName != "" {
+		return returnAcc(accountName)
 	}
 
 	s, err := client.CurrentAccountName()
@@ -109,5 +115,5 @@ func EnsureAccount(options ...fn.Option) (string, error) {
 		return "", errors.New(fmt.Sprintf("no account selected, please select an account using '%s use account'", flags.CliName))
 	}
 
-	return s, nil
+	return returnAcc(s)
 }
