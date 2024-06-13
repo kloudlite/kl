@@ -110,7 +110,7 @@ func EnsureDevice(options ...fn.Option) (*Device, error) {
 
 	d, err := getVPNDevice(dc.DeviceName, options...)
 	if err != nil {
-		fn.Warnf("Failed to get VPN device: %s", err)
+		fn.Warnf("failed to get VPN device: %s", err.Error())
 		return createDevice(hostName)
 	}
 

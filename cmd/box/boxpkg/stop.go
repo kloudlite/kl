@@ -15,10 +15,6 @@ import (
 func (c *client) Stop() error {
 	defer spinner.Client.Start("stopping container please wait")()
 
-	// if err := c.StopContVpn(); err != nil {
-	// 	fn.Warnf("failed to stop vpn container: %s", err.Error())
-	// }
-
 	cr, err := c.GetContainer(map[string]string{
 		CONT_MARK_KEY: "true",
 		CONT_NAME_KEY: c.containerName,
@@ -39,7 +35,7 @@ func (c *client) Stop() error {
 			return fmt.Errorf("no running container found in current workspace")
 		}
 
-		return nil
+		return fmt.Errorf("no running container found in current workspace")
 	}
 
 	crPath := cr.Labels[CONT_PATH_KEY]
@@ -94,7 +90,7 @@ func (c *client) StopAll() error {
 	}
 
 	if err == NotFoundErr {
-		fn.Warnf("no running containers found in any workspace")
+		fn.Warn("no running containers found in any workspace")
 	}
 
 	for _, cr := range crs {
@@ -106,13 +102,13 @@ func (c *client) StopAll() error {
 
 		if cr.State != ContStateExited && cr.State != ContStateCreated {
 			if err := c.cli.ContainerKill(c.Context(), cr.Name, "SIGKILL"); err != nil {
-				fn.Warnf("error stoping container: %s", err)
+				fn.Warnf("error stoping container: %s", err.Error())
 				continue
 			}
 		}
 
 		if err := c.cli.ContainerRemove(c.Context(), cr.Name, container.RemoveOptions{}); err != nil {
-			fn.Warnf("failed to remove container: %s", err)
+			fn.Warnf("failed to remove container: %s", err.Error())
 			continue
 		}
 

@@ -196,7 +196,7 @@ func (c *client) Start() error {
 
 		if len(cfg.DNS) > 0 {
 			args = append(args, []string{
-				"--dns", "127.0.0.2",
+				// "--dns", "127.0.0.2",
 				// "--dns", "1.1.1.1",
 				// "--dns-search", fmt.Sprintf("%s.svc.%s.local", e.Spec.TargetNamespace, e.ClusterName),
 			}...)
@@ -221,8 +221,7 @@ func (c *client) Start() error {
 		args = append(args, []string{
 			"-v", fmt.Sprintf("%s:/tmp/ssh2/authorized_keys:ro", akTmpPath),
 			"-v", "kl-home-cache:/home:rw",
-			"-v", "kl-nix-cache:/nix:rw",
-			// "--network", "host",
+			"-v", "kl-nix-store:/nix:rw",
 			"-v", fmt.Sprintf("%s:/home/kl/workspace:z", c.cwd),
 			"-v", fmt.Sprintf("%s:/home/kl/.cache/.kl:z", configFolder),
 			"-e", fmt.Sprintf("SSH_PORT=%d", sshPort),

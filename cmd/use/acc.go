@@ -27,7 +27,11 @@ var accCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		p.Stop()
+
+		if _, err := p.Stop(); err != nil {
+			fn.PrintError(err)
+			return
+		}
 
 		c, err := boxpkg.NewClient(cmd, args)
 		if err != nil {

@@ -20,5 +20,5 @@ func (c *client) Reload() error {
 			return ""
 		}
 		return " -q"
-	}()))
+	}()), c.cmd)
 }

@@ -80,11 +80,27 @@ func SelectAccount(accountName string) (*Account, error) {
 
 func EnsureAccount(options ...fn.Option) (string, error) {
 	accountName := fn.GetOption(options, "accountName")
+
+	kt, err := client.GetKlFile("")
+	if err != nil {
+		return "", err
+	}
+
 	if accountName != "" {
+		if kt.AccountName != "" && kt.AccountName != accountName {
+			return "", errors.New("slected account is not the same as the current workspace account")
+		}
+
+		if kt.AccountName == "" {
+			kt.AccountName = accountName
+			if err := client.WriteKLFile(*kt); err != nil {
+				return "", err
+			}
+		}
+
 		return accountName, nil
 	}
 
-	var s string
 	s, err := client.CurrentAccountName()
 	if err != nil {
 		return "", err

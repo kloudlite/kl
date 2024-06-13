@@ -85,10 +85,6 @@ COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /start.sh
 RUN chmod +x /entrypoint.sh
 
-# RUN cat > /etc/resolv.conf <<'EOF'
-# nameserver 127.0.0.2
-# EOF
-
 COPY --from=builder /kl-app/bin/mounter /mounter
 COPY --from=builder /kl-app/bin/kl /usr/local/bin/kl
 

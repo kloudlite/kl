@@ -43,7 +43,7 @@ var switchCmd = &cobra.Command{
 			return
 		}
 
-		if err := client.SyncDevboxShellEnvFile(); err != nil {
+		if err := client.SyncDevboxShellEnvFile(cmd); err != nil {
 			fn.PrintError(err)
 			return
 		}
