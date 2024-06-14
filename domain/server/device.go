@@ -218,7 +218,7 @@ func CheckDeviceStatus() bool {
 
 	// Create a new DNS message
 	message := new(dns.Msg)
-	message.SetQuestion(dns.Fqdn("kube-dns.kube-system.svc.cluster.local"), dns.TypeA)
+	message.SetQuestion(dns.Fqdn("one.one.one.one"), dns.TypeA)
 	message.RecursionDesired = true
 
 	// Send the DNS query
