@@ -1,6 +1,5 @@
 #!/bin/bash
 # shellcheck source=/dev/null
-
 set -o errexit
 set -o pipefail
 
@@ -22,6 +21,8 @@ kl app start-dns &
 cat > /tmp/resolv.conf <<'EOF'
 nameserver 127.0.0.2
 EOF
+
+echo "kloudlite-entrypoint:SETUP"
 
 sudo cp /tmp/resolv.conf /etc/resolv.conf
 
@@ -45,7 +46,7 @@ if [ ! -f "$entrypoint_executed" ]; then
     echo "successfully initialized .profile and .bashrc" >> $entrypoint_executed
 fi
 
-shift
+# shift
 
 PATH=$PATH:$HOME/.nix-profile/bin
 
