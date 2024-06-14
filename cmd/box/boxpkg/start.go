@@ -220,8 +220,6 @@ func (c *client) Start() error {
 		// 	return err
 		// }
 
-		fmt.Println(c.cwd)
-
 		args = append(args, []string{
 			"-v", fmt.Sprintf("%s:/tmp/ssh2/authorized_keys:ro", akTmpPath),
 			"-v", "kl-home-cache:/home:rw",

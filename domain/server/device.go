@@ -187,7 +187,7 @@ func getVPNDevice(devName string, options ...fn.Option) (*Device, error) {
 }
 
 func CheckDeviceStatus() bool {
-	verbose := true
+	verbose := false
 
 	logF := func(format string, v ...interface{}) {
 		if verbose {
