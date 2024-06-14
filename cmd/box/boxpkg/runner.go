@@ -345,8 +345,6 @@ func writeOnUserScope(fpath string, data []byte) error {
 		return err
 	}
 
-	fmt.Println("fpath", fpath)
-
 	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
 		if err := fn.ExecCmd(
 			fmt.Sprintf("chown -R %s %s", usr, filepath.Dir(fpath)), nil, false,

@@ -1,8 +1,4 @@
 #!/bin/bash
-tail -f /dev/null
-
-ls -al /tmp
-
 (tail -f /tmp/stdout.log) &
 pid=$!
 (tail -f /tmp/stderr.log) &

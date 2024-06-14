@@ -232,7 +232,6 @@ func (c *client) Start() error {
 			// fmt.Sprintf("--add-host=%s.device.local:%s", d.Metadata.Name, s),
 			"-p", fmt.Sprintf("%d:%d", sshPort, sshPort),
 			GetImageName(),
-			// "--jhgf",
 		}...)
 
 		if err := c.runContainer(ContainerConfig{
