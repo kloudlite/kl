@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck source=/dev/null
 set -o errexit
 set -o pipefail

@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /usr/bin/env bash
 (tail -f /tmp/stdout.log) &
 pid=$!
 (tail -f /tmp/stderr.log) &
