@@ -76,16 +76,16 @@ EOF
 
 COPY .bashrc .profile .zshrc aliasrc /tmp/
 
-
 RUN chsh -s /bin/zsh kl
 
 COPY ./start.sh /start.sh
 COPY ./entrypoint.sh /entrypoint.sh
+COPY ./track-changes.sh /track-changes.sh
+
 
 RUN mkdir /kl-tmp && chown -R kl:kl /kl-tmp
 
-RUN chmod +x /start.sh
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /start.sh /entrypoint.sh /track-changes.sh
 
 COPY --from=builder /kl-app/bin/mounter /mounter
 COPY --from=builder /kl-app/bin/kl /usr/local/bin/kl

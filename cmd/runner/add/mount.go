@@ -197,6 +197,9 @@ func selectConfigMount(path string, klFile client.KLFileType, cmd *cobra.Command
 	}
 
 	fn.Log("added mount to your kl-file")
+	if err = server.SyncBoxHash(); err != nil {
+		return err
+	}
 
 	return nil
 }

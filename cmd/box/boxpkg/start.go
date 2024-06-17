@@ -231,6 +231,7 @@ func (c *client) Start() error {
 			"-v", fmt.Sprintf("%s:/home/kl/workspace:z", c.cwd),
 			"-v", fmt.Sprintf("%s:/home/kl/.cache/.kl:z", configFolder),
 			"-e", fmt.Sprintf("SSH_PORT=%d", sshPort),
+			"-e", fmt.Sprintf("KL_HASH_FILE=/home/kl/.cache/.kl/box-hash/%s", server.BoxHashFilePath()),
 			"-e", fmt.Sprintf("KL_WORKSPACE=%s", c.cwd),
 			"--add-host=box:127.0.0.1",
 			// fmt.Sprintf("--add-host=%s.device.local:%s", d.Metadata.Name, s),
