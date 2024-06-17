@@ -149,6 +149,33 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 
 	currConfigs := klFile.EnvVars.GetConfigs()
 
+	//for i, ret := range currConfigs {
+	//	fmt.Println(ret.Name, selectedConfigGroup.Metadata.Name)
+	//	if ret.Name == selectedConfigGroup.Metadata.Name {
+	//		for j, rt := range currConfigs[i].Env {
+	//			fmt.Println(rt.RefKey, selectedConfigKey.Key, j)
+	//			if rt.RefKey == selectedConfigKey.Key {
+	//				//if len(currConfigs) >= 1 {
+	//				//	currConfigs = []client.ResType{}
+	//				//	matchedGroupIndex = -1
+	//				//	break
+	//				//}
+	//				//currConfigs = append(currConfigs[:i], currConfigs[i+1:]...)
+	//				klFile.EnvVars = append(klFile.EnvVars[:i], klFile.EnvVars[i+1:]...)
+	//			}
+	//		}
+	//	}
+	//	err := client.WriteKLFile(*klFile)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	klFile, err = client.GetKlFile("")
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
+	//fmt.Println(currConfigs, matchedGroupIndex)
+
 	if matchedGroupIndex != -1 {
 		matchedKeyIndex := -1
 
@@ -158,7 +185,6 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 				break
 			}
 		}
-
 		if matchedKeyIndex == -1 {
 			currConfigs[matchedGroupIndex].Env = append(currConfigs[matchedGroupIndex].Env, client.ResEnvType{
 				Key: RenameKey(func() string {
@@ -188,7 +214,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 			},
 		})
 	}
-
+	//fmt.Println(currConfigs)
 	klFile.EnvVars.AddResTypes(currConfigs, client.Res_config)
 
 	err = client.WriteKLFile(*klFile)
