@@ -35,6 +35,7 @@ This command will add config entry references from current environment to your k
 }
 
 func selectAndAddConfig(cmd *cobra.Command, args []string) error {
+	//TODO: add changes to the klbox-hash file
 	// name := fn.ParseStringFlag(cmd, "name")
 	// m := fn.ParseStringFlag(cmd, "map")
 
@@ -197,13 +198,16 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 
 	fn.Log(fmt.Sprintf("added config %s/%s to your kl-file\n", selectedConfigGroup.Metadata.Name, selectedConfigKey.Key))
 
-	if err := server.SyncDevboxJsonFile(); err != nil {
+	if err := server.SyncBoxHash(); err != nil {
 		return err
 	}
+	//if err := server.SyncDevboxJsonFile(); err != nil {
+	//	return err
+	//}
 
-	if err := client.SyncDevboxShellEnvFile(cmd); err != nil {
-		return err
-	}
+	//if err := client.SyncDevboxShellEnvFile(cmd); err != nil {
+	//	return err
+	//}
 
 	return nil
 }

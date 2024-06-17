@@ -3,6 +3,7 @@ package packages
 import (
 	"errors"
 	"fmt"
+	"github.com/kloudlite/kl/domain/server"
 
 	"github.com/kloudlite/kl/domain/client"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -23,6 +24,7 @@ var rmCmd = &cobra.Command{
 }
 
 func rmPackages(cmd *cobra.Command, args []string) error {
+	// TODO: add changes to the klbox-hash file
 	name := fn.ParseStringFlag(cmd, "name")
 	if name == "" && len(args) > 0 {
 		name = args[0]
@@ -49,6 +51,9 @@ func rmPackages(cmd *cobra.Command, args []string) error {
 	}
 
 	fn.Logf("removed package %s", name)
+	if err := server.SyncBoxHash(); err != nil {
+		return err
+	}
 	return nil
 }
 

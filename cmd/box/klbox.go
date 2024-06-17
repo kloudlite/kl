@@ -2,12 +2,16 @@ package box
 
 import (
 	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/server"
 	"github.com/spf13/cobra"
 )
 
 var BoxCmd = &cobra.Command{
 	Use:   "box",
 	Short: "start, stop, reload, ssh and get running box info",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		server.EnsureBoxHash()
+	},
 }
 
 func init() {
