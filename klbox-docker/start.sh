@@ -17,10 +17,12 @@ export MAIN_PATH=$PATH
 export KL_TMP_PATH="/kl-tmp"
 EOL
 
-kl app start-dns &
+sudo dnsmasq --server=/.local/$KL_DNS --server=1.1.1.1
 
-cat > /tmp/resolv.conf <<'EOF'
-nameserver 127.0.0.2
+cat > /tmp/resolv.conf <<EOF
+nameserver 127.0.0.1
+search $KL_SEARCH_DOMAIN
+options ndots:0
 EOF
 
 sudo cp /tmp/resolv.conf /etc/resolv.conf

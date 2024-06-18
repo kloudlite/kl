@@ -11,6 +11,8 @@
 # for ssh logins, install and configure the libpam-umask package.
 #umask 022
 
+source $HOME/.nix-profile/etc/profile.d/nix.sh
+
 KL_LOCK_PATH=/home/kl/workspace/kl.lock
 [ -f /tmp/env ] && source /tmp/env
 
