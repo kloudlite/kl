@@ -1,6 +1,9 @@
 package shell
 
 import (
+	"fmt"
+	"os/exec"
+
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +15,8 @@ Example:
 {cmd} shell
 	`,
 	Run: func(cmd *cobra.Command, _ []string) {
-
+		exec.Command("nix", "shell").Run()
+		fmt.Println("shell")
 	},
 }
 
