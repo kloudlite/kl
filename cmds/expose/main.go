@@ -10,5 +10,6 @@ var Command = &cobra.Command{
 
 func init() {
 	Command.AddCommand(portsCmd)
+	Command.AddCommand(syncCmd)
 	portsCmd.Aliases = []string{"ports"}
 }

@@ -2,11 +2,13 @@ package expose
 
 import (
 	"errors"
+	"os"
 	"slices"
 	"strconv"
 
 	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/pkg/ui/text"
+	"github.com/kloudlite/kl2/utils/devbox"
 	"github.com/kloudlite/kl2/utils/klfile"
 	"github.com/spf13/cobra"
 )
@@ -21,17 +23,20 @@ This command will add ports to your kl-config file.
   kl expose ports 8080 3000
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := exposePorts(cmd, args); err != nil {
+		if err := exposePorts(args); err != nil {
 			fn.PrintError(err)
 			return
 		}
 	},
 }
 
-func exposePorts(cmd *cobra.Command, args []string) error {
+func exposePorts(args []string) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
-		fn.PrintError(err)
 		return errors.New("please run 'kl init' if you are not initialized the file already")
 	}
 
@@ -52,6 +57,6 @@ func exposePorts(cmd *cobra.Command, args []string) error {
 	if err := klfile.WriteKLFile(*klFile); err != nil {
 		return err
 	}
-
+	devbox.Start(cwd)
 	return nil
 }
