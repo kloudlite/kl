@@ -46,10 +46,9 @@ precmd() {
 
 	chash=$(cat $KL_HASH_FILE | jq '.hash' -r)
 	ohash=$(cat /tmp/hash)
-	if [ "$chash" != "$oldhash" ]; then
+	if [ "$chash" != "$ohash" ]; then
 		dirtyPrefix="(needs-restart)"
 		cprefix="$(echo $PURE_PROMPT_SYMBOL | awk '{print $1}')"
-		echo "current prefix $cprefix"
 		if [ "$cprefix" != "$dirtyPrefix" ]; then
 			PURE_PROMPT_SYMBOL="$dirtyPrefix $PURE_PROMPT_SYMBOL"
 		fi
