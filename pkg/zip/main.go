@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"strings"
 
-	fn "github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl2/pkg/functions"
 )
 
 func Unzip(src, dest string) error {

@@ -1,0 +1,5 @@
+package devbox
+
+func syncVpn() {
+
+}

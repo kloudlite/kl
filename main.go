@@ -1,16 +1,7 @@
 package main
 
-import (
-	"github.com/kloudlite/kl/clis/kl"
-	"github.com/kloudlite/kl/clis/kli"
-	"github.com/kloudlite/kl/flags"
-)
+import "github.com/kloudlite/kl2/cli"
 
 func main() {
-	if flags.CliName == "kl" {
-		kl.Execute()
-		return
-	}
-
-	kli.Execute()
+	cli.Execute()
 }

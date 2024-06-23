@@ -90,8 +90,8 @@ func ExecCmd(cmdString string, env map[string]string, verbose bool) error {
 	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
 	if verbose {
 		Log("[#] " + strings.Join(cmdArr, " "))
-		cmd.Stdout = os.Stdout
 	}
+	cmd.Stdout = os.Stdout
 
 	// cmd.Env = os.Environ()
 
@@ -104,9 +104,8 @@ func ExecCmd(cmdString string, env map[string]string, verbose bool) error {
 	}
 
 	cmd.Stderr = os.Stderr
-	// s.Start()
+	cmd.Stdin = os.Stdin
 	err = cmd.Run()
-	// s.Stop()
 	return err
 }
 

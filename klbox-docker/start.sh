@@ -36,6 +36,7 @@ if [ ! -f "$entrypoint_executed" ]; then
     ln -sf /home/kl/.profile /home/kl/.zprofile
     cp /tmp/aliasrc /home/kl/.config/aliasrc
     echo "successfully initialized .profile and .bashrc" >> $entrypoint_executed
+    ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N "" <<<y >/dev/null 2>&1
 fi
 
 mkdir -p ~/.config/nix
@@ -44,16 +45,16 @@ echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
 # shift
 
 PATH=$PATH:$HOME/.nix-profile/bin
-
-pushd "$HOME/workspace"
-
+echo "Started Executing hash"
 cat $KL_HASH_FILE | jq '.config.env | to_entries | map_values(. = "export \(.key)=\"\(.value)\"")|.[]' -r >> /tmp/env
-eval $(cat $KL_HASH_FILE | jq '.config.kloudliteConfig.mounts | to_entries | map_values(. = "printf \"\(.value)\" > \(.key)") | .[]' -r)
+cat > /tmp/mount.sh <<EOF
+$(cat $KL_HASH_FILE | jq '.config.mounts | to_entries | map_values(. = "mkdir -p $(realpath $(dirname \(.key))); printf \"\(.value)\" > \(.key)") | .[]' -r)
+EOF
+sudo bash /tmp/mount.sh
 echo export PATH=$PATH:$(eval nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command printenv PATH) >> /tmp/env
+source /tmp/env
 
-#source /tmp/env
-#kl box reload -s && echo 'echo kloudlite-entrypoint:INSTALLING_PACKAGES_DONE'
-popd
+export KL_HASH_FILE=$KL_HASH_FILE
 
 if [ -d "/tmp/ssh2" ]; then
     mkdir -p /home/kl/.ssh
@@ -68,7 +69,7 @@ export SSH_PORT=$SSH_PORT
 trap - EXIT SIGTERM SIGINT
 echo "kloudlite-entrypoint: SETUP_COMPLETE"
 
-/track-changes.sh "$KL_HASH_FILE" "echo kl-hash-file changed, exiting ...; sudo pkill -9 sshd" &
+#/track-changes.sh "$KL_HASH_FILE" "echo kl-hash-file changed, exiting ...; sudo pkill -9 sshd" &
 
 sudo /usr/sbin/sshd -D -p "$SSH_PORT"
 

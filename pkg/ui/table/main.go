@@ -3,9 +3,9 @@ package table
 import (
 	"encoding/json"
 	"fmt"
-	fn "github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl2/pkg/functions"
 
-	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl2/pkg/ui/text"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
@@ -24,6 +24,10 @@ func HeaderText(txt string) string {
 func GetTableStyles() table.BoxStyle {
 	colorReset := text.Reset()
 	colorBorder := text.Color(borderColor)
+
+	//return table.BoxStyle{
+	//	PaddingLeft: "  ",
+	//}
 
 	return table.BoxStyle{
 		BottomLeft:       colorBorder + "└",

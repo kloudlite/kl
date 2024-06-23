@@ -5,13 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
-	"runtime"
 	"strings"
 
-	// "github.com/kloudlite/kl/flags"
-	"github.com/kloudlite/kl/pkg/ui/text"
-	"github.com/martinlindhe/notify"
+	"github.com/kloudlite/kl2/pkg/ui/text"
 	"github.com/spf13/cobra"
 )
 
@@ -169,53 +165,6 @@ func ParseBoolFlag(cmd *cobra.Command, flag string) bool {
 
 func WithOutputVariant(cmd *cobra.Command) {
 	cmd.Flags().StringP("output", "o", "table", "output format [table | json | yaml]")
-}
-
-func WithKlFile(cmd *cobra.Command) {
-	cmd.Flags().StringP("klfile", "k", "", "kloudlite file")
-}
-
-func ParseKlFile(cmd *cobra.Command) string {
-	if cmd.Flags().Changed("klfile") {
-		v, _ := cmd.Flags().GetString("klfile")
-		return v
-	}
-
-	return ""
-}
-
-func InfraMarkOption() Option {
-	return MakeOption("isInfra", "yes")
-}
-
-func IsInfraFlagAvailable(options ...Option) bool {
-	s := GetOption(options, "isInfra")
-	if s == "yes" {
-		return true
-	}
-	return false
-}
-
-func Alert(name string, str ...interface{}) {
-	if runtime.GOOS == "darwin" {
-		notify.Alert("Kloudlite", name, fmt.Sprint(str...), "")
-	}
-	if runtime.GOOS == "linux" {
-		notification(name, fmt.Sprint(str...), "")
-		if err := exec.Command("paplay", "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga").Start(); err != nil {
-			Println("error playing alert sound:", err)
-		}
-	}
-}
-
-func Notify(name string, str ...interface{}) {
-	if runtime.GOOS == "darwin" {
-		notify.Notify("Kloudlite", name, fmt.Sprint(str...), "")
-	}
-
-	if runtime.GOOS == "linux" {
-		notification(name, fmt.Sprint(str...), "")
-	}
 }
 
 func Desc(str string) string {

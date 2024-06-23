@@ -1,0 +1,45 @@
+package server
+
+import (
+	fn "github.com/kloudlite/kl2/pkg/functions"
+)
+
+type Env struct {
+	DisplayName string   `json:"displayName"`
+	Metadata    Metadata `json:"metadata"`
+	Status      Status   `json:"status"`
+	ClusterName string   `json:"clusterName"`
+	Spec        struct {
+		TargetNamespace string `json:"targetNamespace"`
+	} `json:"spec"`
+}
+
+type EnvList struct {
+	Edges Edges[Env] `json:"edges"`
+}
+
+func ListEnvs(options ...fn.Option) ([]Env, error) {
+	var err error
+	cookie, err := getCookie(options...)
+	if err != nil {
+		return nil, err
+	}
+
+	respData, err := klFetch("cli_listEnvironments", map[string]any{
+		"pq": map[string]any{
+			"orderBy":       "name",
+			"sortDirection": "ASC",
+			"first":         99999999,
+		},
+	}, &cookie)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if fromResp, err := GetFromRespForEdge[Env](respData); err != nil {
+		return nil, err
+	} else {
+		return fromResp, nil
+	}
+}

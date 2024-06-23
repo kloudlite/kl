@@ -1,0 +1,221 @@
+package add
+
+import (
+	"errors"
+	"fmt"
+	"os"
+	"strings"
+
+	fn "github.com/kloudlite/kl2/pkg/functions"
+	"github.com/kloudlite/kl2/pkg/ui/fzf"
+	"github.com/kloudlite/kl2/server"
+	"github.com/kloudlite/kl2/utils"
+	"github.com/kloudlite/kl2/utils/envvars"
+	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/spf13/cobra"
+)
+
+var secCmd = &cobra.Command{
+	Use:   "secret [name]",
+	Short: "add secret references to your kl-config",
+	Long:  `This command will add secret entry references from current environement to your kl-config file.`,
+	Example: `
+  kl add secret 		# add secret and entry by selecting from list (default)
+  kl add secret [name] 	# add entry by providing secret name
+	`,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := selectAndAddSecret(args)
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+	},
+}
+
+func selectAndAddSecret(args []string) error {
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	env, err := utils.EnvAtPath(cwd)
+	if err != nil {
+		return err
+	}
+
+	name := ""
+	if len(args) >= 1 {
+		name = args[0]
+	}
+
+	klFile, err := klfile.GetKlFile("")
+	if err != nil {
+		fn.PrintError(err)
+		return errors.New("please run 'kl init' if you are not initialized the file already")
+	}
+
+	secrets, err := server.ListSecrets([]fn.Option{
+		fn.MakeOption("envName", string(env)),
+		fn.MakeOption("accountName", klFile.AccountName),
+	}...)
+	if err != nil {
+		return err
+	}
+
+	if len(secrets) == 0 {
+		return fmt.Errorf("no secrets created yet on server")
+	}
+
+	selectedSecretGroup := server.Secret{}
+
+	if name != "" {
+		for _, c := range secrets {
+			if c.Metadata.Name == name {
+				selectedSecretGroup = c
+				break
+			}
+		}
+		return errors.New("can't find secrets with provided name")
+
+	} else {
+		selectedGroup, err := fzf.FindOne(
+			secrets,
+			func(item server.Secret) string {
+				return item.Metadata.Name
+			},
+			fzf.WithPrompt("Select Secret Group >"),
+		)
+		if err != nil {
+			return err
+		}
+
+		selectedSecretGroup = *selectedGroup
+	}
+
+	if len(selectedSecretGroup.StringData) == 0 {
+		return fmt.Errorf("no secrets added yet to %s secret", selectedSecretGroup.Metadata.Name)
+	}
+
+	type KV struct {
+		Key   string
+		Value string
+	}
+
+	selectedSecretKey := &KV{}
+
+	m := ""
+
+	if m != "" {
+		kk := strings.Split(m, "=")
+		if len(kk) != 2 {
+			return errors.New("map must be in format of secret_key=your_var_key")
+		}
+
+		for k, v := range selectedSecretGroup.StringData {
+			if k == kk[0] {
+				selectedSecretKey = &KV{
+					Key:   k,
+					Value: v,
+				}
+				break
+			}
+		}
+
+		return errors.New("secret_key not found in selected secret")
+
+	} else {
+		selectedSecretKey, err = fzf.FindOne(
+			func() []KV {
+				var kvs []KV
+
+				for k, v := range selectedSecretGroup.StringData {
+					kvs = append(kvs, KV{
+						Key:   k,
+						Value: v,
+					})
+				}
+
+				return kvs
+			}(),
+			func(val KV) string {
+				return val.Key
+			},
+			fzf.WithPrompt(fmt.Sprintf("Select Key of %s >", selectedSecretGroup.Metadata.Name)),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	currSecs := klFile.EnvVars.GetSecrets()
+
+	matchedGroupIndex := -1
+	for i, rt := range currSecs {
+		if rt.Name == selectedSecretGroup.Metadata.Name {
+			matchedGroupIndex = i
+			break
+		}
+	}
+
+	if matchedGroupIndex != -1 {
+		matchedKeyIndex := -1
+
+		for i, ret := range currSecs[matchedGroupIndex].Env {
+			if ret.RefKey == selectedSecretKey.Key {
+				matchedKeyIndex = i
+				break
+			}
+		}
+
+		if matchedKeyIndex == -1 {
+			currSecs[matchedGroupIndex].Env = append(currSecs[matchedGroupIndex].Env, envvars.ResEnvType{
+				Key: renameKey(func() string {
+					if m != "" {
+						kk := strings.Split(m, "=")
+						return kk[1]
+					}
+					return selectedSecretKey.Key
+				}()),
+				RefKey: selectedSecretKey.Key,
+			})
+		}
+	} else {
+		currSecs = append(currSecs, envvars.ResType{
+			Name: selectedSecretGroup.Metadata.Name,
+			Env: []envvars.ResEnvType{
+				{
+					Key: renameKey(func() string {
+						if m != "" {
+							kk := strings.Split(m, "=")
+							return kk[1]
+						}
+						return selectedSecretKey.Key
+					}()),
+					RefKey: selectedSecretKey.Key,
+				},
+			},
+		})
+
+	}
+
+	klFile.EnvVars.AddResTypes(currSecs, envvars.Res_secret)
+	err = klfile.WriteKLFile(*klFile)
+	if err != nil {
+		return err
+	}
+
+	fn.Log(fmt.Sprintf("added secret %s/%s to your kl-file\n", selectedSecretGroup.Metadata.Name, selectedSecretKey.Key))
+
+	//if err := server.SyncBoxHash(); err != nil {
+	//	return err
+	//}
+
+	//if err := server.SyncDevboxJsonFile(); err != nil {
+	//	return err
+	//}
+	//
+	//if err := client.SyncDevboxShellEnvFile(cmd); err != nil {
+	//	return err
+	//}
+	return nil
+}

@@ -3,7 +3,7 @@ package constants
 import (
 	"fmt"
 
-	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl2/utils"
 )
 
 const (
@@ -28,7 +28,7 @@ var (
 	BaseURL = func() string {
 		baseUrl := DefaultBaseURL
 
-		s, err := client.GetBaseURL()
+		s, err := utils.GetBaseURL()
 		if err == nil && s != "" {
 			baseUrl = s
 		}

@@ -40,4 +40,4 @@ if [[ -f $ZSH_HIGHLIGHT_PATH ]]; then
 fi
 
 # go to workspace
-cd $HOME/workspace
+cd /workspace

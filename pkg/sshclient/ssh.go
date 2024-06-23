@@ -2,22 +2,40 @@ package sshclient
 
 import (
 	"fmt"
-	"github.com/kloudlite/kl/pkg/ui/text"
+	"os"
+
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
-	"os"
 )
 
 type SSHConfig struct {
 	Host    string
 	User    string
 	KeyPath string
-
 	SSHPort int
+}
+
+var ErrSSHNotReady = fmt.Errorf("ssh is not ready")
+
+func publicKeyFile(file string) (ssh.AuthMethod, error) {
+	buffer, err := os.ReadFile(file)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read private key: %v", err)
+	}
+
+	key, err := ssh.ParsePrivateKey(buffer)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse private key: %v", err)
+	}
+
+	return ssh.PublicKeys(key), nil
 }
 
 func DoSSH(sc SSHConfig) error {
 	pkFile, err := publicKeyFile(sc.KeyPath)
+	if err != nil {
+		return fmt.Errorf("failed to parse private key: %s, please ensure you have the correct key", err)
+	}
 
 	config := &ssh.ClientConfig{
 		User: sc.User,
@@ -29,7 +47,7 @@ func DoSSH(sc SSHConfig) error {
 
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", sc.Host, sc.SSHPort), config)
 	if err != nil {
-		return fmt.Errorf("failed to dial: %s, please ensure container is running `%s`", err, text.Blue("kl box ps"))
+		return ErrSSHNotReady
 	}
 	defer client.Close()
 
