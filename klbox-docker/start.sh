@@ -45,16 +45,19 @@ echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
 # shift
 
 PATH=$PATH:$HOME/.nix-profile/bin
-echo "Started Executing hash"
+
+cat $KL_HASH_FILE | jq '.hash' -r > /tmp/hash
 cat $KL_HASH_FILE | jq '.config.env | to_entries | map_values(. = "export \(.key)=\"\(.value)\"")|.[]' -r >> /tmp/env
 cat > /tmp/mount.sh <<EOF
 $(cat $KL_HASH_FILE | jq '.config.mounts | to_entries | map_values(. = "mkdir -p $(realpath $(dirname \(.key))); printf \"\(.value)\" > \(.key)") | .[]' -r)
 EOF
 sudo bash /tmp/mount.sh
 echo export PATH=$PATH:$(eval nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command printenv PATH) >> /tmp/env
+
+echo "export KL_HASH_FILE=$KL_HASH_FILE" >> /tmp/env
+
 source /tmp/env
 
-export KL_HASH_FILE=$KL_HASH_FILE
 
 if [ -d "/tmp/ssh2" ]; then
     mkdir -p /home/kl/.ssh
@@ -72,4 +75,3 @@ echo "kloudlite-entrypoint: SETUP_COMPLETE"
 #/track-changes.sh "$KL_HASH_FILE" "echo kl-hash-file changed, exiting ...; sudo pkill -9 sshd" &
 
 sudo /usr/sbin/sshd -D -p "$SSH_PORT"
-
