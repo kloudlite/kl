@@ -3,17 +3,19 @@ package devbox
 import (
 	"context"
 	"crypto/md5"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/kloudlite/kl2/server"
-	"os"
 )
 
 type AccountVpnConfig struct {
-	WGconf string `json:"wg"`
+	WGconf     string `json:"wg"`
 	DeviceName string `json:"device"`
 }
 
@@ -44,6 +46,10 @@ func vpnConfigForAccount(account string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	err = os.MkdirAll(cfgFolder+"/vpn", 0755)
+	if err != nil {
+		return "", err
+	}
 	cfgPath := cfgFolder + "/vpn/" + account + ".json"
 	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
 		dev, err := createVpnForAccount(account)
@@ -51,16 +57,28 @@ func vpnConfigForAccount(account string) (string, error) {
 			return "", err
 		}
 		accountVpnConfig := AccountVpnConfig{
-			WGconf: dev.WireguardConfig.Value,
+			WGconf:     dev.WireguardConfig.Value,
 			DeviceName: dev.Metadata.Name,
 		}
-
+		marshal, err := json.Marshal(accountVpnConfig)
+		if err != nil {
+			return "", err
+		}
+		err = os.WriteFile(cfgPath, marshal, 0644)
+		if err != nil {
+			return "", err
+		}
 	}
+	accVPNConfig := AccountVpnConfig{}
 	c, err := os.ReadFile(cfgPath)
 	if err != nil {
 		return "", errors.New("failed to read vpn config")
 	}
-	return string(c), nil
+	err = json.Unmarshal(c, &accVPNConfig)
+	if err != nil {
+		return "", errors.New("failed to parse vpn config")
+	}
+	return accVPNConfig.WGconf, nil
 }
 
 func SyncVpn(wg string) error {
@@ -105,6 +123,7 @@ func SyncVpn(wg string) error {
 			return errors.New("failed to remove container")
 		}
 	}
+	script := fmt.Sprintf("echo %s | base64 -d > /etc/wireguard/wg0.conf && wg-quick up wg0 && tail -f /dev/null", wg)
 
 	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
 		Labels: map[string]string{
@@ -113,8 +132,11 @@ func SyncVpn(wg string) error {
 			"wgsum":     string(md5sum[:]),
 		},
 		Image: "ghcr.io/kloudlite/hub/wireguard:latest",
-		Cmd:   []string{"sh", "-c", "echo " + wg + " > /wireguard/wg0.conf && wg-quick up wg0 && tail -f /dev/null"},
-	}, &container.HostConfig{}, &network.NetworkingConfig{}, nil, "")
+		Cmd:   []string{"sh", "-c", script},
+	}, &container.HostConfig{
+		CapAdd:      []string{"NET_ADMIN"},
+		NetworkMode: "host",
+	}, &network.NetworkingConfig{}, nil, "")
 	if err != nil {
 		return errors.New("failed to create container")
 	}

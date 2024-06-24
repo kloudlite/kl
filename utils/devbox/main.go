@@ -25,6 +25,7 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/go-connections/nat"
 	"github.com/kloudlite/kl2/constants"
+	"github.com/kloudlite/kl2/utils"
 	"github.com/kloudlite/kl2/utils/envhash"
 	"github.com/kloudlite/kl2/utils/klfile"
 )
@@ -391,6 +392,7 @@ func ContainerAtPath(path string) (*types.Container, error) {
 	if len(existingContainers) == 0 {
 		return nil, errors.New(NO_RUNNING_CONTAINERS)
 	}
+	fmt.Println(existingContainers[0].Labels)
 	return &existingContainers[0], nil
 }
 
@@ -451,6 +453,7 @@ func startContainer(path string) (string, error) {
 		}
 		return existingContainers[0].ID, nil
 	}
+	fmt.Println("Starting container")
 	sshPort, err := getFreePort()
 	if err != nil {
 		return "", errors.New("failed to get free port")
@@ -518,7 +521,15 @@ func Stop(path string) error {
 }
 
 func Start(path string) error {
-	err := ensureKloudliteNetwork()
+	env, err := utils.EnvAtPath(path)
+	if err != nil {
+		return err
+	}
+	err = envhash.SyncBoxHash(string(env))
+	if err != nil {
+		return err
+	}
+	err = ensureKloudliteNetwork()
 	if err != nil {
 		return err
 	}
