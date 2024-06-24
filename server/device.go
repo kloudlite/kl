@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-
 	fn "github.com/kloudlite/kl2/pkg/functions"
 )
 
@@ -16,8 +15,9 @@ type Device struct {
 	IPAddress         string `json:"ipAddr"`
 	LastUpdatedBy     User   `json:"lastUpdatedBy"`
 	MarkedForDeletion bool   `json:"markedForDeletion"`
-	EnvironmentName   string `json:"environmentName"`
-	Metadata          struct {
+	// TODO: match with api (envname)
+	EnvironmentName string `json:"environmentName"`
+	Metadata        struct {
 		Annotations       map[string]string `json:"annotations"`
 		CreationTimestamp string            `json:"creationTimestamp"`
 		DeletionTimestamp string            `json:"deletionTimestamp"`
@@ -42,31 +42,19 @@ type DeviceList struct {
 	Edges Edges[Env] `json:"edges"`
 }
 
-func createDevice(accName, devName string) (*Device, error) {
-	cn, err := getDeviceName(accName, devName)
+func CreateDevice(devName string, accountName string) (*Device, error) {
+
+	cookie, err := getCookie(fn.MakeOption("accountName", accountName))
 	if err != nil {
 		return nil, err
 	}
 
-	cookie, err := getCookie()
-	if err != nil {
-		return nil, err
-	}
-
-	dn := devName
-	if !cn.Result {
-		if len(cn.SuggestedNames) == 0 {
-			return nil, fmt.Errorf("no suggested names for device %s", devName)
-		}
-
-		dn = cn.SuggestedNames[0]
-	}
-
+	fn.Logf("creating new device %s", devName)
 	respData, err := klFetch("cli_createGlobalVPNDevice", map[string]any{
 		"gvpnDevice": map[string]any{
-			"metadata":       map[string]string{"name": dn},
+			"metadata":       map[string]string{"name": devName},
 			"globalVPNName":  Default_GVPN,
-			"displayName":    dn,
+			"displayName":    devName,
 			"creationMethod": "kl",
 		},
 	}, &cookie)
@@ -79,24 +67,7 @@ func createDevice(accName, devName string) (*Device, error) {
 		return nil, err
 	}
 
-	if err := client.SelectDevice(d.Metadata.Name); err != nil {
-		return nil, err
-	}
-
 	return d, nil
-}
-
-func DeviceForAccount(accountName string) (*Device, error) {
-	d, err := getVPNDevice(devName, accountName)
-	if err != nil {
-		return nil, err
-	}
-
-	if d != nil {
-		return d, nil
-	}
-
-	return createDevice(accountName, devName)
 }
 
 type CheckName struct {
@@ -108,9 +79,8 @@ const (
 	VPNDeviceType = "global_vpn_device"
 )
 
-func getDeviceName(accName, devName string) (*CheckName, error) {
-
-	cookie, err := getCookie()
+func GetDeviceName(devName string, accountName string) (*CheckName, error) {
+	cookie, err := getCookie(fn.MakeOption("accountName", accountName))
 	if err != nil {
 		return nil, err
 	}
@@ -128,44 +98,4 @@ func getDeviceName(accName, devName string) (*CheckName, error) {
 	} else {
 		return fromResp, nil
 	}
-}
-
-func getVPNDevice(devName, accountName string, options ...fn.Option) (*Device, error) {
-
-	cookie, err := getCookie(fn.MakeOption("accountName", accountName))
-	if err != nil {
-		return nil, err
-	}
-
-	respData, err := klFetch("cli_getGlobalVpnDevice", map[string]any{
-		"gvpn":       Default_GVPN,
-		"deviceName": devName,
-	}, &cookie)
-	if err != nil {
-		return nil, err
-	}
-
-	return GetFromResp[Device](respData)
-}
-
-func CheckDeviceStatus() bool {
-	verbose := false
-
-	logF := func(format string, v ...interface{}) {
-		if verbose {
-			if len(v) > 0 {
-				fn.Log(format, v)
-			} else {
-				fn.Log(format)
-			}
-		}
-	}
-
-	s, err := client.GetDeviceContext()
-	if err != nil {
-		logF(err.Error())
-		return false
-	}
-
-	return true
 }

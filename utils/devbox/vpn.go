@@ -4,21 +4,57 @@ import (
 	"context"
 	"crypto/md5"
 	"errors"
-	"os"
-
+	"fmt"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
+	"github.com/kloudlite/kl2/server"
+	"os"
 )
+
+type AccountVpnConfig struct {
+	WGconf string `json:"wg"`
+	DeviceName string `json:"device"`
+}
+
+func createVpnForAccount(account string) (*server.Device, error) {
+	devName, err := os.Hostname()
+	if err != nil {
+		return nil, err
+	}
+	checkNames, err := server.GetDeviceName(devName, account)
+	if err != nil {
+		return nil, err
+	}
+	if !checkNames.Result {
+		if len(checkNames.SuggestedNames) == 0 {
+			return nil, fmt.Errorf("no suggested names for device %s", devName)
+		}
+		devName = checkNames.SuggestedNames[0]
+	}
+	device, err := server.CreateDevice(devName, account)
+	if err != nil {
+		return nil, err
+	}
+	return device, nil
+}
 
 func vpnConfigForAccount(account string) (string, error) {
 	cfgFolder, err := getConfigFolder()
 	if err != nil {
 		return "", err
 	}
-	cfgPath := cfgFolder + "/vpn/" + account + ".conf"
+	cfgPath := cfgFolder + "/vpn/" + account + ".json"
 	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
-		return "", errors.New("vpn config not found")
+		dev, err := createVpnForAccount(account)
+		if err != nil {
+			return "", err
+		}
+		accountVpnConfig := AccountVpnConfig{
+			WGconf: dev.WireguardConfig.Value,
+			DeviceName: dev.Metadata.Name,
+		}
+
 	}
 	c, err := os.ReadFile(cfgPath)
 	if err != nil {
