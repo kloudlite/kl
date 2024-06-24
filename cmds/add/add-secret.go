@@ -1,17 +1,17 @@
 package add
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/fzf"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils"
-	"github.com/kloudlite/kl2/utils/envvars"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/utils/envvars"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -35,12 +35,12 @@ var secCmd = &cobra.Command{
 func selectAndAddSecret(args []string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	name := ""
@@ -50,7 +50,7 @@ func selectAndAddSecret(args []string) error {
 
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
-		return errors.New("please run 'kl init' if you are not initialized the file already")
+		return functions.Error(err, "please run 'kl init' if you are not initialized the file already")
 	}
 
 	secrets, err := server.ListSecrets([]fn.Option{
@@ -58,7 +58,7 @@ func selectAndAddSecret(args []string) error {
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if len(secrets) == 0 {
@@ -73,7 +73,7 @@ func selectAndAddSecret(args []string) error {
 				break
 			}
 		}
-		return errors.New("can't find secrets with provided name")
+		return functions.Error(err, "can't find secrets with provided name")
 
 	} else {
 		selectedGroup, err := fzf.FindOne(
@@ -84,7 +84,7 @@ func selectAndAddSecret(args []string) error {
 			fzf.WithPrompt("Select Secret Group >"),
 		)
 		if err != nil {
-			return err
+			return functions.Error(err)
 		}
 
 		selectedSecretGroup = *selectedGroup
@@ -105,7 +105,7 @@ func selectAndAddSecret(args []string) error {
 	if m != "" {
 		kk := strings.Split(m, "=")
 		if len(kk) != 2 {
-			return errors.New("map must be in format of secret_key=your_var_key")
+			return functions.Error(err, "map must be in format of secret_key=your_var_key")
 		}
 
 		for k, v := range selectedSecretGroup.StringData {
@@ -118,7 +118,7 @@ func selectAndAddSecret(args []string) error {
 			}
 		}
 
-		return errors.New("secret_key not found in selected secret")
+		return functions.Error(err, "secret_key not found in selected secret")
 
 	} else {
 		selectedSecretKey, err = fzf.FindOne(
@@ -140,7 +140,7 @@ func selectAndAddSecret(args []string) error {
 			fzf.WithPrompt(fmt.Sprintf("Select Key of %s >", selectedSecretGroup.Metadata.Name)),
 		)
 		if err != nil {
-			return err
+			return functions.Error(err)
 		}
 	}
 
@@ -198,21 +198,21 @@ func selectAndAddSecret(args []string) error {
 	klFile.EnvVars.AddResTypes(currSecs, envvars.Res_secret)
 	err = klfile.WriteKLFile(*klFile)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	fn.Log(fmt.Sprintf("added secret %s/%s to your kl-file\n", selectedSecretGroup.Metadata.Name, selectedSecretKey.Key))
 
 	//if err := server.SyncBoxHash(); err != nil {
-	//	return err
+	//	return functions.Error(err)
 	//}
 
 	//if err := server.SyncDevboxJsonFile(); err != nil {
-	//	return err
+	//	return functions.Error(err)
 	//}
 	//
 	//if err := client.SyncDevboxShellEnvFile(cmd); err != nil {
-	//	return err
+	//	return functions.Error(err)
 	//}
 	return nil
 }

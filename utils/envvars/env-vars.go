@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
 type ResEnvType struct {

@@ -1,16 +1,16 @@
 package cli
 
 import (
-	"github.com/kloudlite/kl2/cmds/add"
-	"github.com/kloudlite/kl2/cmds/auth"
-	"github.com/kloudlite/kl2/cmds/box"
-	"github.com/kloudlite/kl2/cmds/expose"
-	"github.com/kloudlite/kl2/cmds/get"
-	"github.com/kloudlite/kl2/cmds/list"
-	"github.com/kloudlite/kl2/cmds/pkgs"
-	"github.com/kloudlite/kl2/cmds/runner"
-	set_base_url "github.com/kloudlite/kl2/cmds/set-base-url"
-	"github.com/kloudlite/kl2/cmds/use"
+	"github.com/kloudlite/kl/cmds/add"
+	"github.com/kloudlite/kl/cmds/auth"
+	"github.com/kloudlite/kl/cmds/box"
+	"github.com/kloudlite/kl/cmds/expose"
+	"github.com/kloudlite/kl/cmds/get"
+	"github.com/kloudlite/kl/cmds/list"
+	"github.com/kloudlite/kl/cmds/pkgs"
+	"github.com/kloudlite/kl/cmds/runner"
+	set_base_url "github.com/kloudlite/kl/cmds/set-base-url"
+	"github.com/kloudlite/kl/cmds/use"
 	"github.com/spf13/cobra"
 )
 

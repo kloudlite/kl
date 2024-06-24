@@ -10,7 +10,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/utils/klfile"
 )
 
 func SyncLockfileWithNewConfig(config klfile.KLFileType) (map[string]string, error) {

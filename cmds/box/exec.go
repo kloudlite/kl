@@ -3,8 +3,8 @@ package box
 import (
 	"os"
 
-	"github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/utils/devbox"
+	"github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/utils/devbox"
 	"github.com/spf13/cobra"
 )
 

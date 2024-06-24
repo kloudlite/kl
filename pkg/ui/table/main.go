@@ -3,9 +3,10 @@ package table
 import (
 	"encoding/json"
 	"fmt"
-	fn "github.com/kloudlite/kl2/pkg/functions"
 
-	"github.com/kloudlite/kl2/pkg/ui/text"
+	fn "github.com/kloudlite/kl/pkg/functions"
+
+	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 

@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/adrg/xdg"
-	"github.com/kloudlite/kl2/pkg/functions"
+	"github.com/kloudlite/kl/pkg/functions"
 )
 
 func GetUserHomeDir() (string, error) {
@@ -53,7 +53,7 @@ func userOwn(fpath string) error {
 		if err := functions.ExecCmd(
 			fmt.Sprintf("chown -R %s %s", usr, filepath.Dir(fpath)), nil, false,
 		); err != nil {
-			return err
+			return functions.Error(err)
 		}
 	}
 
@@ -62,14 +62,14 @@ func userOwn(fpath string) error {
 
 func writeOnUserScope(fpath string, data []byte) error {
 	if err := os.WriteFile(fpath, data, 0o644); err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
 		if err := functions.ExecCmd(
 			fmt.Sprintf("chown -R %s %s", usr, filepath.Dir(fpath)), nil, false,
 		); err != nil {
-			return err
+			return functions.Error(err)
 		}
 	}
 

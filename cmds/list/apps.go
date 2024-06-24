@@ -1,14 +1,15 @@
 package list
 
 import (
-	"errors"
-	"github.com/kloudlite/kl2/utils"
 	"os"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/table"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/utils"
+
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/table"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -27,17 +28,17 @@ func listapps(cmd *cobra.Command, _ []string) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
 		fn.PrintError(err)
-		return errors.New("please run 'kl init' if you are not initialized the file already")
+		return functions.Error(err, "please run 'kl init' if you are not initialized the file already")
 	}
 
 	apps, err := server.ListApps([]fn.Option{
@@ -45,11 +46,11 @@ func listapps(cmd *cobra.Command, _ []string) error {
 		fn.MakeOption("envName", env.Name),
 	}...)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if len(apps) == 0 {
-		return errors.New("no apps found")
+		return functions.Error(err, "no apps found")
 	}
 
 	header := table.Row{

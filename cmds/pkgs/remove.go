@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/utils/klfile"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 

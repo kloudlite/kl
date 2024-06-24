@@ -3,11 +3,11 @@ package runner
 import (
 	"errors"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/fzf"
-	"github.com/kloudlite/kl2/pkg/ui/text"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils/klfile"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils/klfile"
 
 	"github.com/spf13/cobra"
 )

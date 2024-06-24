@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	confighandler "github.com/kloudlite/kl2/pkg/config-handler"
-	"github.com/kloudlite/kl2/types"
-	"github.com/kloudlite/kl2/utils/envvars"
+	confighandler "github.com/kloudlite/kl/pkg/config-handler"
+	"github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/types"
+	"github.com/kloudlite/kl/utils/envvars"
 )
 
 var ErrorKlFileNotExists = fmt.Errorf("kl file does not exist")
@@ -43,7 +44,7 @@ func (k *KLFileType) ParseJson(b []byte) error {
 
 func WriteKLFile(fileObj KLFileType) error {
 	if err := confighandler.WriteConfig(GetKLConfigPath(), fileObj, 0644); err != nil {
-		return err
+		return functions.Error(err)
 	}
 	return nil
 }

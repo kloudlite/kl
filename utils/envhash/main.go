@@ -8,11 +8,12 @@ import (
 	"path"
 	"slices"
 
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/types"
-	"github.com/kloudlite/kl2/utils"
-	"github.com/kloudlite/kl2/utils/klfile"
-	"github.com/kloudlite/kl2/utils/packages"
+	"github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/types"
+	"github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/utils/klfile"
+	"github.com/kloudlite/kl/utils/packages"
 )
 
 func keys[K comparable, V any](m map[K]V) []K {
@@ -83,7 +84,7 @@ func BoxHashFileName(path string) (string, error) {
 func SyncBoxHash(envName string) error {
 	configFolder, err := utils.GetConfigFolder()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	cwd, _ := os.Getwd()
@@ -93,20 +94,20 @@ func SyncBoxHash(envName string) error {
 
 	boxHashFilePath, err := BoxHashFileName(cwd)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	content, err := generateBoxHashContent(envName)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if err = os.MkdirAll(path.Join(configFolder, "box-hash"), 0755); err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if err = os.WriteFile(path.Join(configFolder, "box-hash", boxHashFilePath), content, 0644); err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	return nil

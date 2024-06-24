@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl2/utils"
 	"os"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/fzf"
-	"github.com/kloudlite/kl2/pkg/ui/table"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/utils"
+
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/pkg/ui/table"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 )
@@ -110,14 +112,14 @@ func printConfig(config *server.Config, cmd *cobra.Command) error {
 	case "json":
 		configBytes, err := json.Marshal(config.Data)
 		if err != nil {
-			return err
+			return functions.Error(err)
 		}
 		fn.Println(string(configBytes))
 
 	case "yaml", "yml":
 		configBytes, err := yaml.Marshal(config.Data)
 		if err != nil {
-			return err
+			return functions.Error(err)
 		}
 		fn.Println(string(configBytes))
 

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/kloudlite/kl2/cli"
+import "github.com/kloudlite/kl/cli"
 
 func main() {
 	cli.Execute()

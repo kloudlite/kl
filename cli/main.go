@@ -5,9 +5,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/kloudlite/kl2/flags"
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/spinner"
+	"github.com/kloudlite/kl/flags"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 
 	"github.com/spf13/cobra"
 )
@@ -17,6 +17,11 @@ var rootCmd = &cobra.Command{
 	Use:                flags.CliName,
 	DisableFlagParsing: true,
 	PersistentPreRun: func(*cobra.Command, []string) {
+		s, ok := os.LookupEnv("KL_IS_DEV")
+		if ok && s == "true" {
+			flags.DevMode = "true"
+		}
+
 		sigChan := make(chan os.Signal, 1)
 
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)

@@ -2,12 +2,11 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"time"
 
-	"github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/utils"
+	"github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/utils"
 
 	nanoid "github.com/matoous/go-nanoid/v2"
 )
@@ -53,7 +52,7 @@ func Login(loginId string) error {
 		}, nil)
 
 		if err != nil {
-			return err
+			return functions.Error(err)
 		}
 		type Response struct {
 			RemoteLogin struct {
@@ -64,7 +63,7 @@ func Login(loginId string) error {
 
 		var loginStatusResponse Response
 		if err = json.Unmarshal(respData, &loginStatusResponse); err != nil {
-			return err
+			return functions.Error(err)
 		}
 
 		if loginStatusResponse.RemoteLogin.Status == "succeeded" {
@@ -76,7 +75,7 @@ func Login(loginId string) error {
 		}
 
 		if loginStatusResponse.RemoteLogin.Status == "failed" {
-			return errors.New("remote login failed")
+			return functions.Error(err, "remote login failed")
 		}
 
 		if loginStatusResponse.RemoteLogin.Status == "pending" {

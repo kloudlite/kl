@@ -2,13 +2,13 @@ package devbox
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
+	"github.com/kloudlite/kl/pkg/functions"
 )
 
 type ProxyConfig struct {
@@ -19,12 +19,12 @@ type ProxyConfig struct {
 
 func SyncProxy(config ProxyConfig) error {
 	if err := ensureImage("ghcr.io/kloudlite/hub/socat:latest"); err != nil {
-		return errors.New("failed to pull image")
+		return functions.Error(err, "failed to pull image")
 	}
 
 	cli, err := dockerClient()
 	if err != nil {
-		return errors.New("failed to create docker client")
+		return functions.Error(err, "failed to create docker client")
 	}
 
 	targetContainers, err := cli.ContainerList(context.Background(), container.ListOptions{
@@ -34,7 +34,7 @@ func SyncProxy(config ProxyConfig) error {
 		),
 	})
 	if err != nil {
-		return errors.New("failed to list containers")
+		return functions.Error(err, "failed to list containers")
 	}
 
 	existingProxies, err := cli.ContainerList(context.Background(), container.ListOptions{
@@ -44,7 +44,7 @@ func SyncProxy(config ProxyConfig) error {
 		),
 	})
 	if err != nil {
-		return errors.New("failed to list containers")
+		return functions.Error(err, "failed to list containers")
 	}
 
 	if len(existingProxies) > 0 {
@@ -52,13 +52,13 @@ func SyncProxy(config ProxyConfig) error {
 			Signal: "SIGKILL",
 		})
 		if err != nil {
-			return errors.New("failed to stop container")
+			return functions.Error(err, "failed to stop container")
 		}
 		err = cli.ContainerRemove(context.Background(), existingProxies[0].ID, container.RemoveOptions{
 			Force: true,
 		})
 		if err != nil {
-			return errors.New("failed to remove container")
+			return functions.Error(err, "failed to remove container")
 		}
 	}
 	if len(config.ExposedPorts) == 0 {
@@ -113,11 +113,11 @@ func SyncProxy(config ProxyConfig) error {
 	}, nil, "")
 
 	if err != nil {
-		return errors.New("failed to create container")
+		return functions.Error(err, "failed to create container")
 	}
 
 	if err := cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{}); err != nil {
-		return errors.New("failed to start container")
+		return functions.Error(err, "failed to start container")
 	}
 	return nil
 }

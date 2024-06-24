@@ -1,16 +1,16 @@
 package add
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/fzf"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils"
-	"github.com/kloudlite/kl2/utils/envvars"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/utils/envvars"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -34,19 +34,19 @@ This command will add secret entry of managed resource references from current e
 func AddMres(cmd *cobra.Command, _ []string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	mresName := fn.ParseStringFlag(cmd, "resource")
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
 		fn.PrintError(err)
-		return errors.New("please run 'kl init' if you are not initialized the file already")
+		return functions.Error(err, "please run 'kl init' if you are not initialized the file already")
 	}
 
 	mres, err := SelectMres([]fn.Option{
@@ -55,7 +55,7 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	mresKey, err := SelectMresKey([]fn.Option{
@@ -64,7 +64,7 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	currMreses := klFile.EnvVars.GetMreses()
@@ -110,20 +110,20 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 
 	klFile.EnvVars.AddResTypes(currMreses, envvars.Res_mres)
 	if err := klfile.WriteKLFile(*klFile); err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	fn.Log(fmt.Sprintf("added mres %s/%s to your kl-file", mres.Metadata.Name, *mresKey))
 	//if err := server.SyncBoxHash(); err != nil {
-	//	return err
+	//	return functions.Error(err)
 	//}
 
 	//if err := server.SyncDevboxJsonFile(); err != nil {
-	//	return err
+	//	return functions.Error(err)
 	//}
 	//
 	//if err := klfile.SyncDevboxShellEnvFile(cmd); err != nil {
-	//	return err
+	//	return functions.Error(err)
 	//}
 
 	return nil

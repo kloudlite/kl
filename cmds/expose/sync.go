@@ -3,8 +3,9 @@ package expose
 import (
 	"os"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/utils/devbox"
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/utils/devbox"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,7 @@ This command will add ports to your kl-config file.
 func sync() error {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 	devbox.Start(cwd)
 	return nil

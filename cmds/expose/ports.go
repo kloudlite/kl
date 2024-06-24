@@ -1,15 +1,15 @@
 package expose
 
 import (
-	"errors"
 	"os"
 	"slices"
 	"strconv"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/text"
-	"github.com/kloudlite/kl2/utils/devbox"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl/utils/devbox"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -33,21 +33,21 @@ This command will add ports to your kl-config file.
 func exposePorts(args []string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
-		return errors.New("please run 'kl init' if you are not initialized the file already")
+		return functions.Error(err, "please run 'kl init' if you are not initialized the file already")
 	}
 
 	if len(args) == 0 {
-		return errors.New("no ports provided. please provide ports using " + text.Yellow("kl expose port 8080 3000"))
+		return functions.Error(err, "no ports provided. please provide ports using "+text.Yellow("kl expose port 8080 3000"))
 	}
 
 	for _, arg := range args {
 		port, error := strconv.Atoi(arg)
 		if error != nil {
-			return errors.New("port should be an integer")
+			return functions.Error(err, "port should be an integer")
 		}
 		if !slices.Contains(klFile.Ports, port) {
 			klFile.Ports = append(klFile.Ports, port)
@@ -55,7 +55,7 @@ func exposePorts(args []string) error {
 	}
 
 	if err := klfile.WriteKLFile(*klFile); err != nil {
-		return err
+		return functions.Error(err)
 	}
 	devbox.Start(cwd)
 	return nil

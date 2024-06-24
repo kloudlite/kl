@@ -1,4 +1,4 @@
-module github.com/kloudlite/kl2
+module github.com/kloudlite/kl
 
 go 1.21.6
 
@@ -15,9 +15,9 @@ require (
 	github.com/matoous/go-nanoid/v2 v2.0.0
 	github.com/nxadm/tail v1.4.11
 	github.com/spf13/cobra v1.8.1
+	github.com/ztrue/tracerr v0.4.0
 	golang.org/x/crypto v0.24.0
 	golang.org/x/term v0.21.0
-	google.golang.org/grpc v1.64.0
 	gopkg.in/yaml.v2 v2.4.0
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -73,8 +73,6 @@ require (
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gotest.tools/v3 v3.5.1 // indirect

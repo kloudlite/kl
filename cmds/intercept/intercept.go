@@ -3,8 +3,9 @@ package intercept
 import (
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl2/pkg/ui/fzf"
-	"github.com/kloudlite/kl2/server"
+
+	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/server"
 	"github.com/spf13/cobra"
 )
 

@@ -3,7 +3,6 @@ package functions
 import (
 	"bytes"
 	"encoding/csv"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -86,7 +85,7 @@ func ExecCmd(cmdString string, env map[string]string, verbose bool) error {
 	r.Comma = ' '
 	cmdArr, err := r.Read()
 	if err != nil {
-		return err
+		return Error(err)
 	}
 	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
 	if verbose {
@@ -107,7 +106,7 @@ func ExecCmd(cmdString string, env map[string]string, verbose bool) error {
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	err = cmd.Run()
-	return err
+	return Error(err)
 }
 
 func ExecCmdOut(cmdString string, env map[string]string) ([]byte, error) {
@@ -171,7 +170,7 @@ func Exec(cmdString string, env map[string]string) ([]byte, error) {
 func isAdmin() bool {
 	cmd := exec.Command("net", "session")
 	err := cmd.Run()
-	return err == nil
+	return Error(err) == nil
 }
 
 func WinSudoExec(cmdString string, env map[string]string) ([]byte, error) {
@@ -202,8 +201,4 @@ func Confirm(yes string, defaultValue string) bool {
 		response = defaultValue
 	}
 	return strings.ToLower(response) == strings.ToLower(yes)
-}
-
-func Error(err error, s string) error {
-	return errors.Join(err, errors.New(s))
 }

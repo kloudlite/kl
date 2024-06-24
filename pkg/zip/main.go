@@ -10,7 +10,8 @@ import (
 	"runtime"
 	"strings"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
 func Unzip(src, dest string) error {
@@ -21,7 +22,7 @@ func Unzip(src, dest string) error {
 		_ = os.RemoveAll(path.Join(dest, "__MACOSX"))
 
 		if err := fn.ExecCmd(fmt.Sprintf("unzip %q -d %q", src, dest), nil, false); err != nil {
-			return err
+			return functions.Error(err)
 		}
 
 		_ = os.RemoveAll(path.Join(dest, "__MACOSX"))
@@ -30,7 +31,7 @@ func Unzip(src, dest string) error {
 		_ = os.RemoveAll(path.Join(dest, "kloudlite"))
 
 		if err := unzipForWindows(src, dest); err != nil {
-			return err
+			return functions.Error(err)
 		}
 
 	default:
@@ -43,7 +44,7 @@ func Unzip(src, dest string) error {
 func unzipForWindows(src, dest string) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 	defer func() {
 		if err := r.Close(); err != nil {
@@ -57,7 +58,7 @@ func unzipForWindows(src, dest string) error {
 	extractAndWriteFile := func(f *zip.File) error {
 		rc, err := f.Open()
 		if err != nil {
-			return err
+			return functions.Error(err)
 		}
 		defer func() {
 			if err := rc.Close(); err != nil {
@@ -78,7 +79,7 @@ func unzipForWindows(src, dest string) error {
 			os.MkdirAll(filepath.Dir(path), f.Mode())
 			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 			if err != nil {
-				return err
+				return functions.Error(err)
 			}
 			defer func() {
 				if err := f.Close(); err != nil {
@@ -88,7 +89,7 @@ func unzipForWindows(src, dest string) error {
 
 			_, err = io.Copy(f, rc)
 			if err != nil {
-				return err
+				return functions.Error(err)
 			}
 		}
 		return nil
@@ -97,7 +98,7 @@ func unzipForWindows(src, dest string) error {
 	for _, f := range r.File {
 		err := extractAndWriteFile(f)
 		if err != nil {
-			return err
+			return functions.Error(err)
 		}
 	}
 

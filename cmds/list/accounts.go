@@ -1,14 +1,14 @@
 package list
 
 import (
-	"errors"
 	"fmt"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/table"
-	"github.com/kloudlite/kl2/pkg/ui/text"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/table"
+	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -27,17 +27,17 @@ var accCmd = &cobra.Command{
 func listAccounts(cmd *cobra.Command) error {
 	accounts, err := server.ListAccounts()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if len(accounts) == 0 {
-		return errors.New("no accounts found")
+		return functions.Error(err, "no accounts found")
 	}
 
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
 		fn.PrintError(err)
-		return errors.New("please run 'kl init' if you are not initialized the file already")
+		return functions.Error(err, "please run 'kl init' if you are not initialized the file already")
 	}
 
 	accountName := klFile.AccountName

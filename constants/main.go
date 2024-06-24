@@ -3,7 +3,7 @@ package constants
 import (
 	"fmt"
 
-	"github.com/kloudlite/kl2/utils"
+	"github.com/kloudlite/kl/utils"
 )
 
 const (

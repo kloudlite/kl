@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/kloudlite/kl/pkg/functions"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
 )
@@ -15,7 +16,7 @@ type SSHConfig struct {
 	SSHPort int
 }
 
-var ErrSSHNotReady = fmt.Errorf("ssh is not ready")
+var ErrSSHNotReady = functions.NewError("ssh is not ready")
 
 func publicKeyFile(file string) (ssh.AuthMethod, error) {
 	buffer, err := os.ReadFile(file)

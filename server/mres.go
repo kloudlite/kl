@@ -2,7 +2,8 @@ package server
 
 import (
 	"errors"
-	fn "github.com/kloudlite/kl2/pkg/functions"
+
+	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
 type Mres struct {

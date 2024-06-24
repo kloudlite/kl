@@ -2,13 +2,16 @@ package functions
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
-	"github.com/kloudlite/kl2/pkg/ui/text"
+	"github.com/kloudlite/kl/flags"
+	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
+	"github.com/ztrue/tracerr"
 )
 
 type Option struct {
@@ -37,6 +40,11 @@ func PrintError(err error) {
 	if err == nil {
 		return
 	}
+	if flags.IsDev() {
+		tracerr.PrintSourceColor(err)
+		return
+	}
+
 	_, _ = os.Stderr.WriteString(fmt.Sprintf("%s %s\n", text.Red("[error]:"), err.Error()))
 }
 
@@ -143,7 +151,7 @@ func JsonConversion(from any, to any) error {
 		return nil
 	}
 	if err := json.Unmarshal(b, &to); err != nil {
-		return err
+		return Error(err)
 	}
 	return nil
 }
@@ -273,4 +281,16 @@ func CopyFile(src, dst string) error {
 	}
 
 	return nil
+}
+
+func Error(err error, s ...string) error {
+	if len(s) == 0 {
+		return tracerr.Wrap(err)
+	}
+
+	return tracerr.Wrap(fmt.Errorf("%s as [%w]", s[0], err))
+}
+
+func NewError(s string) error {
+	return tracerr.Wrap(errors.New(s))
 }

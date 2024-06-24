@@ -1,17 +1,16 @@
 package add
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/fzf"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/types"
-	"github.com/kloudlite/kl2/utils"
-	"github.com/kloudlite/kl2/utils/envhash"
-	"github.com/kloudlite/kl2/utils/klfile"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/types"
+	"github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/utils/envhash"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +36,7 @@ var mountCommand = &cobra.Command{
 
 func configMount(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 || args[0] == "" {
-		return errors.New("please specify the path of the config you want to add, example: kl add config-mount /tmp/sample")
+		return fn.NewError("please specify the path of the config you want to add, example: kl add config-mount /tmp/sample")
 	}
 
 	path := args[0]
@@ -46,7 +45,7 @@ func configMount(cmd *cobra.Command, args []string) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	if os.Getenv("IN_DEV_BOX") == "true" {
@@ -55,12 +54,12 @@ func configMount(cmd *cobra.Command, args []string) error {
 
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	var cors types.CSType = ""
@@ -81,7 +80,7 @@ func configMount(cmd *cobra.Command, args []string) error {
 			fzf.WithPrompt("Mount from Config/Secret >"),
 		)
 		if err != nil {
-			return err
+			return fn.Error(err)
 		}
 
 		cors = types.CSType(*corsValue)
@@ -179,7 +178,7 @@ func configMount(cmd *cobra.Command, args []string) error {
 	}, fzf.WithPrompt("Select Config/Secret >"))
 
 	if err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	fe := klFile.Mounts.GetMounts()
@@ -202,12 +201,12 @@ func configMount(cmd *cobra.Command, args []string) error {
 
 	klFile.Mounts.AddMounts(fe)
 	if err := klfile.WriteKLFile(*klFile); err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	fn.Log("added mount to your kl-file")
 	if err = envhash.SyncBoxHash(env.Name); err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	return nil

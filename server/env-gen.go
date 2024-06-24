@@ -1,9 +1,9 @@
 package server
 
 import (
-	"github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/types"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/types"
+	"github.com/kloudlite/kl/utils/klfile"
 )
 
 type SecretEnv struct {

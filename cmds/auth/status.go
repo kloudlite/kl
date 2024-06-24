@@ -3,9 +3,9 @@ package auth
 import (
 	"fmt"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/text"
-	"github.com/kloudlite/kl2/server"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl/server"
 	"github.com/spf13/cobra"
 )
 

@@ -3,8 +3,8 @@ package auth
 import (
 	"os"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	utils "github.com/kloudlite/kl2/utils"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	utils "github.com/kloudlite/kl/utils"
 	"github.com/spf13/cobra"
 )
 

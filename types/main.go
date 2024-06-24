@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kloudlite/kl2/pkg/functions"
+	"github.com/kloudlite/kl/pkg/functions"
 )
 
 type CSType string

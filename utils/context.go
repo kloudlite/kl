@@ -7,7 +7,8 @@ import (
 	"os"
 	"path"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
 
 	"sigs.k8s.io/yaml"
 )
@@ -66,13 +67,13 @@ func GetCompletionContext() (string, error) {
 func SaveBaseURL(url string) error {
 	extraData, err := GetExtraData()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	extraData.BaseUrl = url
 	file, err := yaml.Marshal(extraData)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	return writeOnUserScope(ExtraDataFileName, file)
@@ -90,7 +91,7 @@ func GetBaseURL() (string, error) {
 func SaveExtraData(extraData *ExtraData) error {
 	file, err := yaml.Marshal(extraData)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	return writeOnUserScope(ExtraDataFileName, file)
@@ -172,7 +173,7 @@ func GetAuthSession() (string, error) {
 func SaveAuthSession(session string) error {
 	file, err := yaml.Marshal(Session{Session: session})
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	return writeOnUserScope(SessionFileName, file)
@@ -181,7 +182,7 @@ func SaveAuthSession(session string) error {
 func writeOnUserScope(name string, data []byte) error {
 	dir, err := GetConfigFolder()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if _, er := os.Stat(dir); errors.Is(er, os.ErrNotExist) {
@@ -194,14 +195,14 @@ func writeOnUserScope(name string, data []byte) error {
 	filePath := path.Join(dir, name)
 
 	if err := os.WriteFile(filePath, data, 0644); err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
 		if err := fn.ExecCmd(
 			fmt.Sprintf("chown %s %s", usr, filePath), nil, false,
 		); err != nil {
-			return err
+			return functions.Error(err)
 		}
 	}
 
@@ -232,7 +233,7 @@ func ReadFile(name string) ([]byte, error) {
 func SetEnvAtPath(path string, env Env) error {
 	extradata, err := GetExtraData()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 	extradata.SelectedEnvs[path] = env
 	return SaveExtraData(extradata)

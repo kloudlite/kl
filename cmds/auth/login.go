@@ -8,10 +8,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/kloudlite/kl2/constants"
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/text"
-	"github.com/kloudlite/kl2/server"
+	"github.com/kloudlite/kl/constants"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl/server"
 	"github.com/spf13/cobra"
 )
 

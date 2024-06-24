@@ -3,16 +3,17 @@ package pkgs
 import (
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl2/utils"
-	"github.com/kloudlite/kl2/utils/envhash"
 	"os"
 	"slices"
 	"strings"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/utils/devbox"
-	"github.com/kloudlite/kl2/utils/klfile"
-	"github.com/kloudlite/kl2/utils/packages"
+	"github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/utils/envhash"
+
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/utils/devbox"
+	"github.com/kloudlite/kl/utils/klfile"
+	"github.com/kloudlite/kl/utils/packages"
 
 	"github.com/spf13/cobra"
 )

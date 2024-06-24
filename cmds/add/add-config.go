@@ -1,18 +1,18 @@
 package add
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/fzf"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils"
-	"github.com/kloudlite/kl2/utils/envhash"
-	"github.com/kloudlite/kl2/utils/envvars"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/utils/envhash"
+	"github.com/kloudlite/kl/utils/envvars"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -42,17 +42,17 @@ func selectAndAddConfig(args []string) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	configs, err := server.ListConfigs([]fn.Option{
@@ -60,11 +60,11 @@ func selectAndAddConfig(args []string) error {
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if len(configs) == 0 {
-		return errors.New("no configs created yet on server")
+		return functions.Error(err, "no configs created yet on server")
 	}
 
 	selectedConfigGroup := server.Config{}
@@ -76,7 +76,7 @@ func selectAndAddConfig(args []string) error {
 				break
 			}
 		}
-		return errors.New("can't find configs with provided name")
+		return functions.Error(err, "can't find configs with provided name")
 	} else {
 		selectedGroup, e := fzf.FindOne(
 			configs,
@@ -105,7 +105,7 @@ func selectAndAddConfig(args []string) error {
 	if m != "" {
 		kk := strings.Split(m, "=")
 		if len(kk) != 2 {
-			return errors.New("map must be in format of config_key=your_var_key")
+			return functions.Error(err, "map must be in format of config_key=your_var_key")
 		}
 
 		for k, v := range selectedConfigGroup.Data {
@@ -118,7 +118,7 @@ func selectAndAddConfig(args []string) error {
 			}
 		}
 
-		return errors.New("config_key not found in selected config")
+		return functions.Error(err, "config_key not found in selected config")
 	} else {
 		selectedConfigKey, err = fzf.FindOne(
 			func() []KV {
@@ -138,7 +138,7 @@ func selectAndAddConfig(args []string) error {
 			fzf.WithPrompt(fmt.Sprintf("Select Key of %s >", selectedConfigGroup.Metadata.Name)),
 		)
 		if err != nil {
-			return err
+			return functions.Error(err)
 		}
 	}
 
@@ -195,17 +195,17 @@ func selectAndAddConfig(args []string) error {
 
 	err = klfile.WriteKLFile(*klFile)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	fn.Log(fmt.Sprintf("added config %s/%s to your kl-file\n", selectedConfigGroup.Metadata.Name, selectedConfigKey.Key))
 	env, err = utils.EnvAtPath(cwd)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if err := envhash.SyncBoxHash(env.Name); err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	return nil

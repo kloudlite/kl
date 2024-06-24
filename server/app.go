@@ -3,7 +3,7 @@ package server
 import (
 	"errors"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
 var PaginationDefault = map[string]any{
@@ -69,12 +69,12 @@ func InterceptApp(status bool, ports []int, app *App, options ...fn.Option) erro
 	// envName := fn.GetOption(options, "envName")
 
 	// if envName == "" {
-	// 	return errors.New("no environment found")
+	// 	return functions.Error(err,"no environment found")
 	// }
 
 	// cookie, err := getCookie(options...)
 	// if err != nil {
-	// 	return err
+	// 	return functions.Error(err)
 	// }
 
 	// if len(ports) == 0 {
@@ -105,19 +105,19 @@ func InterceptApp(status bool, ports []int, app *App, options ...fn.Option) erro
 
 	// 		p, err := proxy.NewProxy(false)
 	// 		if err != nil {
-	// 			return err
+	// 			return functions.Error(err)
 	// 		}
 
 	// 		if status {
 	// 			if _, err := p.AddFwd(prs); err != nil {
 	// 				fn.PrintError(err)
-	// 				return err
+	// 				return functions.Error(err)
 	// 			}
 	// 			return nil
 	// 		}
 
 	// 		if _, err := p.RemoveFwd(prs); err != nil {
-	// 			return err
+	// 			return functions.Error(err)
 	// 		}
 	// 	}
 	// 	return nil
@@ -143,11 +143,11 @@ func InterceptApp(status bool, ports []int, app *App, options ...fn.Option) erro
 	// }, &cookie)
 
 	// if err != nil {
-	// 	return err
+	// 	return functions.Error(err)
 	// }
 
 	// if _, err := GetFromResp[bool](respData); err != nil {
-	// 	return err
+	// 	return functions.Error(err)
 	// } else {
 	// 	return nil
 	// }

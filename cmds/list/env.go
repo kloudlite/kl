@@ -1,15 +1,16 @@
 package list
 
 import (
-	"errors"
 	"fmt"
-	"github.com/kloudlite/kl2/utils"
 	"os"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/table"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/utils"
+
+	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/table"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -31,28 +32,28 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
 		fn.PrintError(err)
-		return errors.New("please run 'kl init' if you are not initialized the file already")
+		return functions.Error(err, "please run 'kl init' if you are not initialized the file already")
 	}
 
 	envs, err := server.ListEnvs([]fn.Option{
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
 	if err != nil {
-		return err
+		return functions.Error(err)
 	}
 
 	if len(envs) == 0 {
-		return errors.New("no environments found")
+		return functions.Error(err, "no environments found")
 	}
 
 	header := table.Row{table.HeaderText("DisplayName"), table.HeaderText("Name"), table.HeaderText("ready")}

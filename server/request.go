@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	fn "github.com/kloudlite/kl2/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
 
-	"github.com/kloudlite/kl2/constants"
+	"github.com/kloudlite/kl/constants"
 )
 
 func klFetch(method string, variables map[string]any, cookie *string, verbose ...bool) ([]byte, error) {

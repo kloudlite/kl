@@ -25,14 +25,13 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/go-connections/nat"
-	"github.com/kloudlite/kl2/constants"
-	"github.com/kloudlite/kl2/pkg/functions"
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/spinner"
-	"github.com/kloudlite/kl2/pkg/ui/text"
-	"github.com/kloudlite/kl2/utils"
-	"github.com/kloudlite/kl2/utils/envhash"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/constants"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
+	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/utils/envhash"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/nxadm/tail"
 )
 
@@ -63,7 +62,7 @@ func dockerClient() (*client.Client, error) {
 func ensureImage(i string) error {
 	cli, err := dockerClient()
 	if err != nil {
-		return errors.New("failed to create docker client")
+		return fn.Error(err, "failed to create docker client")
 	}
 	defer cli.Close()
 
@@ -73,7 +72,7 @@ func ensureImage(i string) error {
 
 	out, err := cli.ImagePull(context.Background(), i, image.PullOptions{})
 	if err != nil {
-		return errors.New("failed to pull image")
+		return fn.Error(err, "failed to pull image")
 	}
 	defer out.Close()
 
@@ -100,7 +99,7 @@ func getFreePort() (int, error) {
 func stopContainer(path string) error {
 	cli, err := dockerClient()
 	if err != nil {
-		return errors.New("failed to create docker client")
+		return fn.Error(err, "failed to create docker client")
 	}
 
 	existingContainers, err := cli.ContainerList(context.Background(), container.ListOptions{
@@ -116,20 +115,20 @@ func stopContainer(path string) error {
 	}
 
 	if err != nil {
-		return errors.New("failed to list containers")
+		return fn.Error(err, "failed to list containers")
 	}
 
 	timeOut := 0
 	if err := cli.ContainerStop(context.Background(), existingContainers[0].ID, container.StopOptions{
 		Timeout: &timeOut,
 	}); err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	if err := cli.ContainerRemove(context.Background(), existingContainers[0].ID, container.RemoveOptions{
 		Force: true,
 	}); err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	return nil
@@ -138,7 +137,7 @@ func stopContainer(path string) error {
 func ensureCacheExist() error {
 	cli, err := dockerClient()
 	if err != nil {
-		return errors.New("failed to create docker client")
+		return fn.Error(err, "failed to create docker client")
 	}
 
 	caches := []string{"kl-nix-store"}
@@ -151,7 +150,7 @@ func ensureCacheExist() error {
 			}),
 		})
 		if err != nil {
-			return err
+			return fn.Error(err)
 		}
 
 		if len(vlist.Volumes) == 0 {
@@ -161,7 +160,7 @@ func ensureCacheExist() error {
 				},
 				Name: cache,
 			}); err != nil {
-				return err
+				return fn.Error(err)
 			}
 		}
 
@@ -185,7 +184,7 @@ func GetSSHDomainFromPath(pth string) string {
 func ensureKloudliteNetwork() error {
 	cli, err := dockerClient()
 	if err != nil {
-		return errors.New("failed to create docker client")
+		return fn.Error(err, "failed to create docker client")
 	}
 
 	networks, err := cli.NetworkList(context.Background(), network.ListOptions{
@@ -194,7 +193,7 @@ func ensureKloudliteNetwork() error {
 		),
 	})
 	if err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	if len(networks) == 0 {
@@ -205,7 +204,7 @@ func ensureKloudliteNetwork() error {
 			},
 		})
 		if err != nil {
-			return err
+			return fn.Error(err)
 		}
 	}
 
@@ -218,7 +217,7 @@ func ensurePublicKey() error {
 		cmd := exec.Command("ssh-keygen", "-t", "rsa", "-b", "4096", "-f", path.Join(sshPath, "id_rsa"), "-N", "")
 		err := cmd.Run()
 		if err != nil {
-			return err
+			return fn.Error(err)
 		}
 	}
 
@@ -227,11 +226,11 @@ func ensurePublicKey() error {
 
 func setup() error {
 	if err := ensurePublicKey(); err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	if err := ensureCacheExist(); err != nil {
-		return err
+		return fn.Error(err)
 	}
 	return nil
 }
@@ -281,7 +280,7 @@ func generateMounts() ([]mount.Mount, string, string, error) {
 
 		de, err := os.ReadDir(usersPath)
 		if err != nil {
-			return err
+			return fn.Error(err)
 		}
 
 		for _, de2 := range de {
@@ -292,7 +291,7 @@ func generateMounts() ([]mount.Mount, string, string, error) {
 
 			b, err := os.ReadFile(pth)
 			if err != nil {
-				return err
+				return fn.Error(err)
 			}
 
 			ak += fmt.Sprint("\n", string(b))
@@ -331,18 +330,27 @@ func generateMounts() ([]mount.Mount, string, string, error) {
 		{Type: mount.TypeBind, Source: configFolder, Target: "/.cache/kl"},
 	}
 
+	dockerSock := "/var/run/docker.sock"
+	if runtime.GOOS == constants.RuntimeWindows {
+		dockerSock = "\\\\.\\pipe\\docker_engine"
+	}
+
+	volumes = append(volumes,
+		mount.Mount{Type: mount.TypeBind, Source: dockerSock, Target: "/var/run/docker.sock"},
+	)
+
 	return volumes, stdOutPath, stdErrPath, nil
 }
 
 func EnsureContainerRunning(containerId string) error {
 	cli, err := dockerClient()
 	if err != nil {
-		return errors.New("failed to create docker client")
+		return fn.Error(err, "failed to create docker client")
 	}
 
 	c, err := cli.ContainerInspect(context.Background(), containerId)
 	if err != nil {
-		return errors.New("failed to inspect container")
+		return fn.Error(err, "failed to inspect container")
 	}
 
 	if !c.State.Running {
@@ -400,7 +408,7 @@ var ErrNoRunningEnvironment = errors.New("no running environment")
 func stopOtherContainers(path string) error {
 	cli, err := dockerClient()
 	if err != nil {
-		return errors.New("failed to create docker client")
+		return fn.Error(err, "failed to create docker client")
 	}
 
 	existingContainers, err := cli.ContainerList(context.Background(), container.ListOptions{
@@ -416,7 +424,7 @@ func stopOtherContainers(path string) error {
 			if c.State == "running" {
 				if c.Labels["working_dir"] != path {
 					if err := stopContainer(c.Labels["working_dir"]); err != nil {
-						return err
+						return fn.Error(err)
 					}
 				}
 			}
@@ -496,6 +504,7 @@ func startContainer(path string) (string, error) {
 			fmt.Sprintf("KL_HASH_FILE=/.cache/kl/box-hash/%s", boxhashFileName),
 			fmt.Sprintf("SSH_PORT=%d", sshPort),
 			fmt.Sprintf("KL_WORKSPACE=%s", path),
+			fmt.Sprintf("KL_SEARCH_DOMAIN=%s", fmt.Sprintf("%s.svc.%s.local", e.TargetNamespace, e.ClusterName)),
 		},
 		Hostname:     "box",
 		ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%d/tcp", sshPort)): {}},
@@ -579,10 +588,10 @@ func waitForContainerReady(stdOutPath string, stdErrPath string) error {
 			if exitCode != 0 {
 				readTillLine(timeoutCtx, stdOutPath, "kloudlite-entrypoint: SETUP_COMPLETE", "stdout", false, true)
 				readTillLine(timeoutCtx, stdErrPath, "kloudlite-entrypoint:CRASHED", "stderr", false, true)
-				return errors.New("failed to start container")
+				return fn.NewError("failed to start container")
 			}
 
-			fn.Log(text.Blue("container started successfully"))
+			// fn.Log(text.Blue("container started successfully"))
 		}
 	}
 
@@ -631,31 +640,31 @@ func Stop(path string) error {
 	return stopContainer(path)
 }
 
-func Start(path string) error {
+func Start(fpath string) error {
 	if err := ensureKloudliteNetwork(); err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	if err := ensureImage(getImageName()); err != nil {
-		return err
+		return fn.Error(err)
 	}
 
-	klConfig, err := klfile.GetKlFile(path + "/kl.yml")
+	klConfig, err := klfile.GetKlFile(path.Join(fpath, "/kl.yml"))
 	if err != nil {
-		return err
+		return fn.Error(err)
 	}
 
-	containerId, err := startContainer(path)
+	containerId, err := startContainer(fpath)
 	if err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	if err = SyncProxy(ProxyConfig{
 		ExposedPorts:        klConfig.Ports,
 		TargetContainerId:   containerId,
-		TargetContainerPath: path,
+		TargetContainerPath: fpath,
 	}); err != nil {
-		return err
+		return fn.Error(err)
 	}
 
 	return nil
@@ -694,7 +703,7 @@ func Exec(path string, command []string, out io.Writer) (int, error) {
 		Tty:          true,
 	})
 	if err != nil {
-		return 0, functions.Error(err, "failed to create exec")
+		return 0, fn.Error(err, "failed to create exec")
 	}
 
 	execID := execIDResp.ID

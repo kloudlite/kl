@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/text"
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
 type Spinner struct {

@@ -2,12 +2,13 @@ package intercept
 
 import (
 	"errors"
-	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils"
-	"github.com/kloudlite/kl2/utils/klfile"
-	"github.com/spf13/cobra"
 	"os"
+
+	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/utils/klfile"
+	"github.com/spf13/cobra"
 )
 
 var startCmd = &cobra.Command{

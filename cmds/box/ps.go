@@ -1,14 +1,13 @@
 package box
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/docker/docker/api/types"
-	"github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/pkg/ui/table"
-	"github.com/kloudlite/kl2/utils/devbox"
+	"github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/table"
+	"github.com/kloudlite/kl/utils/devbox"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +31,7 @@ var psCmd = &cobra.Command{
 
 func printConts(conts []types.Container) error {
 	if len(conts) == 0 {
-		return errors.New("no containers found")
+		return functions.NewError("no containers found")
 	}
 
 	header := table.Row{
