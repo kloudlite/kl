@@ -43,8 +43,8 @@ func ListEnvs(options ...fn.Option) ([]Env, error) {
 	}
 }
 
-func GetEnvironment(envName string) (*Env, error) {
-	cookie, err := getCookieString()
+func GetEnvironment(accountName, envName string) (*Env, error) {
+	cookie, err := getCookieString(fn.MakeOption("accountName", accountName))
 	if err != nil {
 		return nil, err
 	}

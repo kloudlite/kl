@@ -4,8 +4,8 @@ import (
 	"os"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 

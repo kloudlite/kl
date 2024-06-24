@@ -11,6 +11,7 @@ import (
 
 	"github.com/adrg/xdg"
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/utils/klfile"
 	"gopkg.in/yaml.v2"
 )
 
@@ -241,41 +242,28 @@ func SetEnvAtPath(path string, env *LocalEnv) error {
 	return SaveExtraData(extradata)
 }
 
-func EnvAtPath(path string) (*LocalEnv, error) {
-	extradata, err := GetExtraData()
+func EnvAtPath(fpath string) (*LocalEnv, error) {
+	klFile, err := klfile.GetKlFile(path.Join(fpath, "kl.yaml"))
 	if err != nil {
 		return nil, err
 	}
-
-	env, ok := extradata.SelectedEnvs[path]
-	if !ok {
-		return nil, fmt.Errorf("no env found for path %s, please choose using 'kl use env'", path)
+	extraData, err := GetExtraData()
+	if err != nil {
+		return nil, err
 	}
-
+	localEnv, ok := extraData.SelectedEnvs[fpath]
 	if !ok {
-		return nil, fmt.Errorf("no env found for path %s, please choose using 'kl use env'", path)
-
-		// todo: fetch default env from kl.yml and server
-
-		// klFile, err := klfile.GetKlFile(path + "/kl.yml")
-		// if err != nil {
-		// 	return nil, err
-		// }
-		//
-		// // e, err := server.GetEnvironment(klFile.DefaultEnv)
-		// // if err != nil {
-		// // 	return nil, err
-		// // }
-		// //
-		// // env = Env{
-		// // 	Name:            e.Metadata.Name,
-		// // 	ClusterName:     e.ClusterName,
-		// // 	TargetNamespace: e.Spec.TargetNamespace,
-		// // }
-		//
-		// env = Env(klFile.DefaultEnv)
+		env, err := GetEnvironment(klFile.AccountName, klFile.DefaultEnv)
+		if err != nil {
+			return nil, err
+		}
+		localEnv = LocalEnv{
+			Name:            env.Metadata.Name,
+			ClusterName:     env.ClusterName,
+			TargetNamespace: env.Spec.TargetNamespace,
+		}
 	}
-	return &env, nil
+	return &localEnv, nil
 }
 
 func GetUserHomeDir() (string, error) {

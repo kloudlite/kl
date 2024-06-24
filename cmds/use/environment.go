@@ -28,8 +28,13 @@ var envCmd = &cobra.Command{
 		if err != nil {
 			return
 		}
+		klFile, err := klfile.GetKlFile("")
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
 
-		e, err := server.GetEnvironment(args[0])
+		e, err := server.GetEnvironment(klFile.AccountName, args[0])
 		if err != nil {
 			fn.PrintError(err)
 			return
