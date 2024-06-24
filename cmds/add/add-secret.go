@@ -3,6 +3,9 @@ package add
 import (
 	"errors"
 	"fmt"
+	"github.com/kloudlite/kl2/pkg/ui/text"
+	"github.com/kloudlite/kl2/utils/devbox"
+	"github.com/kloudlite/kl2/utils/envhash"
 	"os"
 	"strings"
 
@@ -206,16 +209,33 @@ func selectAndAddSecret(args []string) error {
 
 	fn.Log(fmt.Sprintf("added secret %s/%s to your kl-file\n", selectedSecretGroup.Metadata.Name, selectedSecretKey.Key))
 
-	//if err := server.SyncBoxHash(); err != nil {
-	//	return err
-	//}
+	if err := envhash.SyncBoxHash(string(env)); err != nil {
+		return err
+	}
 
-	//if err := server.SyncDevboxJsonFile(); err != nil {
-	//	return err
-	//}
-	//
-	//if err := client.SyncDevboxShellEnvFile(cmd); err != nil {
-	//	return err
-	//}
+	if !(os.Getenv("IN_DEV_BOX") == "true") {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		_, err = devbox.ContainerAtPath(cwd)
+		if err != nil && err.Error() == devbox.NO_RUNNING_CONTAINERS {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		fn.Printf(text.Yellow("environments may have been updated. to reflect the changes, do you want to restart the container? [Y/n] "))
+		if fn.Confirm("Y", "Y") {
+			err = devbox.Stop(cwd)
+			if err != nil {
+				return err
+			}
+			err = devbox.Start(cwd)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }

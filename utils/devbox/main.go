@@ -29,6 +29,10 @@ import (
 	"github.com/kloudlite/kl2/utils/klfile"
 )
 
+const (
+	NO_RUNNING_CONTAINERS = "no container running"
+)
+
 func imageExists(cli *client.Client, imageName string) (bool, error) {
 	filterArgs := filters.NewArgs()
 	filterArgs.Add("reference", imageName)
@@ -385,7 +389,7 @@ func ContainerAtPath(path string) (*types.Container, error) {
 		return nil, errors.New("failed to list containers")
 	}
 	if len(existingContainers) == 0 {
-		return nil, errors.New("container not running")
+		return nil, errors.New(NO_RUNNING_CONTAINERS)
 	}
 	return &existingContainers[0], nil
 }

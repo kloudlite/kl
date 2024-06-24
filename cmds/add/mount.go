@@ -5,9 +5,11 @@ import (
 	"fmt"
 	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/pkg/ui/fzf"
+	"github.com/kloudlite/kl2/pkg/ui/text"
 	"github.com/kloudlite/kl2/server"
 	"github.com/kloudlite/kl2/types"
 	"github.com/kloudlite/kl2/utils"
+	"github.com/kloudlite/kl2/utils/devbox"
 	"github.com/kloudlite/kl2/utils/envhash"
 	"github.com/kloudlite/kl2/utils/klfile"
 	"github.com/spf13/cobra"
@@ -46,11 +48,6 @@ func configMount(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-
-	if os.Getenv("IN_DEV_BOX") == "true" {
-		cwd = os.Getenv("KL_WORKSPACE")
-	}
-
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
 		return err
@@ -206,6 +203,31 @@ func configMount(cmd *cobra.Command, args []string) error {
 	fn.Log("added mount to your kl-file")
 	if err = envhash.SyncBoxHash(string(env)); err != nil {
 		return err
+	}
+
+	if !(os.Getenv("IN_DEV_BOX") == "true") {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		_, err = devbox.ContainerAtPath(cwd)
+		if err != nil && err.Error() == devbox.NO_RUNNING_CONTAINERS {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		fn.Printf(text.Yellow("environments may have been updated. to reflect the changes, do you want to restart the container? [Y/n] "))
+		if fn.Confirm("Y", "Y") {
+			err = devbox.Stop(cwd)
+			if err != nil {
+				fn.PrintError(err)
+				return err
+			}
+			err = devbox.Start(cwd)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
