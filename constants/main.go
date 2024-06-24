@@ -2,6 +2,7 @@ package constants
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/kloudlite/kl/flags"
 )
@@ -27,6 +28,9 @@ const (
 func baseUrl() string {
 	if flags.BaseUrl != "" {
 		return flags.BaseUrl
+	}
+	if f, ok := os.LookupEnv("KL_BASE_URL"); ok {
+		return f
 	}
 	return DefaultBaseURL
 }

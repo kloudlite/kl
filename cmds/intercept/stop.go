@@ -5,6 +5,7 @@ import (
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils/devbox"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
@@ -46,13 +47,19 @@ Examples:
 			return
 		}
 
-		app, err := EnsuseApp(apps)
+		app, err := EnsureApp(apps)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		if err := server.InterceptApp(false, nil, app, []fn.Option{
+		vpnConfig, err := devbox.GetAccVPNConfig(klFile.AccountName)
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		if err := server.InterceptApp(false, nil, vpnConfig.DeviceName, app, []fn.Option{
 			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...); err != nil {

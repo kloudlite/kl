@@ -42,20 +42,20 @@ func createVpnForAccount(account string) (*server.Device, error) {
 	return device, nil
 }
 
-func vpnConfigForAccount(account string) (string, error) {
+func GetAccVPNConfig(account string) (*AccountVpnConfig, error) {
 	cfgFolder, err := getConfigFolder()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	err = os.MkdirAll(path.Join(cfgFolder, "/vpn"), 0755)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	cfgPath := path.Join(cfgFolder, "/vpn/", fmt.Sprintf("%s.json", account))
 	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
 		dev, err := createVpnForAccount(account)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		accountVpnConfig := AccountVpnConfig{
 			WGconf:     dev.WireguardConfig.Value,
@@ -63,23 +63,23 @@ func vpnConfigForAccount(account string) (string, error) {
 		}
 		marshal, err := json.Marshal(accountVpnConfig)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		err = os.WriteFile(cfgPath, marshal, 0644)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 	}
 	accVPNConfig := AccountVpnConfig{}
 	c, err := os.ReadFile(cfgPath)
 	if err != nil {
-		return "", errors.New("failed to read vpn config")
+		return nil, errors.New("failed to read vpn config")
 	}
 	err = json.Unmarshal(c, &accVPNConfig)
 	if err != nil {
-		return "", errors.New("failed to parse vpn config")
+		return nil, errors.New("failed to parse vpn config")
 	}
-	return accVPNConfig.WGconf, nil
+	return &accVPNConfig, nil
 }
 
 func SyncVpn(wg string) error {
@@ -124,7 +124,7 @@ func SyncVpn(wg string) error {
 			return errors.New("failed to remove container")
 		}
 	}
-	script := fmt.Sprintf("echo %s | base64 -d > /etc/wireguard/wg0.conf && wg-quick up wg0 && tail -f /dev/null", wg)
+	script := fmt.Sprintf("echo %s | base64 -d > /etc/wireguard/wg0.conf && (wg-quick down wg0 || echo done) && wg-quick up wg0 && tail -f /dev/null", wg)
 
 	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
 		Labels: map[string]string{

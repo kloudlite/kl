@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path"
 	"strconv"
 	"time"
 
+	"github.com/adrg/xdg"
 	"github.com/docker/docker/api/types"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/sshclient"
@@ -85,7 +87,6 @@ var sshCmd = &cobra.Command{
 				if err := devbox.Stop(dir); err != nil {
 					fn.PrintError(err)
 				}
-
 				return
 			}
 			c, err := devbox.ContainerAtPath(dir)
@@ -110,7 +111,7 @@ func connectSSH(host string, port int) {
 			User:    "kl",
 			Host:    host,
 			SSHPort: port,
-			KeyPath: os.Getenv("HOME") + "/.ssh/id_rsa",
+			KeyPath: path.Join(xdg.Home, ".ssh", "id_rsa"),
 		})
 		if err != nil {
 			if errors.Is(err, sshclient.ErrSSHNotReady) {

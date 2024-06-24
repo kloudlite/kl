@@ -2,7 +2,9 @@ package server
 
 import (
 	"errors"
+	"fmt"
 
+	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
@@ -62,94 +64,57 @@ func ListApps(options ...fn.Option) ([]App, error) {
 	}
 }
 
-func InterceptApp(status bool, ports []int, app *App, options ...fn.Option) error {
+func InterceptApp(status bool, ports []AppPort, deviceName string, app *App, options ...fn.Option) error {
 
-	// var err error
+	var err error
 
-	// envName := fn.GetOption(options, "envName")
+	envName := fn.GetOption(options, "envName")
 
-	// if envName == "" {
-	// 	return functions.Error(err,"no environment found")
-	// }
+	if envName == "" {
+		return functions.Error(err, "no environment found")
+	}
+	cookie, err := getCookieString(options...)
+	if err != nil {
+		return functions.Error(err)
+	}
 
-	// cookie, err := getCookie(options...)
-	// if err != nil {
-	// 	return functions.Error(err)
-	// }
+	if len(ports) == 0 {
+		if len(app.Spec.Intercept.PortMappings) != 0 {
+			ports = append(ports, app.Spec.Intercept.PortMappings...)
+		} else if len(app.Spec.Services) != 0 {
+			for _, v := range app.Spec.Services {
+				ports = append(ports, AppPort{
+					AppPort:    v.Port,
+					DevicePort: v.Port,
+				})
+			}
+		}
+	}
 
-	// if len(ports) == 0 {
-	// 	if len(app.Spec.Intercept.PortMappings) != 0 {
-	// 		ports = append(ports, app.Spec.Intercept.PortMappings...)
-	// 	} else if len(app.Spec.Services) != 0 {
-	// 		for _, v := range app.Spec.Services {
-	// 			ports = append(ports, AppPort{
-	// 				AppPort:    v.Port,
-	// 				DevicePort: v.Port,
-	// 			})
-	// 		}
-	// 	}
-	// }
+	if len(ports) == 0 {
+		return fmt.Errorf("no ports provided to intercept")
+	}
 
-	// if err := func() error {
-	// 	sshPort, ok := os.LookupEnv("SSH_PORT")
-	// 	if ok {
-	// 		var prs []sshclient.StartCh
+	query := "cli_interceptApp"
+	if !app.IsMainApp {
+		query = "cli_intercepExternalApp"
+	}
 
-	// 		for _, v := range ports {
-	// 			prs = append(prs, sshclient.StartCh{
-	// 				SshPort:    sshPort,
-	// 				RemotePort: fmt.Sprint(v.DevicePort),
-	// 				LocalPort:  fmt.Sprint(v.DevicePort),
-	// 			})
-	// 		}
+	respData, err := klFetch(query, map[string]any{
+		"appName":      app.Metadata.Name,
+		"envName":      envName,
+		"deviceName":   deviceName,
+		"intercept":    status,
+		"portMappings": ports,
+	}, &cookie)
 
-	// 		p, err := proxy.NewProxy(false)
-	// 		if err != nil {
-	// 			return functions.Error(err)
-	// 		}
+	if err != nil {
+		return functions.Error(err)
+	}
 
-	// 		if status {
-	// 			if _, err := p.AddFwd(prs); err != nil {
-	// 				fn.PrintError(err)
-	// 				return functions.Error(err)
-	// 			}
-	// 			return nil
-	// 		}
-
-	// 		if _, err := p.RemoveFwd(prs); err != nil {
-	// 			return functions.Error(err)
-	// 		}
-	// 	}
-	// 	return nil
-	// }(); err != nil {
-	// 	fn.PrintError(err)
-	// }
-
-	// if len(ports) == 0 {
-	// 	return fmt.Errorf("no ports provided to intercept")
-	// }
-
-	// query := "cli_interceptApp"
-	// if !app.IsMainApp {
-	// 	query = "cli_intercepExternalApp"
-	// }
-
-	// respData, err := klFetch(query, map[string]any{
-	// 	"appName":      app.Metadata.Name,
-	// 	"envName":      envName,
-	// 	"deviceName":   devName,
-	// 	"intercept":    status,
-	// 	"portMappings": ports,
-	// }, &cookie)
-
-	// if err != nil {
-	// 	return functions.Error(err)
-	// }
-
-	// if _, err := GetFromResp[bool](respData); err != nil {
-	// 	return functions.Error(err)
-	// } else {
-	// 	return nil
-	// }
-	return nil
+	if _, err := GetFromResp[bool](respData); err != nil {
+		return functions.Error(err)
+	} else {
+		return nil
+	}
 }

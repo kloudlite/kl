@@ -182,11 +182,11 @@ func stopContainer(path string) error {
 		return fn.Error(err)
 	}
 
-	if err := cli.ContainerRemove(context.Background(), existingContainers[0].ID, container.RemoveOptions{
-		Force: true,
-	}); err != nil {
-		return fn.Error(err)
-	}
+	// if err := cli.ContainerRemove(context.Background(), existingContainers[0].ID, container.RemoveOptions{
+	// 	Force: true,
+	// }); err != nil {
+	// 	return fn.Error(err)
+	// }
 
 	return nil
 }
@@ -560,7 +560,9 @@ func startContainer(path string) (string, error) {
 			fmt.Sprintf("KL_HASH_FILE=/.cache/kl/box-hash/%s", boxhashFileName),
 			fmt.Sprintf("SSH_PORT=%d", sshPort),
 			fmt.Sprintf("KL_WORKSPACE=%s", path),
+			"KL_DNS=100.64.0.1",
 			fmt.Sprintf("KL_SEARCH_DOMAIN=%s", fmt.Sprintf("%s.svc.%s.local", e.TargetNamespace, e.ClusterName)),
+			fmt.Sprintf("KL_BASE_URL=%s", constants.BaseURL),
 		},
 		Hostname:     "box",
 		ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%d/tcp", sshPort)): {}},
@@ -663,29 +665,29 @@ func readTillLine(_ context.Context, file string, desiredLine, stream string, fo
 	}
 
 	for l := range t.Lines {
-
 		if l.Text == desiredLine {
 			return true, nil
 		}
-
 		if l.Text == "kloudlite-entrypoint:INSTALLING_PACKAGES" {
+			fmt.Println("installing nix packages")
 			spinner.Client.UpdateMessage("installing nix packages")
 			continue
 		}
 
 		if l.Text == "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE" {
+			fmt.Println("Done")
 			spinner.Client.UpdateMessage("loading please wait")
 			continue
 		}
 
-		if verbose {
-			switch stream {
-			case "stderr":
-				functions.Logf("%s: %s", text.Yellow("[stderr]"), l.Text)
-			default:
-				functions.Logf("%s: %s", text.Blue("[stdout]"), l.Text)
-			}
+		// if verbose {
+		switch stream {
+		case "stderr":
+			functions.Logf("%s: %s", text.Yellow("[stderr]"), l.Text)
+		default:
+			functions.Logf("%s: %s", text.Blue("[stdout]"), l.Text)
 		}
+		// }
 
 	}
 
@@ -701,11 +703,17 @@ func Start(fpath string) error {
 	if err != nil {
 		return functions.Error(err)
 	}
-
-	err = envhash.SyncBoxHash(env.Name)
+	exist, err := envhash.BoxHashFileExist(fpath)
 	if err != nil {
 		return functions.Error(err)
 	}
+	if !exist {
+		err = envhash.SyncBoxHash(env.Name)
+		if err != nil {
+			return functions.Error(err)
+		}
+	}
+
 	err = ensureKloudliteNetwork()
 	if err != nil {
 		return functions.Error(err)
@@ -733,11 +741,11 @@ func Start(fpath string) error {
 		return fn.Error(err)
 	}
 
-	vpnCfg, err := vpnConfigForAccount(klConfig.AccountName)
+	vpnCfg, err := GetAccVPNConfig(klConfig.AccountName)
 	if err != nil {
 		return functions.Error(err)
 	}
-	err = SyncVpn(vpnCfg)
+	err = SyncVpn(vpnCfg.WGconf)
 	if err != nil {
 		return functions.Error(err)
 	}

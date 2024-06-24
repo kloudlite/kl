@@ -48,14 +48,8 @@ func GetEnvironment(accountName, envName string) (*Env, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// todo: add env name to the query
 	respData, err := klFetch("cli_getEnvironment", map[string]any{
-		"pq": map[string]any{
-			"orderBy":       "name",
-			"sortDirection": "ASC",
-			"first":         99999999,
-		},
+		"name": envName,
 	}, &cookie)
 
 	if err != nil {

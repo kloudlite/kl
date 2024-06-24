@@ -3,9 +3,12 @@ package intercept
 import (
 	"errors"
 	"os"
+	"strconv"
+	"strings"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/server"
+	"github.com/kloudlite/kl/utils/devbox"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
@@ -19,6 +22,41 @@ Examples:
   kl intercept start
 `,
 	Run: func(cmd *cobra.Command, _ []string) {
+		maps, err := cmd.Flags().GetStringArray("port")
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		ports := make([]server.AppPort, 0)
+
+		for _, v := range maps {
+			mp := strings.Split(v, ":")
+			if len(mp) != 2 {
+				fn.PrintError(
+					errors.New("wrong map format use <server_port>:<local_port> eg: 80:3000"),
+				)
+				return
+			}
+
+			pp, err := strconv.ParseInt(mp[0], 10, 32)
+			if err != nil {
+				fn.PrintError(err)
+				return
+			}
+
+			tp, err := strconv.ParseInt(mp[1], 10, 32)
+			if err != nil {
+				fn.PrintError(err)
+				return
+			}
+
+			ports = append(ports, server.AppPort{
+				AppPort:    int(pp),
+				DevicePort: int(tp),
+			})
+		}
+
 		cwd, err := os.Getwd()
 		if err != nil {
 			fn.PrintError(err)
@@ -34,10 +72,6 @@ Examples:
 			fn.PrintError(err)
 			return
 		}
-		if len(klFile.Ports) == 0 {
-			fn.PrintError(errors.New("no ports exposed"))
-			return
-		}
 
 		apps, err := server.ListApps([]fn.Option{
 			fn.MakeOption("envName", env.Name),
@@ -48,13 +82,19 @@ Examples:
 			return
 		}
 
-		app, err := EnsuseApp(apps)
+		app, err := EnsureApp(apps)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		err = server.InterceptApp(true, klFile.Ports, app, []fn.Option{
+		vpnConfig, err := devbox.GetAccVPNConfig(klFile.AccountName)
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		err = server.InterceptApp(true, ports, vpnConfig.DeviceName, app, []fn.Option{
 			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
@@ -67,4 +107,13 @@ Examples:
 		fn.Log("intercept app started successfully\n")
 		fn.Log("Please check if vpn is connected to your device, if not please connect it using sudo kl vpn start. Ignore this message if already connected.")
 	},
+}
+
+func init() {
+	startCmd.Flags().StringArrayP(
+		"port", "p", []string{},
+		"expose port <server_port>:<local_port> while intercepting app",
+	)
+
+	startCmd.Aliases = append(startCmd.Aliases, "add", "begin", "connect")
 }

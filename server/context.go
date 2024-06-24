@@ -243,7 +243,7 @@ func SetEnvAtPath(path string, env *LocalEnv) error {
 }
 
 func EnvAtPath(fpath string) (*LocalEnv, error) {
-	klFile, err := klfile.GetKlFile(path.Join(fpath, "kl.yaml"))
+	klFile, err := klfile.GetKlFile(path.Join(fpath, "kl.yml"))
 	if err != nil {
 		return nil, err
 	}

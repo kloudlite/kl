@@ -13,6 +13,7 @@ cat <<EOL > /kl-tmp/global-profile
 export SSH_PORT=$SSH_PORT
 export IN_DEV_BOX="true"
 export KL_WORKSPACE="$KL_WORKSPACE"
+export KL_BASE_URL="$KL_BASE_URL"
 export MAIN_PATH=$PATH
 export KL_TMP_PATH="/kl-tmp"
 EOL
@@ -46,15 +47,17 @@ echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
 
 PATH=$PATH:$HOME/.nix-profile/bin
 
+echo "kloudlite-entrypoint:INSTALLING_PACKAGES"
 cat $KL_HASH_FILE | jq '.hash' -r > /tmp/hash
 cat $KL_HASH_FILE | jq '.config.env | to_entries | map_values(. = "export \(.key)=\"\(.value)\"")|.[]' -r >> /tmp/env
 cat > /tmp/mount.sh <<EOF
 $(cat $KL_HASH_FILE | jq '.config.mounts | to_entries | map_values(. = "mkdir -p $(realpath $(dirname \(.key))); printf \"\(.value)\" > \(.key)") | .[]' -r)
 EOF
 sudo bash /tmp/mount.sh
+nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed packages"
 echo export PATH=$PATH:$(eval nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command printenv PATH) >> /tmp/env
-
 echo "export KL_HASH_FILE=$KL_HASH_FILE" >> /tmp/env
+echo "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE"
 
 source /tmp/env
 

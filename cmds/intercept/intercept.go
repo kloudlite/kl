@@ -15,18 +15,18 @@ var Cmd = &cobra.Command{
 	Long:  `use this command to intercept an app to tunnel trafic to your device`,
 }
 
-func inti() {
+func init() {
 	Cmd.Aliases = append(Cmd.Aliases, "inc")
 
-	startCmd.Aliases = append(startCmd.Aliases, "add", "begin", "connect")
+	// startCmd.Aliases = append(startCmd.Aliases, "add")
 	Cmd.AddCommand(startCmd)
 
-	stopCmd.Aliases = append(startCmd.Aliases, "close", "end", "leave", "quit", "terminate", "exit", "remove", "disconnect")
+	stopCmd.Aliases = append(startCmd.Aliases, "close", "leave", "remove", "disconnect")
 	Cmd.AddCommand(stopCmd)
 
 }
 
-func EnsuseApp(apps []server.App) (*server.App, error) {
+func EnsureApp(apps []server.App) (*server.App, error) {
 	if len(apps) == 0 {
 		return nil, errors.New("no apps found")
 	}

@@ -67,6 +67,26 @@ func generateBoxHashContent(envName string) ([]byte, error) {
 	return marshal, nil
 }
 
+func BoxHashFileExist(workspacePath string) (bool, error) {
+	fileName, err := BoxHashFileName(workspacePath)
+	if err != nil {
+		return false, err
+	}
+	configFolder, err := server.GetConfigFolder()
+	if err != nil {
+		return false, err
+	}
+	filePath := path.Join(configFolder, "box-hash", fileName)
+	_, err = os.Stat(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
 func BoxHashFileName(path string) (string, error) {
 	if os.Getenv("IN_DEV_BOX") == "true" {
 		path = os.Getenv("KL_WORKSPACE")

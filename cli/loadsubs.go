@@ -7,6 +7,7 @@ import (
 	"github.com/kloudlite/kl/cmds/box"
 	"github.com/kloudlite/kl/cmds/expose"
 	"github.com/kloudlite/kl/cmds/get"
+	"github.com/kloudlite/kl/cmds/intercept"
 	"github.com/kloudlite/kl/cmds/list"
 	"github.com/kloudlite/kl/cmds/pkgs"
 	"github.com/kloudlite/kl/cmds/runner"
@@ -35,4 +36,5 @@ func init() {
 	rootCmd.AddCommand(pkgs.Cmd)
 	rootCmd.AddCommand(use.Cmd)
 	rootCmd.AddCommand(cmds.StatusCmd)
+	rootCmd.AddCommand(intercept.Cmd)
 }
