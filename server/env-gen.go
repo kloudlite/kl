@@ -57,7 +57,7 @@ func GetLoadMaps(envName string) (map[string]string, MountMap, error) {
 		return nil, nil, err
 	}
 
-	cookie, err := getCookie(
+	cookie, err := getCookieString(
 		functions.MakeOption("envName", envName),
 		functions.MakeOption("accountName", kt.AccountName),
 	)

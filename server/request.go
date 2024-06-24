@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -23,7 +22,7 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 		"args":   []any{variables},
 	})
 	if err != nil {
-		return nil, err
+		return nil, fn.Error(err)
 	}
 
 	payload := strings.NewReader(string(marshal))
@@ -59,7 +58,7 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 	}
 	req, err := http.NewRequest(http.MethodPost, url, payload)
 	if err != nil {
-		return nil, err
+		return nil, fn.Error(err)
 	}
 
 	req.Header.Add("authority", "klcli.kloudlite.io")
@@ -73,14 +72,14 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 	res, err := client.Do(req)
 	if err != nil || res.StatusCode != 200 {
 		if err != nil {
-			return nil, err
+			return nil, fn.Error(err)
 		}
 
 		body, e := io.ReadAll(res.Body)
 		if e != nil {
-			return nil, e
+			return nil, fn.Error(e)
 		}
-		return nil, errors.New(string(body))
+		return nil, fn.NewError(string(body))
 	}
 	defer func() {
 		_ = res.Body.Close()
@@ -88,7 +87,7 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return nil, fn.Error(err)
 	}
 
 	type RespData struct {
@@ -105,7 +104,7 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 	err = json.Unmarshal(body, &respData)
 	if err != nil {
 		fn.PrintError(fmt.Errorf("some issue with server:\n%s", string(body)))
-		return nil, err
+		return nil, fn.Error(err)
 	}
 
 	if len(respData.Errors) > 0 {
@@ -114,7 +113,7 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 			errorMessages = append(errorMessages, e.Message)
 		}
 
-		return nil, fmt.Errorf(strings.Join(errorMessages, "\n"))
+		return nil, fn.NewError(strings.Join(errorMessages, "\n"))
 	}
 
 	return body, nil

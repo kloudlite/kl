@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/server"
-	"github.com/kloudlite/kl/utils"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
@@ -18,7 +17,7 @@ var envCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, args []string) {
 		if len(args) == 0 {
 			if err := selectEnvironment(); err != nil {
-				functions.PrintError(err)
+				fn.PrintError(err)
 				return
 			}
 
@@ -32,17 +31,17 @@ var envCmd = &cobra.Command{
 
 		e, err := server.GetEnvironment(args[0])
 		if err != nil {
-			functions.PrintError(err)
+			fn.PrintError(err)
 			return
 		}
 
-		err = utils.SetEnvAtPath(cwd, utils.Env{
+		err = server.SetEnvAtPath(cwd, &server.LocalEnv{
 			Name:            e.Metadata.Name,
 			ClusterName:     e.ClusterName,
 			TargetNamespace: e.Spec.TargetNamespace,
 		})
 		if err != nil {
-			functions.PrintError(err)
+			fn.PrintError(err)
 			return
 		}
 	},
@@ -51,37 +50,37 @@ var envCmd = &cobra.Command{
 func selectEnvironment() error {
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
-	envs, err := server.ListEnvs(functions.Option{
+	envs, err := server.ListEnvs(fn.Option{
 		Key:   "accountName",
 		Value: klFile.AccountName,
 	})
 	if err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
 	selectedEnv, err := fzf.FindOne(envs, func(item server.Env) string {
 		return item.Metadata.Name
 	}, fzf.WithPrompt("Select an environment: "))
 	if err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
-	if err = utils.SetEnvAtPath(cwd, utils.Env{
+	if err = server.SetEnvAtPath(cwd, &server.LocalEnv{
 		Name:            selectedEnv.Metadata.Name,
 		ClusterName:     selectedEnv.ClusterName,
 		TargetNamespace: selectedEnv.Spec.TargetNamespace,
 	}); err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
-	functions.Log(fmt.Sprintf("switched to %s environment", selectedEnv.Metadata.Name))
+	fn.Log(fmt.Sprintf("switched to %s environment", selectedEnv.Metadata.Name))
 	return nil
 }

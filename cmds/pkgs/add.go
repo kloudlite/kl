@@ -7,14 +7,13 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/kloudlite/kl/utils"
-	"github.com/kloudlite/kl/utils/envhash"
-
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl/server"
 	"github.com/kloudlite/kl/utils/devbox"
+	"github.com/kloudlite/kl/utils/envhash"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/kloudlite/kl/utils/packages"
-
 	"github.com/spf13/cobra"
 )
 
@@ -81,7 +80,7 @@ var addCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		env, err := utils.EnvAtPath(cwd)
+		env, err := server.EnvAtPath(cwd)
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -90,6 +89,34 @@ var addCmd = &cobra.Command{
 		if err := envhash.SyncBoxHash(env.Name); err != nil {
 			fn.PrintError(err)
 			return
+		}
+
+		if !(os.Getenv("IN_DEV_BOX") == "true") {
+			cwd, err := os.Getwd()
+			if err != nil {
+				fn.PrintError(err)
+				return
+			}
+			_, err = devbox.ContainerAtPath(cwd)
+			if err != nil && err.Error() == devbox.NO_RUNNING_CONTAINERS {
+				return
+			} else if err != nil {
+				fn.PrintError(err)
+				return
+			}
+			fn.Printf(text.Yellow("environments may have been updated. to reflect the changes, do you want to restart the container? [Y/n] "))
+			if fn.Confirm("Y", "Y") {
+				err = devbox.Stop(cwd)
+				if err != nil {
+					fn.PrintError(err)
+					return
+				}
+				err = devbox.Start(cwd)
+				if err != nil {
+					fn.PrintError(err)
+					return
+				}
+			}
 		}
 	},
 }

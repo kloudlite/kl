@@ -19,7 +19,7 @@ func ListMreses(options ...fn.Option) ([]Mres, error) {
 		return nil, errors.New("no environment found")
 	}
 
-	cookie, err := getCookie(options...)
+	cookie, err := getCookieString(options...)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func ListMresKeys(options ...fn.Option) ([]string, error) {
 		return nil, errors.New("no environment found")
 	}
 
-	cookie, err := getCookie(options...)
+	cookie, err := getCookieString(options...)
 	if err != nil {
 		return nil, err
 	}

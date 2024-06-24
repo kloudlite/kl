@@ -20,7 +20,7 @@ type EnvList struct {
 
 func ListEnvs(options ...fn.Option) ([]Env, error) {
 	var err error
-	cookie, err := getCookie(options...)
+	cookie, err := getCookieString(options...)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func ListEnvs(options ...fn.Option) ([]Env, error) {
 }
 
 func GetEnvironment(envName string) (*Env, error) {
-	cookie, err := getCookie()
+	cookie, err := getCookieString()
 	if err != nil {
 		return nil, err
 	}

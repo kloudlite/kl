@@ -11,7 +11,6 @@ import (
 	"github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/server"
 	"github.com/kloudlite/kl/types"
-	"github.com/kloudlite/kl/utils"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/kloudlite/kl/utils/packages"
 )
@@ -27,12 +26,12 @@ func keys[K comparable, V any](m map[K]V) []K {
 func generateBoxHashContent(envName string) ([]byte, error) {
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
-		return nil, err
+		return nil, functions.Error(err)
 	}
 
 	persistedConfig, err := generatePersistedEnv(klFile, envName)
 	if err != nil {
-		return nil, err
+		return nil, functions.Error(err)
 	}
 
 	hash := md5.New()
@@ -82,7 +81,7 @@ func BoxHashFileName(path string) (string, error) {
 }
 
 func SyncBoxHash(envName string) error {
-	configFolder, err := utils.GetConfigFolder()
+	configFolder, err := server.GetConfigFolder()
 	if err != nil {
 		return functions.Error(err)
 	}

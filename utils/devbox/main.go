@@ -26,13 +26,18 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/go-connections/nat"
 	"github.com/kloudlite/kl/constants"
+	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/text"
-	"github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/server"
 	"github.com/kloudlite/kl/utils/envhash"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/nxadm/tail"
+)
+
+const (
+	NO_RUNNING_CONTAINERS = "no container running"
 )
 
 func imageExists(cli *client.Client, imageName string) (bool, error) {
@@ -373,7 +378,7 @@ func AllWorkspaceContainers() ([]types.Container, error) {
 		),
 	})
 	if err != nil {
-		return nil, fn.Error(err, "failed to list containers")
+		return nil, functions.Error(err, "failed to list containers")
 	}
 
 	return existingContainers, nil
@@ -397,9 +402,8 @@ func ContainerAtPath(path string) (*types.Container, error) {
 		return nil, errors.New("failed to list containers")
 	}
 	if len(existingContainers) == 0 {
-		return nil, errors.New("container not running")
+		return nil, errors.New(NO_RUNNING_CONTAINERS)
 	}
-
 	return &existingContainers[0], nil
 }
 
@@ -483,7 +487,7 @@ func startContainer(path string) (string, error) {
 		return "", err
 	}
 
-	e, err := utils.EnvAtPath(path)
+	e, err := server.EnvAtPath(path)
 	if err != nil {
 		return "", err
 	}
@@ -536,7 +540,7 @@ func startContainer(path string) (string, error) {
 	}
 
 	if err := cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{}); err != nil {
-		return "", fn.Error(err, "failed to start container")
+		return "", functions.Error(err, "failed to start container")
 	}
 
 	if err := waitForContainerReady(stdOut, stdErr); err != nil {
@@ -557,7 +561,7 @@ func waitForContainerReady(stdOutPath string, stdErrPath string) error {
 	go func() {
 		ok, err := readTillLine(timeoutCtx, stdErrPath, "kloudlite-entrypoint:CRASHED", "stderr", true, false)
 		if err != nil {
-			fn.PrintError(err)
+			functions.PrintError(err)
 			status <- 2
 			cf()
 			return
@@ -570,7 +574,7 @@ func waitForContainerReady(stdOutPath string, stdErrPath string) error {
 	go func() {
 		ok, err := readTillLine(timeoutCtx, stdOutPath, "kloudlite-entrypoint: SETUP_COMPLETE", "stdout", true, false)
 		if err != nil {
-			fn.PrintError(err)
+			functions.PrintError(err)
 			status <- 2
 			return
 		}
@@ -591,7 +595,7 @@ func waitForContainerReady(stdOutPath string, stdErrPath string) error {
 				return fn.NewError("failed to start container")
 			}
 
-			// fn.Log(text.Blue("container started successfully"))
+			// functions.Log(text.Blue("container started successfully"))
 		}
 	}
 
@@ -625,9 +629,9 @@ func readTillLine(_ context.Context, file string, desiredLine, stream string, fo
 		if verbose {
 			switch stream {
 			case "stderr":
-				fn.Logf("%s: %s", text.Yellow("[stderr]"), l.Text)
+				functions.Logf("%s: %s", text.Yellow("[stderr]"), l.Text)
 			default:
-				fn.Logf("%s: %s", text.Blue("[stdout]"), l.Text)
+				functions.Logf("%s: %s", text.Blue("[stdout]"), l.Text)
 			}
 		}
 
@@ -641,8 +645,17 @@ func Stop(path string) error {
 }
 
 func Start(fpath string) error {
-	if err := ensureKloudliteNetwork(); err != nil {
-		return fn.Error(err)
+	env, err := server.EnvAtPath(fpath)
+	if err != nil {
+		return functions.Error(err)
+	}
+	err = envhash.SyncBoxHash(env.Name)
+	if err != nil {
+		return functions.Error(err)
+	}
+	err = ensureKloudliteNetwork()
+	if err != nil {
+		return functions.Error(err)
 	}
 
 	if err := ensureImage(getImageName()); err != nil {
@@ -665,6 +678,15 @@ func Start(fpath string) error {
 		TargetContainerPath: fpath,
 	}); err != nil {
 		return fn.Error(err)
+	}
+
+	vpnCfg, err := vpnConfigForAccount(klConfig.AccountName)
+	if err != nil {
+		return functions.Error(err)
+	}
+	err = SyncVpn(vpnCfg)
+	if err != nil {
+		return functions.Error(err)
 	}
 
 	return nil

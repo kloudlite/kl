@@ -3,8 +3,6 @@ package list
 import (
 	"os"
 
-	"github.com/kloudlite/kl/utils"
-
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -30,7 +28,7 @@ func listapps(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return functions.Error(err)
 	}
-	env, err := utils.EnvAtPath(cwd)
+	env, err := server.EnvAtPath(cwd)
 	if err != nil {
 		return functions.Error(err)
 	}

@@ -5,7 +5,7 @@ import (
 )
 
 func GetCurrentUser() (*User, error) {
-	cookie, err := getCookie()
+	cookie, err := getCookieString()
 	if err != nil && cookie == "" {
 		return nil, err
 	}

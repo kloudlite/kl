@@ -7,8 +7,10 @@ import (
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/server"
-	"github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/utils/devbox"
+	"github.com/kloudlite/kl/utils/envhash"
 	"github.com/kloudlite/kl/utils/envvars"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
@@ -37,7 +39,7 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 		return functions.Error(err)
 	}
 
-	env, err := utils.EnvAtPath(cwd)
+	env, err := server.EnvAtPath(cwd)
 	if err != nil {
 		return functions.Error(err)
 	}
@@ -114,17 +116,34 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 	}
 
 	fn.Log(fmt.Sprintf("added mres %s/%s to your kl-file", mres.Metadata.Name, *mresKey))
-	//if err := server.SyncBoxHash(); err != nil {
-	//	return functions.Error(err)
-	//}
 
-	//if err := server.SyncDevboxJsonFile(); err != nil {
-	//	return functions.Error(err)
-	//}
-	//
-	//if err := klfile.SyncDevboxShellEnvFile(cmd); err != nil {
-	//	return functions.Error(err)
-	//}
+	if err := envhash.SyncBoxHash(env.Name); err != nil {
+		return functions.Error(err)
+	}
+
+	if !(os.Getenv("IN_DEV_BOX") == "true") {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return functions.Error(err)
+		}
+		_, err = devbox.ContainerAtPath(cwd)
+		if err != nil && err.Error() == devbox.NO_RUNNING_CONTAINERS {
+			return nil
+		} else if err != nil {
+			return functions.Error(err)
+		}
+		fn.Printf(text.Yellow("environments may have been updated. to reflect the changes, do you want to restart the container? [Y/n] "))
+		if fn.Confirm("Y", "Y") {
+			err = devbox.Stop(cwd)
+			if err != nil {
+				return functions.Error(err)
+			}
+			err = devbox.Start(cwd)
+			if err != nil {
+				return functions.Error(err)
+			}
+		}
+	}
 
 	return nil
 }

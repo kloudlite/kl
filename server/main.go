@@ -5,9 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/utils"
-
+	fn "github.com/kloudlite/kl/pkg/functions"
 	nanoid "github.com/matoous/go-nanoid/v2"
 )
 
@@ -52,7 +50,7 @@ func Login(loginId string) error {
 		}, nil)
 
 		if err != nil {
-			return functions.Error(err)
+			return fn.Error(err)
 		}
 		type Response struct {
 			RemoteLogin struct {
@@ -63,7 +61,7 @@ func Login(loginId string) error {
 
 		var loginStatusResponse Response
 		if err = json.Unmarshal(respData, &loginStatusResponse); err != nil {
-			return functions.Error(err)
+			return fn.Error(err)
 		}
 
 		if loginStatusResponse.RemoteLogin.Status == "succeeded" {
@@ -71,11 +69,11 @@ func Login(loginId string) error {
 			req.Header.Set("Cookie", loginStatusResponse.RemoteLogin.AuthHeader)
 			cookie, _ := req.Cookie("hotspot-session")
 
-			return utils.SaveAuthSession(cookie.Value)
+			return SaveAuthSession(cookie.Value)
 		}
 
 		if loginStatusResponse.RemoteLogin.Status == "failed" {
-			return functions.Error(err, "remote login failed")
+			return fn.Error(err, "remote login failed")
 		}
 
 		if loginStatusResponse.RemoteLogin.Status == "pending" {
@@ -83,10 +81,6 @@ func Login(loginId string) error {
 			continue
 		}
 	}
-}
-
-func getCookie(options ...functions.Option) (string, error) {
-	return utils.GetCookieString(options...)
 }
 
 type Response[T any] struct {

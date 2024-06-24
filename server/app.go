@@ -41,7 +41,7 @@ func ListApps(options ...fn.Option) ([]App, error) {
 		return nil, errors.New("no environment found")
 	}
 
-	cookie, err := getCookie(options...)
+	cookie, err := getCookieString(options...)
 	if err != nil {
 		return nil, err
 	}

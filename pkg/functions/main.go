@@ -41,6 +41,12 @@ func PrintError(err error) {
 		return
 	}
 	if flags.IsDev() {
+		// f := tracerr.StackTrace(err)
+		//
+		//  if len(f) > 0 {
+		//    f = f[1:]
+		//  }
+
 		tracerr.PrintSourceColor(err)
 		return
 	}

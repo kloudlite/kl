@@ -4,7 +4,7 @@ import (
 	"os"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
-	utils "github.com/kloudlite/kl/utils"
+	"github.com/kloudlite/kl/server"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +14,7 @@ var logoutCmd = &cobra.Command{
 	Example: `# Logout from kloudlite
 {cmd} auth logout`,
 	Run: func(*cobra.Command, []string) {
-		configFolder, err := utils.GetConfigFolder()
+		configFolder, err := server.GetConfigFolder()
 		if err != nil {
 			fn.Log(err)
 			return

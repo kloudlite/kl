@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kloudlite/kl/utils"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -24,7 +23,7 @@ var secretsCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		env, err := utils.EnvAtPath(cwd)
+		env, err := server.EnvAtPath(cwd)
 		if err != nil {
 			fn.PrintError(err)
 			return
