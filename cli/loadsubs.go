@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/kloudlite/kl/cmds"
 	"github.com/kloudlite/kl/cmds/add"
 	"github.com/kloudlite/kl/cmds/auth"
 	"github.com/kloudlite/kl/cmds/box"
@@ -33,4 +34,5 @@ func init() {
 	rootCmd.AddCommand(box.Cmd)
 	rootCmd.AddCommand(pkgs.Cmd)
 	rootCmd.AddCommand(use.Cmd)
+	rootCmd.AddCommand(cmds.StatusCmd)
 }

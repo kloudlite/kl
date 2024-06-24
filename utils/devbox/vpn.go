@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -46,11 +47,11 @@ func vpnConfigForAccount(account string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	err = os.MkdirAll(cfgFolder+"/vpn", 0755)
+	err = os.MkdirAll(path.Join(cfgFolder, "/vpn"), 0755)
 	if err != nil {
 		return "", err
 	}
-	cfgPath := cfgFolder + "/vpn/" + account + ".json"
+	cfgPath := path.Join(cfgFolder, "/vpn/", fmt.Sprintf("%s.json", account))
 	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
 		dev, err := createVpnForAccount(account)
 		if err != nil {
