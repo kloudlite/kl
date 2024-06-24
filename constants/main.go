@@ -2,10 +2,12 @@ package constants
 
 import (
 	"fmt"
+
+	"github.com/kloudlite/kl/flags"
 )
 
 const (
-	DefaultBaseURL              = "https://auth.dev.kloudlite.io"
+	DefaultBaseURL              = "https://auth.kloudlite.io"
 	RuntimeLinux                = "linux"
 	RuntimeDarwin               = "darwin"
 	RuntimeWindows              = "windows"
@@ -22,8 +24,15 @@ const (
 	DnsServerPort = 5353
 )
 
+func baseUrl() string {
+	if flags.BaseUrl != "" {
+		return flags.BaseUrl
+	}
+	return DefaultBaseURL
+}
+
 var (
-	BaseURL = DefaultBaseURL
+	BaseURL = baseUrl()
 
 	LoginUrl = func() string {
 		return fmt.Sprintf("%s/cli-login", BaseURL)

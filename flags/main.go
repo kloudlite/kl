@@ -9,6 +9,7 @@ var (
 	CliName    = "kl"
 	BasePrefix = ""
 	DevMode    = "false"
+	BaseUrl    = ""
 )
 
 func GetCliPath() string {
