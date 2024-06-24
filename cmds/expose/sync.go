@@ -10,13 +10,13 @@ import (
 )
 
 var syncCmd = &cobra.Command{
-	Use:   "port",
-	Short: "expose ports",
+	Use:   "sync",
+	Short: "sync ports",
 	Long: `
-This command will add ports to your kl-config file.
+This command will sync ports to your kl-config file.
 `,
 	Example: ` 
-  kl expose ports 8080 3000
+  kl expose sync
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := sync(); err != nil {
@@ -31,6 +31,9 @@ func sync() error {
 	if err != nil {
 		return functions.Error(err)
 	}
-	devbox.Start(cwd)
+	err = devbox.Start(cwd)
+	if err != nil {
+		return err
+	}
 	return nil
 }

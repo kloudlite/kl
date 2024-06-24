@@ -83,7 +83,9 @@ func getConfigFolder() (configFolder string, err error) {
 	}
 
 	configPath := path.Join(homePath, ".cache", ".kl")
-
+	if os.Getenv("IN_DEV_BOX") == "true" {
+		configPath = path.Join( "/.cache", "kl")
+	}
 	// ensuring the dir is present
 	if err := os.MkdirAll(configPath, os.ModePerm); err != nil {
 		return "", err

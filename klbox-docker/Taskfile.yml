@@ -42,6 +42,7 @@ tasks:
   container:build:
     cmds:
       - docker buildx build --build-context project=.. --load -t {{.ImageRegistry}}:v1.0.0-nightly .
+#      - docker buildx build --build-context project=.. --load -t {{.ImageRegistry}}:test .
 
   container:push:
     preconditions:

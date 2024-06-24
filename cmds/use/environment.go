@@ -2,6 +2,9 @@ package use
 
 import (
 	"fmt"
+	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl/utils/devbox"
+	"github.com/kloudlite/kl/utils/envhash"
 	"os"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -20,7 +23,6 @@ var envCmd = &cobra.Command{
 				fn.PrintError(err)
 				return
 			}
-
 			return
 		}
 
@@ -40,6 +42,10 @@ var envCmd = &cobra.Command{
 			return
 		}
 
+		if os.Getenv("IN_DEV_BOX") == "true" {
+			cwd = os.Getenv("KL_WORKSPACE")
+		}
+
 		err = server.SetEnvAtPath(cwd, &server.LocalEnv{
 			Name:            e.Metadata.Name,
 			ClusterName:     e.ClusterName,
@@ -48,6 +54,35 @@ var envCmd = &cobra.Command{
 		if err != nil {
 			fn.PrintError(err)
 			return
+		}
+		if err := envhash.SyncBoxHash(e.Metadata.Name); err != nil {
+			fn.PrintError(err)
+			return
+		}
+		if !(os.Getenv("IN_DEV_BOX") == "true") {
+			cwd, err := os.Getwd()
+			if err != nil {
+				fn.PrintError(err)
+				return
+			}
+			_, err = devbox.ContainerAtPath(cwd)
+			if err != nil && err.Error() == devbox.NO_RUNNING_CONTAINERS {
+				return
+			} else if err != nil {
+				fn.PrintError(err)
+				return
+			}
+			fn.Printf(text.Yellow("environments may have been updated. to reflect the changes, do you want to restart the container? [Y/n] "))
+			if fn.Confirm("Y", "Y") {
+				if err = devbox.Stop(cwd); err != nil {
+					fn.PrintError(err)
+					return
+				}
+				if err = devbox.Start(cwd); err != nil {
+					fn.PrintError(err)
+					return
+				}
+			}
 		}
 	},
 }
@@ -77,7 +112,9 @@ func selectEnvironment() error {
 	if err != nil {
 		return fn.Error(err)
 	}
-
+	if os.Getenv("IN_DEV_BOX") == "true" {
+		cwd = os.Getenv("KL_WORKSPACE")
+	}
 	if err = server.SetEnvAtPath(cwd, &server.LocalEnv{
 		Name:            selectedEnv.Metadata.Name,
 		ClusterName:     selectedEnv.ClusterName,
@@ -87,5 +124,29 @@ func selectEnvironment() error {
 	}
 
 	fn.Log(fmt.Sprintf("switched to %s environment", selectedEnv.Metadata.Name))
+	if err := envhash.SyncBoxHash(selectedEnv.Metadata.Name); err != nil {
+		return err
+	}
+	if !(os.Getenv("IN_DEV_BOX") == "true") {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		_, err = devbox.ContainerAtPath(cwd)
+		if err != nil && err.Error() == devbox.NO_RUNNING_CONTAINERS {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		fn.Printf(text.Yellow("environments may have been updated. to reflect the changes, do you want to restart the container? [Y/n] "))
+		if fn.Confirm("Y", "Y") {
+			if err = devbox.Stop(cwd); err != nil {
+				return err
+			}
+			if err = devbox.Start(cwd); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }

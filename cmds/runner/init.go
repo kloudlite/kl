@@ -2,6 +2,7 @@ package runner
 
 import (
 	"errors"
+	"os"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -17,6 +18,10 @@ var InitCommand = &cobra.Command{
 	Short: "initialize a kl-config file",
 	Long:  `use this command to initialize a kl-config file`,
 	Run: func(_ *cobra.Command, _ []string) {
+		if os.Getenv("IN_DEV_BOX") == "true" {
+			fn.PrintError(errors.New("cannot re-initialize workspace in dev box"))
+			return
+		}
 		_, err := klfile.GetKlFile("")
 		if err == nil {
 			fn.Printf(text.Yellow("Workspace is already initilized. Do you want to override? (y/N): "))
@@ -39,6 +44,7 @@ var InitCommand = &cobra.Command{
 					AccountName: *selectedAccount,
 					DefaultEnv:  *selectedEnv,
 					Version:     "v1",
+					Packages: []string{"neovim","git"},
 				}
 				if err := klfile.WriteKLFile(newKlFile); err != nil {
 					fn.PrintError(err)

@@ -45,8 +45,8 @@ func exposePorts(args []string) error {
 	}
 
 	for _, arg := range args {
-		port, error := strconv.Atoi(arg)
-		if error != nil {
+		port, err := strconv.Atoi(arg)
+		if err != nil {
 			return functions.Error(err, "port should be an integer")
 		}
 		if !slices.Contains(klFile.Ports, port) {
@@ -57,6 +57,9 @@ func exposePorts(args []string) error {
 	if err := klfile.WriteKLFile(*klFile); err != nil {
 		return functions.Error(err)
 	}
-	devbox.Start(cwd)
+	err = devbox.Start(cwd)
+	if err != nil {
+		return err
+	}
 	return nil
 }

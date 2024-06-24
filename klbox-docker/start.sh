@@ -5,6 +5,8 @@ set -o pipefail
 
 trap "echo kloudlite-entrypoint:CRASHED >&2" EXIT SIGINT SIGTERM
 
+#/nix-installer/install
+
 export IN_DEV_BOX="true"
 export KL_WORKSPACE="$KL_WORKSPACE"
 export KL_TMP_PATH="/kl-tmp"
@@ -51,11 +53,27 @@ echo "kloudlite-entrypoint:INSTALLING_PACKAGES"
 cat $KL_HASH_FILE | jq '.hash' -r > /tmp/hash
 cat $KL_HASH_FILE | jq '.config.env | to_entries | map_values(. = "export \(.key)=\"\(.value)\"")|.[]' -r >> /tmp/env
 cat > /tmp/mount.sh <<EOF
-$(cat $KL_HASH_FILE | jq '.config.mounts | to_entries | map_values(. = "mkdir -p $(realpath $(dirname \(.key))); printf \"\(.value)\" > \(.key)") | .[]' -r)
+vmounts=$(cat $KL_HASH_FILE | jq '.config.mounts | length')
+if [ \$vmounts -gt 0 ]; then
+  eval $(cat $KL_HASH_FILE | jq '.config.mounts | to_entries | map_values(. = "mkdir -p $(dirname \(.key))") | .[]' -r)
+  eval $(cat $KL_HASH_FILE | jq '.config.mounts | to_entries | map_values(. = "echo \"\(.value)\" > \(.key)") | .[]' -r)
+fi
 EOF
 sudo bash /tmp/mount.sh
-nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed packages"
-echo export PATH=$PATH:$(eval nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command printenv PATH) >> /tmp/env
+
+cat > /tmp/pkg-install.sh <<EOF
+npkgs=$(cat $KL_HASH_FILE | jq '.config.packageHashes | length')
+if [ \$npkgs -gt 0 ]; then
+  nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed packages"
+  npath=$(nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command printenv PATH)
+  echo export PATH=$PATH:\$npath >> /tmp/env
+fi
+EOF
+
+bash /tmp/pkg-install.sh
+
+#nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed packages"
+#echo export PATH=$PATH:$(eval nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command printenv PATH) >> /tmp/env
 echo "export KL_HASH_FILE=$KL_HASH_FILE" >> /tmp/env
 echo "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE"
 

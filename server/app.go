@@ -91,7 +91,7 @@ func InterceptApp(status bool, ports []AppPort, deviceName string, app *App, opt
 		}
 	}
 
-	if len(ports) == 0 {
+	if len(ports) == 0 && status {
 		return fmt.Errorf("no ports provided to intercept")
 	}
 

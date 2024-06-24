@@ -16,8 +16,7 @@ RUN go build --tags=box -ldflags="-X github.com/kloudlite/kl/flags.Version=${VER
 
 FROM --platform=$TARGETPLATFORM ubuntu:latest
 
-RUN apt-get update && apt-get install -y openssh-server sudo curl xz-utils jq iproute2 nano zsh git dnsmasq
-
+RUN apt-get update && apt-get install -y openssh-server sudo curl xz-utils jq iproute2 nano zsh git dnsmasq bzip2
 
 RUN mkdir /var/run/sshd
 
@@ -36,7 +35,21 @@ RUN echo "GatewayPorts yes" >> /etc/ssh/sshd_config
 
 ENV HOSTNAME box
 RUN mkdir -m 0755 /nix && chown kl /nix
+RUN mkdir -p /kl-nix-profile && chown kl /kl-nix-profile
+
+#RUN <<EOF
+# export VERSION=2.23.0
+# export SYSTEM=x86_64-linux
+# cd /tmp
+# curl -LO https://releases.nixos.org/nix/nix-$VERSION/nix-$VERSION-$SYSTEM.tar.xz
+# tar xf nix-$VERSION-$SYSTEM.tar.xz
+# mv nix-$VERSION-$SYSTEM /nix-installer
+#EOF
+#RUN chown kl /nix-installer
+
 USER kl
+RUN mkdir -p ~/.local/state/nix
+RUN ln -sf /kl-nix-profile ~/.local/state/nix/profiles
 RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon --no-modify-profile
 
 RUN mkdir -p "/home/kl/.config/zsh"

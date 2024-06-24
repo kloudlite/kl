@@ -1,11 +1,10 @@
 package auth
 
 import (
-	"os"
-
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/server"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var logoutCmd = &cobra.Command{
@@ -26,3 +25,20 @@ var logoutCmd = &cobra.Command{
 		}
 	},
 }
+
+//func logout(configPath string) error {
+//	sessionFile, err := os.Stat(path.Join(configPath, server.SessionFileName))
+//	if err != nil && os.IsNotExist(err) {
+//		return errors.New("not logged in")
+//	}
+//	if err != nil {
+//		return err
+//	}
+//	extraDataFile, _ := os.Stat(path.Join(configPath, server.ExtraDataFileName))
+//	if extraDataFile != nil {
+//		if err := os.Remove(path.Join(configPath, extraDataFile.Name())); err != nil {
+//			return err
+//		}
+//	}
+//	return os.Remove(path.Join(configPath, sessionFile.Name()))
+//}
