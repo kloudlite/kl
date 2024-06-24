@@ -16,7 +16,7 @@ import (
 var secretsCmd = &cobra.Command{
 	Use:   "secrets",
 	Short: "Get list of secrets in selected environment",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -37,7 +37,7 @@ var secretsCmd = &cobra.Command{
 		}
 
 		sec, err := server.ListSecrets([]fn.Option{
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 		if err != nil {

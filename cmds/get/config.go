@@ -47,7 +47,7 @@ var configCmd = &cobra.Command{
 
 		config, err := EnsureConfig([]fn.Option{
 			fn.MakeOption("configName", configName),
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 		if err != nil {

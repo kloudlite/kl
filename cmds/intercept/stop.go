@@ -38,7 +38,7 @@ Examples:
 		}
 
 		apps, err := server.ListApps([]fn.Option{
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 		if err != nil {
@@ -53,7 +53,7 @@ Examples:
 		}
 
 		if err := server.InterceptApp(false, nil, app, []fn.Option{
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...); err != nil {
 			fn.PrintError(err)

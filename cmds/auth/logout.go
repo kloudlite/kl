@@ -13,7 +13,7 @@ var logoutCmd = &cobra.Command{
 	Short: "logout from kloudlite",
 	Example: `# Logout from kloudlite
 {cmd} auth logout`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(*cobra.Command, []string) {
 		configFolder, err := utils.GetConfigFolder()
 		if err != nil {
 			fn.Log(err)

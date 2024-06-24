@@ -68,7 +68,6 @@ func GetLoadMaps(envName string) (map[string]string, MountMap, error) {
 	currMreses := kt.EnvVars.GetMreses()
 	currSecs := kt.EnvVars.GetSecrets()
 	currConfs := kt.EnvVars.GetConfigs()
-
 	currMounts := kt.Mounts.GetMounts()
 
 	respData, err := klFetch("cli_getConfigSecretMap", map[string]any{

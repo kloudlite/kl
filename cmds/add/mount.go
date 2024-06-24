@@ -3,6 +3,8 @@ package add
 import (
 	"errors"
 	"fmt"
+	"os"
+
 	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/pkg/ui/fzf"
 	"github.com/kloudlite/kl2/pkg/ui/text"
@@ -13,7 +15,6 @@ import (
 	"github.com/kloudlite/kl2/utils/envhash"
 	"github.com/kloudlite/kl2/utils/klfile"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var mountCommand = &cobra.Command{
@@ -40,6 +41,7 @@ func configMount(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 || args[0] == "" {
 		return errors.New("please specify the path of the config you want to add, example: kl add config-mount /tmp/sample")
 	}
+
 	path := args[0]
 	c := cmd.Flag("config").Value.String()
 	s := cmd.Flag("secret").Value.String()
@@ -85,7 +87,7 @@ func configMount(cmd *cobra.Command, args []string) error {
 	items := make([]server.ConfigORSecret, 0)
 	if cors == types.ConfigType {
 		configs, e := server.ListConfigs([]fn.Option{
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 
@@ -102,7 +104,7 @@ func configMount(cmd *cobra.Command, args []string) error {
 
 	} else {
 		secrets, e := server.ListSecrets([]fn.Option{
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 
@@ -201,7 +203,7 @@ func configMount(cmd *cobra.Command, args []string) error {
 	}
 
 	fn.Log("added mount to your kl-file")
-	if err = envhash.SyncBoxHash(string(env)); err != nil {
+	if err = envhash.SyncBoxHash(env.Name); err != nil {
 		return err
 	}
 

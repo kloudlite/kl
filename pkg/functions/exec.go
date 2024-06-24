@@ -3,6 +3,7 @@ package functions
 import (
 	"bytes"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -201,4 +202,8 @@ func Confirm(yes string, defaultValue string) bool {
 		response = defaultValue
 	}
 	return strings.ToLower(response) == strings.ToLower(yes)
+}
+
+func Error(err error, s string) error {
+	return errors.Join(err, errors.New(s))
 }

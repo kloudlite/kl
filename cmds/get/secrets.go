@@ -47,7 +47,7 @@ var secretCmd = &cobra.Command{
 
 		sec, err := EnsureSecret([]fn.Option{
 			fn.MakeOption("secretName", secName),
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 		if err != nil {

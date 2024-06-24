@@ -3,10 +3,11 @@ package add
 import (
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/kloudlite/kl2/pkg/ui/text"
 	"github.com/kloudlite/kl2/utils/devbox"
 	"github.com/kloudlite/kl2/utils/envhash"
-	"os"
 
 	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/pkg/ui/fzf"
@@ -35,11 +36,11 @@ This command will add secret entry of managed resource references from current e
 }
 
 func AddMres(cmd *cobra.Command, _ []string) error {
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
+
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
 		return err
@@ -54,26 +55,23 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 
 	mres, err := SelectMres([]fn.Option{
 		fn.MakeOption("mresName", mresName),
-		fn.MakeOption("envName", string(env)),
+		fn.MakeOption("envName", env.Name),
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
-
 	if err != nil {
 		return err
 	}
 
 	mresKey, err := SelectMresKey([]fn.Option{
 		fn.MakeOption("mresName", mres.Metadata.Name),
-		fn.MakeOption("envName", string(env)),
+		fn.MakeOption("envName", env.Name),
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
-
 	if err != nil {
 		return err
 	}
 
 	currMreses := klFile.EnvVars.GetMreses()
-
 	if currMreses == nil {
 		currMreses = []envvars.ResType{
 			{
@@ -121,7 +119,7 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 
 	fn.Log(fmt.Sprintf("added mres %s/%s to your kl-file", mres.Metadata.Name, *mresKey))
 
-	if err := envhash.SyncBoxHash(string(env)); err != nil {
+	if err := envhash.SyncBoxHash(env.Name); err != nil {
 		return err
 	}
 
@@ -172,7 +170,6 @@ func SelectMresKey(options ...fn.Option) (*string, error) {
 }
 
 func SelectMres(options ...fn.Option) (*server.Mres, error) {
-
 	mresName := fn.GetOption(options, "mresName")
 
 	m, err := server.ListMreses(options...)

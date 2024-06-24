@@ -15,7 +15,7 @@ import (
 var envCmd = &cobra.Command{
 	Use:   "env",
 	Short: "use env",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, args []string) {
 		if len(args) == 0 {
 			err := selectEnvironment()
 			if err != nil {
@@ -27,7 +27,18 @@ var envCmd = &cobra.Command{
 			if err != nil {
 				return
 			}
-			err = utils.SetEnvAtPath(cwd, utils.Env(args[0]))
+
+			e, err := server.GetEnvironment(args[0])
+			if err != nil {
+				functions.PrintError(err)
+				return
+			}
+
+			err = utils.SetEnvAtPath(cwd, utils.Env{
+				Name:            e.Metadata.Name,
+				ClusterName:     e.ClusterName,
+				TargetNamespace: e.Spec.TargetNamespace,
+			})
 			if err != nil {
 				functions.PrintError(err)
 				return
@@ -58,7 +69,11 @@ func selectEnvironment() error {
 	if err != nil {
 		return err
 	}
-	err = utils.SetEnvAtPath(cwd, utils.Env(selectedEnv.Metadata.Name))
+	err = utils.SetEnvAtPath(cwd, utils.Env{
+		Name:            selectedEnv.Metadata.Name,
+		ClusterName:     selectedEnv.ClusterName,
+		TargetNamespace: selectedEnv.Spec.TargetNamespace,
+	})
 	if err != nil {
 		return err
 	}

@@ -3,11 +3,12 @@ package add
 import (
 	"errors"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/kloudlite/kl2/pkg/ui/text"
 	"github.com/kloudlite/kl2/utils/devbox"
 	"github.com/kloudlite/kl2/utils/envhash"
-	"os"
-	"strings"
 
 	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/pkg/ui/fzf"
@@ -26,7 +27,7 @@ var secCmd = &cobra.Command{
   kl add secret 		# add secret and entry by selecting from list (default)
   kl add secret [name] 	# add entry by providing secret name
 	`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, args []string) {
 		err := selectAndAddSecret(args)
 		if err != nil {
 			fn.PrintError(err)
@@ -36,11 +37,11 @@ var secCmd = &cobra.Command{
 }
 
 func selectAndAddSecret(args []string) error {
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
+
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
 		return err
@@ -53,12 +54,11 @@ func selectAndAddSecret(args []string) error {
 
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
-		fn.PrintError(err)
 		return errors.New("please run 'kl init' if you are not initialized the file already")
 	}
 
 	secrets, err := server.ListSecrets([]fn.Option{
-		fn.MakeOption("envName", string(env)),
+		fn.MakeOption("envName", env.Name),
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
 	if err != nil {
@@ -70,7 +70,6 @@ func selectAndAddSecret(args []string) error {
 	}
 
 	selectedSecretGroup := server.Secret{}
-
 	if name != "" {
 		for _, c := range secrets {
 			if c.Metadata.Name == name {
@@ -105,7 +104,6 @@ func selectAndAddSecret(args []string) error {
 	}
 
 	selectedSecretKey := &KV{}
-
 	m := ""
 
 	if m != "" {
@@ -209,7 +207,7 @@ func selectAndAddSecret(args []string) error {
 
 	fn.Log(fmt.Sprintf("added secret %s/%s to your kl-file\n", selectedSecretGroup.Metadata.Name, selectedSecretKey.Key))
 
-	if err := envhash.SyncBoxHash(string(env)); err != nil {
+	if err := envhash.SyncBoxHash(env.Name); err != nil {
 		return err
 	}
 

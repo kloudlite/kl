@@ -38,7 +38,7 @@ var configsCmd = &cobra.Command{
 		}
 
 		config, err := server.ListConfigs([]fn.Option{
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 
@@ -47,7 +47,7 @@ var configsCmd = &cobra.Command{
 			return
 		}
 
-		if err := printConfigs(cmd, config, string(env)); err != nil {
+		if err := printConfigs(cmd, config, env.Name); err != nil {
 			fn.PrintError(err)
 			return
 		}

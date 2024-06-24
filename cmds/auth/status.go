@@ -12,7 +12,7 @@ import (
 var authStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "get the current user's name and email",
-	Run: func(_ *cobra.Command, _ []string) {
+	Run: func(*cobra.Command, []string) {
 		if u, err := server.GetCurrentUser(); err != nil {
 			fn.PrintError(err)
 			return

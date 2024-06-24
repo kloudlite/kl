@@ -2,12 +2,13 @@ package pkgs
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/kloudlite/kl2/pkg/ui/text"
 	"github.com/kloudlite/kl2/utils"
 	"github.com/kloudlite/kl2/utils/devbox"
 	"github.com/kloudlite/kl2/utils/envhash"
-	"os"
-	"strings"
 
 	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/utils/klfile"
@@ -44,7 +45,7 @@ var removeCmd = &cobra.Command{
 					return
 				}
 
-				err = envhash.SyncBoxHash(string(env))
+				err = envhash.SyncBoxHash(env.Name)
 				if err != nil {
 					fn.PrintError(err)
 					return

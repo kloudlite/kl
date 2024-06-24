@@ -3,7 +3,7 @@ package box
 import (
 	"os"
 
-	"github.com/kloudlite/kl2/pkg/functions"
+	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/utils/devbox"
 	"github.com/spf13/cobra"
 )
@@ -11,15 +11,19 @@ import (
 var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "start new devbox",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		// Get current working directory
 		oswd, err := os.Getwd()
 		if err != nil {
-			panic(err)
+			fn.PrintError(err)
+			return
 		}
-		err = devbox.Start(oswd)
-		if err != nil {
-			functions.PrintError(err)
+
+		if err = devbox.Start(oswd); err != nil {
+			fn.PrintError(err)
+			if err := devbox.Stop(oswd); err != nil {
+				fn.PrintError(err)
+			}
 		}
 	},
 }

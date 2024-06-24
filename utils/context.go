@@ -8,7 +8,6 @@ import (
 	"path"
 
 	fn "github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/utils/klfile"
 
 	"sigs.k8s.io/yaml"
 )
@@ -19,7 +18,11 @@ const (
 	CompleteFileName  string = "kl-completion"
 )
 
-type Env string
+type Env struct {
+	Name            string `json:"name"`
+	ClusterName     string `json:"clusterName"`
+	TargetNamespace string `json:"targetNamespace"`
+}
 
 type Session struct {
 	Session string `json:"session"`
@@ -235,18 +238,37 @@ func SetEnvAtPath(path string, env Env) error {
 	return SaveExtraData(extradata)
 }
 
-func EnvAtPath(path string) (Env, error) {
+func EnvAtPath(path string) (*Env, error) {
 	extradata, err := GetExtraData()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	env := extradata.SelectedEnvs[path]
-	if env == "" {
-		klFile, err := klfile.GetKlFile(path + "/kl.yml")
-		if err != nil {
-			return "", err
-		}
-		env = Env(klFile.DefaultEnv)
+
+	env, ok := extradata.SelectedEnvs[path]
+	// if !ok {
+	// 	return nil, fmt.Errorf("no env found for path %s", path)
+	// }
+
+	if !ok {
+		return nil, fmt.Errorf("no env found for path %s", path)
+
+		// klFile, err := klfile.GetKlFile(path + "/kl.yml")
+		// if err != nil {
+		// 	return nil, err
+		// }
+		//
+		// e, err := server.GetEnvironment(klFile.DefaultEnv)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		//
+		// env = Env{
+		// 	Name:            e.Metadata.Name,
+		// 	ClusterName:     e.ClusterName,
+		// 	TargetNamespace: e.Spec.TargetNamespace,
+		// }
+
+		// env = Env(klFile.DefaultEnv)
 	}
-	return env, nil
+	return &env, nil
 }

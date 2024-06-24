@@ -36,7 +36,7 @@ var mresCmd = &cobra.Command{
 		}
 
 		sec, err := server.ListMreses([]fn.Option{
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 		if err != nil {
