@@ -10,7 +10,6 @@ import (
 	"github.com/kloudlite/kl2/pkg/ui/text"
 	"github.com/kloudlite/kl2/server"
 	"github.com/kloudlite/kl2/types"
-	"github.com/kloudlite/kl2/utils"
 	"github.com/kloudlite/kl2/utils/devbox"
 	"github.com/kloudlite/kl2/utils/envhash"
 	"github.com/kloudlite/kl2/utils/klfile"
@@ -50,7 +49,7 @@ func configMount(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	env, err := utils.EnvAtPath(cwd)
+	env, err := server.EnvAtPath(cwd)
 	if err != nil {
 		return err
 	}

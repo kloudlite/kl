@@ -3,12 +3,13 @@ package pkgs
 import (
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl2/pkg/ui/text"
-	"github.com/kloudlite/kl2/utils"
-	"github.com/kloudlite/kl2/utils/envhash"
 	"os"
 	"slices"
 	"strings"
+
+	"github.com/kloudlite/kl2/pkg/ui/text"
+	"github.com/kloudlite/kl2/server"
+	"github.com/kloudlite/kl2/utils/envhash"
 
 	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/utils/devbox"
@@ -81,7 +82,7 @@ var addCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		env, err := utils.EnvAtPath(cwd)
+		env, err := server.EnvAtPath(cwd)
 		if err != nil {
 			fn.PrintError(err)
 			return

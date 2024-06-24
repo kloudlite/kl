@@ -7,7 +7,7 @@ type Account struct {
 }
 
 func ListAccounts() ([]Account, error) {
-	cookie, err := getCookie()
+	cookie, err := getCookieString()
 	if err != nil {
 		return nil, err
 	}

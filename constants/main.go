@@ -2,8 +2,6 @@ package constants
 
 import (
 	"fmt"
-
-	"github.com/kloudlite/kl2/utils"
 )
 
 const (
@@ -25,16 +23,7 @@ const (
 )
 
 var (
-	BaseURL = func() string {
-		baseUrl := DefaultBaseURL
-
-		s, err := utils.GetBaseURL()
-		if err == nil && s != "" {
-			baseUrl = s
-		}
-
-		return baseUrl
-	}()
+	BaseURL = DefaultBaseURL
 
 	LoginUrl = func() string {
 		return fmt.Sprintf("%s/cli-login", BaseURL)

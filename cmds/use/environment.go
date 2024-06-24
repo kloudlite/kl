@@ -7,7 +7,7 @@ import (
 	"github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/pkg/ui/fzf"
 	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils"
+
 	"github.com/kloudlite/kl2/utils/klfile"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +34,7 @@ var envCmd = &cobra.Command{
 				return
 			}
 
-			err = utils.SetEnvAtPath(cwd, utils.Env{
+			err = server.SetEnvAtPath(cwd, &server.LocalEnv{
 				Name:            e.Metadata.Name,
 				ClusterName:     e.ClusterName,
 				TargetNamespace: e.Spec.TargetNamespace,
@@ -69,7 +69,7 @@ func selectEnvironment() error {
 	if err != nil {
 		return err
 	}
-	err = utils.SetEnvAtPath(cwd, utils.Env{
+	err = server.SetEnvAtPath(cwd, &server.LocalEnv{
 		Name:            selectedEnv.Metadata.Name,
 		ClusterName:     selectedEnv.ClusterName,
 		TargetNamespace: selectedEnv.Spec.TargetNamespace,

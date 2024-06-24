@@ -6,9 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kloudlite/kl2/pkg/functions"
-	"github.com/kloudlite/kl2/utils"
-
 	nanoid "github.com/matoous/go-nanoid/v2"
 )
 
@@ -72,7 +69,7 @@ func Login(loginId string) error {
 			req.Header.Set("Cookie", loginStatusResponse.RemoteLogin.AuthHeader)
 			cookie, _ := req.Cookie("hotspot-session")
 
-			return utils.SaveAuthSession(cookie.Value)
+			return SaveAuthSession(cookie.Value)
 		}
 
 		if loginStatusResponse.RemoteLogin.Status == "failed" {
@@ -84,10 +81,6 @@ func Login(loginId string) error {
 			continue
 		}
 	}
-}
-
-func getCookie(options ...functions.Option) (string, error) {
-	return utils.GetCookieString(options...)
 }
 
 type Response[T any] struct {

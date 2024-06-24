@@ -1,4 +1,4 @@
-package utils
+package server
 
 import (
 	"errors"
@@ -6,7 +6,10 @@ import (
 	"io"
 	"os"
 	"path"
+	"runtime"
+	"strings"
 
+	"github.com/adrg/xdg"
 	fn "github.com/kloudlite/kl2/pkg/functions"
 
 	"sigs.k8s.io/yaml"
@@ -18,7 +21,7 @@ const (
 	CompleteFileName  string = "kl-completion"
 )
 
-type Env struct {
+type LocalEnv struct {
 	Name            string `json:"name"`
 	ClusterName     string `json:"clusterName"`
 	TargetNamespace string `json:"targetNamespace"`
@@ -33,8 +36,8 @@ type MainContext struct {
 }
 
 type ExtraData struct {
-	BaseUrl      string         `json:"baseUrl"`
-	SelectedEnvs map[string]Env `json:"selectedEnvs"`
+	BaseUrl      string              `json:"baseUrl"`
+	SelectedEnvs map[string]LocalEnv `json:"selectedEnvs"`
 }
 
 func WriteCompletionContext() (io.Writer, error) {
@@ -118,13 +121,13 @@ func GetExtraData() (*ExtraData, error) {
 		return nil, err
 	}
 	if extraData.SelectedEnvs == nil {
-		extraData.SelectedEnvs = make(map[string]Env)
+		extraData.SelectedEnvs = make(map[string]LocalEnv)
 	}
 
 	return &extraData, nil
 }
 
-func GetCookieString(options ...fn.Option) (string, error) {
+func getCookieString(options ...fn.Option) (string, error) {
 
 	accName := fn.GetOption(options, "accountName")
 
@@ -229,46 +232,109 @@ func ReadFile(name string) ([]byte, error) {
 	return file, nil
 }
 
-func SetEnvAtPath(path string, env Env) error {
+func SetEnvAtPath(path string, env *LocalEnv) error {
 	extradata, err := GetExtraData()
 	if err != nil {
 		return err
 	}
-	extradata.SelectedEnvs[path] = env
+	extradata.SelectedEnvs[path] = *env
 	return SaveExtraData(extradata)
 }
 
-func EnvAtPath(path string) (*Env, error) {
-	extradata, err := GetExtraData()
-	if err != nil {
-		return nil, err
-	}
+func EnvAtPath(path string) (*LocalEnv, error) {
+	// extradata, err := GetExtraData()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	env, ok := extradata.SelectedEnvs[path]
+	// env, ok := extradata.SelectedEnvs[path]
 	// if !ok {
 	// 	return nil, fmt.Errorf("no env found for path %s", path)
 	// }
 
-	if !ok {
-		return nil, fmt.Errorf("no env found for path %s", path)
+	// if !ok {
+	// return nil, fmt.Errorf("no env found for path %s", path)
 
-		// klFile, err := klfile.GetKlFile(path + "/kl.yml")
-		// if err != nil {
-		// 	return nil, err
-		// }
-		//
-		// e, err := server.GetEnvironment(klFile.DefaultEnv)
-		// if err != nil {
-		// 	return nil, err
-		// }
-		//
-		// env = Env{
-		// 	Name:            e.Metadata.Name,
-		// 	ClusterName:     e.ClusterName,
-		// 	TargetNamespace: e.Spec.TargetNamespace,
-		// }
+	// klFile, err := klfile.GetKlFile(path + "/kl.yml")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// e, err := server.GetEnvironment(klFile.DefaultEnv)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// env = Env{
+	// 	Name:            e.Metadata.Name,
+	// 	ClusterName:     e.ClusterName,
+	// 	TargetNamespace: e.Spec.TargetNamespace,
+	// }
 
-		// env = Env(klFile.DefaultEnv)
+	// env = Env(klFile.DefaultEnv)
+	// }
+	return &LocalEnv{}, nil
+}
+
+func GetUserHomeDir() (string, error) {
+	if runtime.GOOS == "windows" {
+		return xdg.Home, nil
 	}
-	return &env, nil
+
+	if euid := os.Geteuid(); euid == 0 {
+		username, ok := os.LookupEnv("SUDO_USER")
+		if !ok {
+			return "", errors.New("failed to get sudo user name")
+		}
+
+		oldPwd, err := os.Getwd()
+		if err != nil {
+			return "", err
+		}
+
+		sp := strings.Split(oldPwd, "/")
+
+		for i := range sp {
+			if sp[i] == username {
+				return path.Join("/", path.Join(sp[:i+1]...)), nil
+			}
+		}
+
+		return "", errors.New("failed to get home path of sudo user")
+	}
+
+	userHome, ok := os.LookupEnv("HOME")
+	if !ok {
+		return "", errors.New("failed to get home path of user")
+	}
+
+	return userHome, nil
+}
+
+func GetConfigFolder() (configFolder string, err error) {
+	if os.Getenv("IN_DEV_BOX") == "true" {
+		return "/.cache/kl", nil
+	}
+	homePath, err := GetUserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	configPath := path.Join(homePath, ".cache", ".kl")
+
+	// ensuring the dir is present
+	if err := os.MkdirAll(configPath, os.ModePerm); err != nil {
+		return "", err
+	}
+
+	// ensuring user permission on created dir
+	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
+		if err = fn.ExecCmd(
+			fmt.Sprintf("chown %s %s", usr, configPath), nil, false,
+		); err != nil {
+			return "", err
+		}
+	}
+
+	return configPath, nil
 }

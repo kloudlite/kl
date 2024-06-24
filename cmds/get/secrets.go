@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl2/utils"
 	"os"
 
 	fn "github.com/kloudlite/kl2/pkg/functions"
@@ -32,7 +31,7 @@ var secretCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		env, err := utils.EnvAtPath(cwd)
+		env, err := server.EnvAtPath(cwd)
 		if err != nil {
 			fn.PrintError(err)
 			return

@@ -3,15 +3,14 @@ package add
 import (
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl2/pkg/ui/text"
-	"github.com/kloudlite/kl2/utils/devbox"
 	"os"
 	"strings"
 
 	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/pkg/ui/fzf"
+	"github.com/kloudlite/kl2/pkg/ui/text"
 	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils"
+	"github.com/kloudlite/kl2/utils/devbox"
 	"github.com/kloudlite/kl2/utils/envhash"
 	"github.com/kloudlite/kl2/utils/envvars"
 	"github.com/kloudlite/kl2/utils/klfile"
@@ -47,7 +46,7 @@ func selectAndAddConfig(args []string) error {
 		return err
 	}
 
-	env, err := utils.EnvAtPath(cwd)
+	env, err := server.EnvAtPath(cwd)
 	if err != nil {
 		return err
 	}
@@ -201,7 +200,7 @@ func selectAndAddConfig(args []string) error {
 	}
 
 	fn.Log(fmt.Sprintf("added config %s/%s to your kl-file\n", selectedConfigGroup.Metadata.Name, selectedConfigKey.Key))
-	env, err = utils.EnvAtPath(cwd)
+	env, err = server.EnvAtPath(cwd)
 	if err != nil {
 		return err
 	}

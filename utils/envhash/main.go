@@ -10,7 +10,6 @@ import (
 
 	"github.com/kloudlite/kl2/server"
 	"github.com/kloudlite/kl2/types"
-	"github.com/kloudlite/kl2/utils"
 	"github.com/kloudlite/kl2/utils/klfile"
 	"github.com/kloudlite/kl2/utils/packages"
 )
@@ -81,7 +80,7 @@ func BoxHashFileName(path string) (string, error) {
 }
 
 func SyncBoxHash(envName string) error {
-	configFolder, err := utils.GetConfigFolder()
+	configFolder, err := server.GetConfigFolder()
 	if err != nil {
 		return err
 	}

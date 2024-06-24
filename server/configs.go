@@ -26,7 +26,7 @@ func ListConfigs(options ...fn.Option) ([]Config, error) {
 		return nil, errors.New("no environment found")
 	}
 
-	cookie, err := getCookie(options...)
+	cookie, err := getCookieString(options...)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func GetConfig(options ...fn.Option) (*Config, error) {
 		return nil, errors.New("no environment found")
 	}
 
-	cookie, err := getCookie(options...)
+	cookie, err := getCookieString(options...)
 	if err != nil {
 		return nil, err
 	}

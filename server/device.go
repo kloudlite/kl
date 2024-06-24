@@ -45,7 +45,7 @@ type DeviceList struct {
 
 func CreateDevice(devName string, accountName string) (*Device, error) {
 
-	cookie, err := getCookie(fn.MakeOption("accountName", accountName))
+	cookie, err := getCookieString(fn.MakeOption("accountName", accountName))
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ const (
 )
 
 func GetDeviceName(devName string, accountName string) (*CheckName, error) {
-	cookie, err := getCookie(fn.MakeOption("accountName", accountName))
+	cookie, err := getCookieString(fn.MakeOption("accountName", accountName))
 	if err != nil {
 		return nil, err
 	}

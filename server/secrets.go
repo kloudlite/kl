@@ -21,7 +21,7 @@ func ListSecrets(options ...fn.Option) ([]Secret, error) {
 		return nil, errors.New("no environment found")
 	}
 
-	cookie, err := getCookie(options...)
+	cookie, err := getCookieString(options...)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func GetSecret(options ...fn.Option) (*Secret, error) {
 		return nil, errors.New("no environment found")
 	}
 
-	cookie, err := getCookie(options...)
+	cookie, err := getCookieString(options...)
 	if err != nil {
 		return nil, err
 	}

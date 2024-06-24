@@ -3,7 +3,6 @@ package list
 import (
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl2/utils"
 	"os"
 
 	fn "github.com/kloudlite/kl2/pkg/functions"
@@ -33,7 +32,7 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	env, err := utils.EnvAtPath(cwd)
+	env, err := server.EnvAtPath(cwd)
 	if err != nil {
 		return err
 	}

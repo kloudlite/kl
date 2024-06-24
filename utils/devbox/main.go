@@ -29,8 +29,8 @@ import (
 	"github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/pkg/ui/spinner"
 	"github.com/kloudlite/kl2/pkg/ui/text"
+	"github.com/kloudlite/kl2/server"
 
-	"github.com/kloudlite/kl2/utils"
 	"github.com/kloudlite/kl2/utils/envhash"
 	"github.com/kloudlite/kl2/utils/klfile"
 	"github.com/nxadm/tail"
@@ -478,7 +478,7 @@ func startContainer(path string) (string, error) {
 		return "", err
 	}
 
-	e, err := utils.EnvAtPath(path)
+	e, err := server.EnvAtPath(path)
 	if err != nil {
 		return "", err
 	}
@@ -635,7 +635,7 @@ func Stop(path string) error {
 }
 
 func Start(path string) error {
-	env, err := utils.EnvAtPath(path)
+	env, err := server.EnvAtPath(path)
 	if err != nil {
 		return err
 	}

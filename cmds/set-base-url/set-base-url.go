@@ -4,7 +4,7 @@ import (
 	"github.com/kloudlite/kl2/constants"
 	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/pkg/ui/text"
-	"github.com/kloudlite/kl2/utils"
+	"github.com/kloudlite/kl2/server"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ var Cmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if b := fn.ParseBoolFlag(cmd, "reset"); b {
-			if err := utils.SaveBaseURL(constants.DefaultBaseURL); err != nil {
+			if err := server.SaveBaseURL(constants.DefaultBaseURL); err != nil {
 				fn.PrintError(err)
 			} else {
 				fn.Log("Base url reset successfully")
@@ -36,7 +36,7 @@ var Cmd = &cobra.Command{
 			return
 		}
 
-		if err := utils.SaveBaseURL(args[0]); err != nil {
+		if err := server.SaveBaseURL(args[0]); err != nil {
 			fn.PrintError(err)
 		} else {
 			fn.Log("Base url set successfully")

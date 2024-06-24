@@ -12,7 +12,6 @@ import (
 	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/pkg/ui/fzf"
 	"github.com/kloudlite/kl2/server"
-	"github.com/kloudlite/kl2/utils"
 	"github.com/kloudlite/kl2/utils/envvars"
 	"github.com/kloudlite/kl2/utils/klfile"
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	env, err := utils.EnvAtPath(cwd)
+	env, err := server.EnvAtPath(cwd)
 	if err != nil {
 		return err
 	}
