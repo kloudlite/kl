@@ -542,6 +542,14 @@ func Start(path string) error {
 	if err != nil {
 		return err
 	}
+	vpnCfg, err := vpnConfigForAccount(klConfig.AccountName)
+	if err != nil {
+		return err
+	}
+	err = SyncVpn(vpnCfg)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
