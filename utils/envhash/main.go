@@ -25,14 +25,15 @@ func keys[K comparable, V any](m map[K]V) []K {
 
 func generateBoxHashContent(envName string) ([]byte, error) {
 	klFile, err := klfile.GetKlFile("")
-
 	if err != nil {
 		return nil, err
 	}
+
 	persistedConfig, err := generatePersistedEnv(klFile, envName)
 	if err != nil {
 		return nil, err
 	}
+
 	hash := md5.New()
 	mountKeys := keys(persistedConfig.Mounts)
 	slices.Sort(mountKeys)
@@ -40,18 +41,21 @@ func generateBoxHashContent(envName string) ([]byte, error) {
 		hash.Write([]byte(v))
 		hash.Write([]byte(persistedConfig.Mounts[v]))
 	}
+
 	packages := keys(persistedConfig.PackageHashes)
 	slices.Sort(packages)
 	for _, v := range packages {
 		hash.Write([]byte(v))
 		hash.Write([]byte(persistedConfig.PackageHashes[v]))
 	}
+
 	envKeys := keys(persistedConfig.Env)
 	slices.Sort(envKeys)
 	for _, v := range envKeys {
 		hash.Write([]byte(v))
 		hash.Write([]byte(persistedConfig.Env[v]))
 	}
+
 	marshal, err := json.Marshal(map[string]any{
 		"config": persistedConfig,
 		"hash":   hash.Sum(nil),
@@ -59,6 +63,7 @@ func generateBoxHashContent(envName string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return marshal, nil
 }
 
@@ -66,10 +71,12 @@ func BoxHashFileName(path string) (string, error) {
 	if os.Getenv("IN_DEV_BOX") == "true" {
 		path = os.Getenv("KL_WORKSPACE")
 	}
+
 	hash := md5.New()
 	if _, err := hash.Write([]byte(path)); err != nil {
 		return "", nil
 	}
+
 	return fmt.Sprintf("hash-%x", hash.Sum(nil)), nil
 }
 
@@ -78,10 +85,12 @@ func SyncBoxHash(envName string) error {
 	if err != nil {
 		return err
 	}
+
 	cwd, _ := os.Getwd()
 	if os.Getenv("IN_DEV_BOX") == "true" {
 		cwd = os.Getenv("KL_WORKSPACE")
 	}
+
 	boxHashFilePath, err := BoxHashFileName(cwd)
 	if err != nil {
 		return err
@@ -92,14 +101,14 @@ func SyncBoxHash(envName string) error {
 		return err
 	}
 
-	err = os.MkdirAll(path.Join(configFolder, "box-hash"), 0755)
-	if err != nil {
+	if err = os.MkdirAll(path.Join(configFolder, "box-hash"), 0755); err != nil {
 		return err
 	}
-	err = os.WriteFile(path.Join(configFolder, "box-hash", boxHashFilePath), content, 0644)
-	if err != nil {
+
+	if err = os.WriteFile(path.Join(configFolder, "box-hash", boxHashFilePath), content, 0644); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -108,17 +117,18 @@ func generatePersistedEnv(kf *klfile.KLFileType, envName string) (*types.Persist
 	if err != nil {
 		return nil, err
 	}
+
 	realPkgs, err := packages.SyncLockfileWithNewConfig(*kf)
 	if err != nil {
 		return nil, err
 	}
+
 	hashConfig := &types.PersistedEnv{
 		Packages:      kf.Packages,
 		PackageHashes: realPkgs,
 	}
 
 	fm := map[string]string{}
-
 	for _, fe := range kf.Mounts.GetMounts() {
 		pth := fe.Path
 		if pth == "" {

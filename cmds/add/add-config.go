@@ -26,7 +26,7 @@ This command will add config entry references from current environment to your k
   kl add config 		# add config and entry by selecting from list
   kl add config [name] 		# add all entries of config by providing config name
 	`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, args []string) {
 		if err := selectAndAddConfig(args); err != nil {
 			fn.PrintError(err)
 			return
@@ -35,7 +35,6 @@ This command will add config entry references from current environment to your k
 }
 
 func selectAndAddConfig(args []string) error {
-
 	name := ""
 	if len(args) >= 1 {
 		name = args[0]
@@ -45,6 +44,7 @@ func selectAndAddConfig(args []string) error {
 	if err != nil {
 		return err
 	}
+
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func selectAndAddConfig(args []string) error {
 	}
 
 	configs, err := server.ListConfigs([]fn.Option{
-		fn.MakeOption("envName", string(env)),
+		fn.MakeOption("envName", env.Name),
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
 	if err != nil {
@@ -78,7 +78,6 @@ func selectAndAddConfig(args []string) error {
 		}
 		return errors.New("can't find configs with provided name")
 	} else {
-
 		selectedGroup, e := fzf.FindOne(
 			configs,
 			func(item server.Config) string { return item.Metadata.Name },
@@ -120,7 +119,6 @@ func selectAndAddConfig(args []string) error {
 		}
 
 		return errors.New("config_key not found in selected config")
-
 	} else {
 		selectedConfigKey, err = fzf.FindOne(
 			func() []KV {
@@ -206,7 +204,7 @@ func selectAndAddConfig(args []string) error {
 		return err
 	}
 
-	if err := envhash.SyncBoxHash(string(env)); err != nil {
+	if err := envhash.SyncBoxHash(env.Name); err != nil {
 		return err
 	}
 

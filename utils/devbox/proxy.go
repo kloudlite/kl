@@ -18,10 +18,10 @@ type ProxyConfig struct {
 }
 
 func SyncProxy(config ProxyConfig) error {
-	err := ensureImage("ghcr.io/kloudlite/hub/socat:latest")
-	if err != nil {
+	if err := ensureImage("ghcr.io/kloudlite/hub/socat:latest"); err != nil {
 		return errors.New("failed to pull image")
 	}
+
 	cli, err := dockerClient()
 	if err != nil {
 		return errors.New("failed to create docker client")
@@ -46,6 +46,7 @@ func SyncProxy(config ProxyConfig) error {
 	if err != nil {
 		return errors.New("failed to list containers")
 	}
+
 	if len(existingProxies) > 0 {
 		err := cli.ContainerStop(context.Background(), existingProxies[0].ID, container.StopOptions{
 			Signal: "SIGKILL",
@@ -63,6 +64,7 @@ func SyncProxy(config ProxyConfig) error {
 	if len(config.ExposedPorts) == 0 {
 		return nil
 	}
+
 	targetContainer := targetContainers[0]
 	targetIpAddress := targetContainer.NetworkSettings.Networks["kloudlite"].IPAddress
 	socatCommand := ""
@@ -72,7 +74,7 @@ func SyncProxy(config ProxyConfig) error {
 	}
 	socatCommand += "tail -f /dev/null"
 
-	if resp, err := cli.ContainerCreate(context.Background(), &container.Config{
+	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
 		Image: "ghcr.io/kloudlite/hub/socat:latest",
 		Labels: map[string]string{
 			"kloudlite": "true",
@@ -108,14 +110,14 @@ func SyncProxy(config ProxyConfig) error {
 		EndpointsConfig: map[string]*network.EndpointSettings{
 			"kloudlite": {},
 		},
-	}, nil, ""); err != nil {
-		fmt.Println(err)
+	}, nil, "")
+
+	if err != nil {
 		return errors.New("failed to create container")
-	} else {
-		if err := cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{}); err != nil {
-			fmt.Println(err)
-			return errors.New("failed to start container")
-		}
+	}
+
+	if err := cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{}); err != nil {
+		return errors.New("failed to start container")
 	}
 	return nil
 }

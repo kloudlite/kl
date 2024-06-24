@@ -38,7 +38,7 @@ func waitForPort(port int, checkInterval time.Duration) {
 var sshCmd = &cobra.Command{
 	Use:   "ssh",
 	Short: "ssh into devbox",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(*cobra.Command, []string) {
 		_, err := klfile.GetKlFile("")
 		if err != nil {
 
@@ -82,6 +82,10 @@ var sshCmd = &cobra.Command{
 			err = devbox.Start(dir)
 			if err != nil {
 				fn.PrintError(err)
+				if err := devbox.Stop(dir); err != nil {
+					fn.PrintError(err)
+				}
+
 				return
 			}
 			c, err := devbox.ContainerAtPath(dir)

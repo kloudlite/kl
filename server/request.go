@@ -58,7 +58,6 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 		},
 	}
 	req, err := http.NewRequest(http.MethodPost, url, payload)
-
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +69,7 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 	if cookie != nil {
 		req.Header.Add("cookie", *cookie)
 	}
+
 	res, err := client.Do(req)
 	if err != nil || res.StatusCode != 200 {
 		if err != nil {
@@ -118,5 +118,4 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 	}
 
 	return body, nil
-
 }

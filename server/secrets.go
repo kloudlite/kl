@@ -34,7 +34,6 @@ func ListSecrets(options ...fn.Option) ([]Secret, error) {
 		},
 		"envName": strings.TrimSpace(env),
 	}, &cookie)
-
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +62,6 @@ func GetSecret(options ...fn.Option) (*Secret, error) {
 		"name":    secName,
 		"envName": strings.TrimSpace(env),
 	}, &cookie)
-
 	if err != nil {
 		return nil, err
 	}

@@ -25,11 +25,6 @@ type KLFileType struct {
 	AccountName string   `json:"accountName" yaml:"accountName"`
 }
 
-// type Ports struct {
-// 	AppPort    int `json:"appPort" yaml:"appPort"`
-// 	DevicePort int `json:"devicePort" yaml:"devicePort"`
-// }
-
 func (k *KLFileType) ToJson() ([]byte, error) {
 	if k == nil {
 		return nil, fmt.Errorf("kl file is nil")

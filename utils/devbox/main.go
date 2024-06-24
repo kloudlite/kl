@@ -12,6 +12,7 @@ import (
 	"path"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/adrg/xdg"
 	"github.com/docker/docker/api/types"
@@ -25,8 +26,14 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/go-connections/nat"
 	"github.com/kloudlite/kl2/constants"
+	"github.com/kloudlite/kl2/pkg/functions"
+	fn "github.com/kloudlite/kl2/pkg/functions"
+	"github.com/kloudlite/kl2/pkg/ui/spinner"
+	"github.com/kloudlite/kl2/pkg/ui/text"
+	"github.com/kloudlite/kl2/utils"
 	"github.com/kloudlite/kl2/utils/envhash"
 	"github.com/kloudlite/kl2/utils/klfile"
+	"github.com/nxadm/tail"
 )
 
 func imageExists(cli *client.Client, imageName string) (bool, error) {
@@ -38,6 +45,7 @@ func imageExists(cli *client.Client, imageName string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	for _, image := range images {
 		for _, tag := range image.RepoTags {
 			if tag == imageName {
@@ -94,23 +102,37 @@ func stopContainer(path string) error {
 	if err != nil {
 		return errors.New("failed to create docker client")
 	}
+
 	existingContainers, err := cli.ContainerList(context.Background(), container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("label", "kloudlite=true"),
 			filters.Arg("label", "workspacebox=true"),
 			filters.Arg("label", fmt.Sprintf("working_dir=%s", path)),
 		),
+		All: true,
 	})
 	if len(existingContainers) == 0 {
 		return nil
 	}
+
 	if err != nil {
 		return errors.New("failed to list containers")
 	}
+
 	timeOut := 0
-	return cli.ContainerStop(context.Background(), existingContainers[0].ID, container.StopOptions{
+	if err := cli.ContainerStop(context.Background(), existingContainers[0].ID, container.StopOptions{
 		Timeout: &timeOut,
-	})
+	}); err != nil {
+		return err
+	}
+
+	if err := cli.ContainerRemove(context.Background(), existingContainers[0].ID, container.RemoveOptions{
+		Force: true,
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func ensureCacheExist() error {
@@ -199,6 +221,7 @@ func ensurePublicKey() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -213,25 +236,26 @@ func setup() error {
 	return nil
 }
 
-func generateMounts() ([]mount.Mount, error) {
+func generateMounts() ([]mount.Mount, string, string, error) {
 	td, err := os.MkdirTemp("", "kl-tmp")
 	if err != nil {
-		return nil, err
+		return nil, "", "", err
 	}
+
 	if err := userOwn(td); err != nil {
-		return nil, err
+		return nil, "", "", err
 	}
 
 	homeDir, err := GetUserHomeDir()
 	if err != nil {
-		return nil, err
+		return nil, "", "", err
 	}
 
 	sshPath := path.Join(homeDir, ".ssh", "id_rsa.pub")
 
 	akByte, err := os.ReadFile(sshPath)
 	if err != nil {
-		return nil, err
+		return nil, "", "", err
 	}
 
 	ak := string(akByte)
@@ -276,63 +300,38 @@ func generateMounts() ([]mount.Mount, error) {
 
 		return nil
 	}(); err != nil {
-		return nil, err
+		return nil, "", "", err
 	}
 	stdErrPath := path.Join(td, "stderr.log")
 	stdOutPath := path.Join(td, "stdout.log")
 
 	if err := writeOnUserScope(stdOutPath, []byte("")); err != nil {
-		return nil, err
+		return nil, "", "", err
 	}
 
 	if err := writeOnUserScope(stdErrPath, []byte("")); err != nil {
-		return nil, err
+		return nil, "", "", err
 	}
 
 	if err := writeOnUserScope(akTmpPath, []byte(ak)); err != nil {
-		return nil, err
+		return nil, "", "", err
 	}
 
 	configFolder, err := getConfigFolder()
 	if err != nil {
-		return nil, err
+		return nil, "", "", err
 	}
 
 	volumes := []mount.Mount{
-		{
-			Type:     mount.TypeBind,
-			Source:   akTmpPath,
-			Target:   "/tmp/ssh2/authorized_keys",
-			ReadOnly: true,
-		},
-		{
-			Type:   mount.TypeBind,
-			Source: stdOutPath,
-			Target: "/tmp/stdout.log",
-		},
-		{
-			Type:   mount.TypeBind,
-			Source: stdErrPath,
-			Target: "/tmp/stderr.log",
-		},
-		{
-			Type:   mount.TypeVolume,
-			Source: "kl-home-cache",
-			Target: "/home",
-		},
-		{
-			Type:   mount.TypeVolume,
-			Source: "kl-nix-store",
-			Target: "/nix",
-		},
-		{
-			Type:   mount.TypeBind,
-			Source: configFolder,
-			Target: "/.cache/kl",
-		},
+		{Type: mount.TypeBind, Source: akTmpPath, Target: "/tmp/ssh2/authorized_keys", ReadOnly: true},
+		{Type: mount.TypeBind, Source: stdOutPath, Target: "/tmp/stdout.log"},
+		{Type: mount.TypeBind, Source: stdErrPath, Target: "/tmp/stderr.log"},
+		{Type: mount.TypeVolume, Source: "kl-home-cache", Target: "/home"},
+		{Type: mount.TypeVolume, Source: "kl-nix-store", Target: "/nix"},
+		{Type: mount.TypeBind, Source: configFolder, Target: "/.cache/kl"},
 	}
 
-	return volumes, nil
+	return volumes, stdOutPath, stdErrPath, nil
 }
 
 func EnsureContainerRunning(containerId string) error {
@@ -340,10 +339,12 @@ func EnsureContainerRunning(containerId string) error {
 	if err != nil {
 		return errors.New("failed to create docker client")
 	}
+
 	c, err := cli.ContainerInspect(context.Background(), containerId)
 	if err != nil {
 		return errors.New("failed to inspect container")
 	}
+
 	if !c.State.Running {
 		return cli.ContainerStart(context.Background(), containerId, container.StartOptions{})
 	}
@@ -355,6 +356,7 @@ func AllWorkspaceContainers() ([]types.Container, error) {
 	if err != nil {
 		return nil, errors.New("failed to create docker client")
 	}
+
 	existingContainers, err := cli.ContainerList(context.Background(), container.ListOptions{
 		All: true,
 		Filters: filters.NewArgs(
@@ -363,8 +365,9 @@ func AllWorkspaceContainers() ([]types.Container, error) {
 		),
 	})
 	if err != nil {
-		return nil, errors.New("failed to list containers")
+		return nil, fn.Error(err, "failed to list containers")
 	}
+
 	return existingContainers, nil
 }
 
@@ -373,6 +376,7 @@ func ContainerAtPath(path string) (*types.Container, error) {
 	if err != nil {
 		return nil, errors.New("failed to create docker client")
 	}
+
 	existingContainers, err := cli.ContainerList(context.Background(), container.ListOptions{
 		All: true,
 		Filters: filters.NewArgs(
@@ -387,6 +391,7 @@ func ContainerAtPath(path string) (*types.Container, error) {
 	if len(existingContainers) == 0 {
 		return nil, errors.New("container not running")
 	}
+
 	return &existingContainers[0], nil
 }
 
@@ -397,6 +402,7 @@ func stopOtherContainers(path string) error {
 	if err != nil {
 		return errors.New("failed to create docker client")
 	}
+
 	existingContainers, err := cli.ContainerList(context.Background(), container.ListOptions{
 		All: true,
 		Filters: filters.NewArgs(
@@ -404,6 +410,7 @@ func stopOtherContainers(path string) error {
 			filters.Arg("label", "workspacebox=true"),
 		),
 	})
+
 	if err != nil {
 		for _, c := range existingContainers {
 			if c.State == "running" {
@@ -419,17 +426,19 @@ func stopOtherContainers(path string) error {
 }
 
 func startContainer(path string) (string, error) {
-	err := stopOtherContainers(path)
-	if err != nil {
+	if err := stopOtherContainers(path); err != nil {
 		return "", err
 	}
+
 	if err := setup(); err != nil {
 		return "", err
 	}
+
 	cli, err := dockerClient()
 	if err != nil {
 		return "", errors.New("failed to create docker client")
 	}
+
 	existingContainers, err := cli.ContainerList(context.Background(), container.ListOptions{
 		All: true,
 		Filters: filters.NewArgs(
@@ -438,28 +447,44 @@ func startContainer(path string) (string, error) {
 			filters.Arg("label", fmt.Sprintf("working_dir=%s", path)),
 		),
 	})
+
 	if err != nil {
 		return "", errors.New("failed to list containers")
 	}
+
 	if len(existingContainers) > 0 {
 		if existingContainers[0].State != "running" {
 			return "", cli.ContainerStart(context.Background(), existingContainers[0].ID, container.StartOptions{})
 		}
+
 		return existingContainers[0].ID, nil
 	}
+
 	sshPort, err := getFreePort()
 	if err != nil {
 		return "", errors.New("failed to get free port")
 	}
-	vmounts, err := generateMounts()
+
+	vmounts, stdOut, stdErr, err := generateMounts()
 	if err != nil {
 		return "", err
 	}
+
 	boxhashFileName, err := envhash.BoxHashFileName(path)
 	if err != nil {
 		return "", err
 	}
-	if resp, err := cli.ContainerCreate(context.Background(), &container.Config{
+
+	e, err := utils.EnvAtPath(path)
+	if err != nil {
+		return "", err
+	}
+
+	if err := envhash.SyncBoxHash(e.Name); err != nil {
+		return "", err
+	}
+
+	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
 		Image: getImageName(),
 		Labels: map[string]string{
 			"kloudlite":    "true",
@@ -495,57 +520,158 @@ func startContainer(path string) (string, error) {
 		EndpointsConfig: map[string]*network.EndpointSettings{
 			"kloudlite": {},
 		},
-	}, nil, ""); err != nil {
+	}, nil, "")
+	if err != nil {
+		fmt.Println(err)
 		return "", errors.New("failed to create container")
-	} else {
-		if err := cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{}); err != nil {
-			return "", errors.New("failed to start container")
-		}
-		return resp.ID, nil
 	}
+
+	if err := cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{}); err != nil {
+		return "", fn.Error(err, "failed to start container")
+	}
+
+	if err := waitForContainerReady(stdOut, stdErr); err != nil {
+		return "", err
+	}
+
+	return resp.ID, nil
 }
 
-func Stop(path string) error {
-	err := stopContainer(path)
-	if err != nil {
-		return err
+func waitForContainerReady(stdOutPath string, stdErrPath string) error {
+	timeoutCtx, cf := context.WithTimeout(context.TODO(), 1*time.Minute)
+
+	cancelFn := func() {
+		defer cf()
 	}
+
+	status := make(chan int, 1)
+	go func() {
+		ok, err := readTillLine(timeoutCtx, stdErrPath, "kloudlite-entrypoint:CRASHED", "stderr", true, false)
+		if err != nil {
+			fn.PrintError(err)
+			status <- 2
+			cf()
+			return
+		}
+		if ok {
+			status <- 1
+		}
+	}()
+
+	go func() {
+		ok, err := readTillLine(timeoutCtx, stdOutPath, "kloudlite-entrypoint: SETUP_COMPLETE", "stdout", true, false)
+		if err != nil {
+			fn.PrintError(err)
+			status <- 2
+			return
+		}
+
+		if ok {
+			status <- 0
+		}
+	}()
+
+	select {
+	case exitCode := <-status:
+		{
+			spinner.Client.Stop()
+			cancelFn()
+			if exitCode != 0 {
+				readTillLine(timeoutCtx, stdOutPath, "kloudlite-entrypoint: SETUP_COMPLETE", "stdout", false, true)
+				readTillLine(timeoutCtx, stdErrPath, "kloudlite-entrypoint:CRASHED", "stderr", false, true)
+				return errors.New("failed to start container")
+			}
+
+			fn.Log(text.Blue("container started successfully"))
+		}
+	}
+
 	return nil
 }
 
+func readTillLine(_ context.Context, file string, desiredLine, stream string, follow bool, verbose bool) (bool, error) {
+
+	t, err := tail.TailFile(file, tail.Config{Follow: follow, ReOpen: follow, Poll: runtime.GOOS == constants.RuntimeWindows})
+
+	if err != nil {
+		return false, err
+	}
+
+	for l := range t.Lines {
+
+		if l.Text == desiredLine {
+			return true, nil
+		}
+
+		if l.Text == "kloudlite-entrypoint:INSTALLING_PACKAGES" {
+			spinner.Client.UpdateMessage("installing nix packages")
+			continue
+		}
+
+		if l.Text == "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE" {
+			spinner.Client.UpdateMessage("loading please wait")
+			continue
+		}
+
+		if verbose {
+			switch stream {
+			case "stderr":
+				fn.Logf("%s: %s", text.Yellow("[stderr]"), l.Text)
+			default:
+				fn.Logf("%s: %s", text.Blue("[stdout]"), l.Text)
+			}
+		}
+
+	}
+
+	return false, nil
+}
+
+func Stop(path string) error {
+	return stopContainer(path)
+}
+
 func Start(path string) error {
-	err := ensureKloudliteNetwork()
-	if err != nil {
+	if err := ensureKloudliteNetwork(); err != nil {
 		return err
 	}
-	err = ensureImage(getImageName())
-	if err != nil {
+
+	if err := ensureImage(getImageName()); err != nil {
 		return err
 	}
+
 	klConfig, err := klfile.GetKlFile(path + "/kl.yml")
 	if err != nil {
 		return err
 	}
+
 	containerId, err := startContainer(path)
 	if err != nil {
 		return err
 	}
-	err = SyncProxy(ProxyConfig{
+
+	if err = SyncProxy(ProxyConfig{
 		ExposedPorts:        klConfig.Ports,
 		TargetContainerId:   containerId,
 		TargetContainerPath: path,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func Exec(path string, command []string, out io.Writer) (int, error) {
+
+	if len(command) == 0 {
+		return 0, errors.New("command not provided")
+	}
+
 	cli, err := dockerClient()
 	if err != nil {
 		return 0, errors.New("failed to create docker client")
 	}
+
 	existingContainers, err := cli.ContainerList(context.Background(), container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("label", "kloudlite=true"),
@@ -568,12 +694,14 @@ func Exec(path string, command []string, out io.Writer) (int, error) {
 		Tty:          true,
 	})
 	if err != nil {
-		return 0, errors.New("failed to create exec")
+		return 0, functions.Error(err, "failed to create exec")
 	}
+
 	execID := execIDResp.ID
 	if execID == "" {
 		return 0, fmt.Errorf("exec ID empty")
 	}
+
 	resp, err := cli.ContainerExecAttach(context.Background(), execID, container.ExecAttachOptions{
 		Tty: true,
 	})
@@ -585,10 +713,12 @@ func Exec(path string, command []string, out io.Writer) (int, error) {
 	if out == nil {
 		out = os.Stdout
 	}
+
 	_, err = io.Copy(out, resp.Reader)
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
+
 	return getExecExitCode(context.Background(), cli, execID)
 }
 

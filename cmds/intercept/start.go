@@ -40,7 +40,7 @@ Examples:
 		}
 
 		apps, err := server.ListApps([]fn.Option{
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 		if err != nil {
@@ -55,7 +55,7 @@ Examples:
 		}
 
 		err = server.InterceptApp(true, klFile.Ports, app, []fn.Option{
-			fn.MakeOption("envName", string(env)),
+			fn.MakeOption("envName", env.Name),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 

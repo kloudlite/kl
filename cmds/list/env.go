@@ -60,9 +60,9 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 
 	for _, a := range envs {
 		rows = append(rows, table.Row{
-			fn.GetPrintRow(a, string(env), a.DisplayName, true),
-			fn.GetPrintRow(a, string(env), a.Metadata.Name),
-			fn.GetPrintRow(a, string(env), a.Status.IsReady),
+			fn.GetPrintRow(a, env.Name, a.DisplayName, true),
+			fn.GetPrintRow(a, env.Name, a.Metadata.Name),
+			fn.GetPrintRow(a, env.Name, a.Status.IsReady),
 		})
 	}
 

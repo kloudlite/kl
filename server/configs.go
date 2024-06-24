@@ -39,7 +39,6 @@ func ListConfigs(options ...fn.Option) ([]Config, error) {
 		},
 		"envName": strings.TrimSpace(env),
 	}, &cookie)
-
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +67,6 @@ func GetConfig(options ...fn.Option) (*Config, error) {
 		"name":    configName,
 		"envName": strings.TrimSpace(env),
 	}, &cookie)
-
 	if err != nil {
 		return nil, err
 	}

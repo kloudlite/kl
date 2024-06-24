@@ -23,7 +23,7 @@ var secCmd = &cobra.Command{
   kl add secret 		# add secret and entry by selecting from list (default)
   kl add secret [name] 	# add entry by providing secret name
 	`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, args []string) {
 		err := selectAndAddSecret(args)
 		if err != nil {
 			fn.PrintError(err)
@@ -33,11 +33,11 @@ var secCmd = &cobra.Command{
 }
 
 func selectAndAddSecret(args []string) error {
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
+
 	env, err := utils.EnvAtPath(cwd)
 	if err != nil {
 		return err
@@ -50,12 +50,11 @@ func selectAndAddSecret(args []string) error {
 
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
-		fn.PrintError(err)
 		return errors.New("please run 'kl init' if you are not initialized the file already")
 	}
 
 	secrets, err := server.ListSecrets([]fn.Option{
-		fn.MakeOption("envName", string(env)),
+		fn.MakeOption("envName", env.Name),
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
 	if err != nil {
@@ -67,7 +66,6 @@ func selectAndAddSecret(args []string) error {
 	}
 
 	selectedSecretGroup := server.Secret{}
-
 	if name != "" {
 		for _, c := range secrets {
 			if c.Metadata.Name == name {
@@ -102,7 +100,6 @@ func selectAndAddSecret(args []string) error {
 	}
 
 	selectedSecretKey := &KV{}
-
 	m := ""
 
 	if m != "" {

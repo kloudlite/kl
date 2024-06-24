@@ -32,12 +32,37 @@ func ListEnvs(options ...fn.Option) ([]Env, error) {
 			"first":         99999999,
 		},
 	}, &cookie)
-
 	if err != nil {
 		return nil, err
 	}
 
 	if fromResp, err := GetFromRespForEdge[Env](respData); err != nil {
+		return nil, err
+	} else {
+		return fromResp, nil
+	}
+}
+
+func GetEnvironment(envName string) (*Env, error) {
+	cookie, err := getCookie()
+	if err != nil {
+		return nil, err
+	}
+
+	// todo: add env name to the query
+	respData, err := klFetch("cli_getEnvironment", map[string]any{
+		"pq": map[string]any{
+			"orderBy":       "name",
+			"sortDirection": "ASC",
+			"first":         99999999,
+		},
+	}, &cookie)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if fromResp, err := GetFromResp[Env](respData); err != nil {
 		return nil, err
 	} else {
 		return fromResp, nil

@@ -16,7 +16,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:                flags.CliName,
 	DisableFlagParsing: true,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+	PersistentPreRun: func(*cobra.Command, []string) {
 		sigChan := make(chan os.Signal, 1)
 
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
@@ -28,7 +28,7 @@ var rootCmd = &cobra.Command{
 		}()
 	},
 
-	PostRun: func(cmd *cobra.Command, args []string) {
+	PostRun: func(*cobra.Command, []string) {
 		spinner.Client.Stop()
 	},
 

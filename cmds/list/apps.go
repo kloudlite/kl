@@ -42,7 +42,7 @@ func listapps(cmd *cobra.Command, _ []string) error {
 
 	apps, err := server.ListApps([]fn.Option{
 		fn.MakeOption("accountName", klFile.AccountName),
-		fn.MakeOption("envName", string(env)),
+		fn.MakeOption("envName", env.Name),
 	}...)
 	if err != nil {
 		return err
@@ -65,7 +65,7 @@ func listapps(cmd *cobra.Command, _ []string) error {
 
 	fn.Println(table.Table(&header, rows, cmd))
 
-	table.KVOutput("apps of", string(env), true)
+	table.KVOutput("apps of", env.Name, true)
 	table.TotalResults(len(apps), true)
 	return nil
 }

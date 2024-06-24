@@ -29,7 +29,6 @@ func CreateRemoteLogin() (loginId string, err error) {
 	respData, err := klFetch("cli_createRemoteLogin", map[string]any{
 		"secret": authSecret,
 	}, nil)
-
 	if err != nil {
 		return "", err
 	}
@@ -62,11 +61,12 @@ func Login(loginId string) error {
 				AuthHeader string `json:"authHeader"`
 			} `json:"data"`
 		}
+
 		var loginStatusResponse Response
-		err = json.Unmarshal(respData, &loginStatusResponse)
-		if err != nil {
+		if err = json.Unmarshal(respData, &loginStatusResponse); err != nil {
 			return err
 		}
+
 		if loginStatusResponse.RemoteLogin.Status == "succeeded" {
 			req, _ := http.NewRequest("GET", "/", nil)
 			req.Header.Set("Cookie", loginStatusResponse.RemoteLogin.AuthHeader)
@@ -74,9 +74,11 @@ func Login(loginId string) error {
 
 			return utils.SaveAuthSession(cookie.Value)
 		}
+
 		if loginStatusResponse.RemoteLogin.Status == "failed" {
 			return errors.New("remote login failed")
 		}
+
 		if loginStatusResponse.RemoteLogin.Status == "pending" {
 			time.Sleep(time.Second * 2)
 			continue
@@ -95,10 +97,10 @@ type Response[T any] struct {
 
 func GetFromResp[T any](respData []byte) (*T, error) {
 	var resp Response[T]
-	err := json.Unmarshal(respData, &resp)
-	if err != nil {
+	if err := json.Unmarshal(respData, &resp); err != nil {
 		return nil, err
 	}
+
 	if len(resp.Errors) > 0 {
 		return nil, resp.Errors[0]
 	}

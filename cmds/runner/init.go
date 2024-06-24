@@ -16,7 +16,7 @@ var InitCommand = &cobra.Command{
 	Use:   "init",
 	Short: "initialize a kl-config file",
 	Long:  `use this command to initialize a kl-config file`,
-	Run: func(cmd *cobra.Command, _ []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		_, err := klfile.GetKlFile("")
 		if err == nil {
 			fn.Printf(text.Yellow("Workspace is already initilized. Do you want to override? (y/N): "))
@@ -38,7 +38,7 @@ var InitCommand = &cobra.Command{
 				newKlFile := klfile.KLFileType{
 					AccountName: *selectedAccount,
 					DefaultEnv:  *selectedEnv,
-					Version:     "1.0",
+					Version:     "v1",
 				}
 				if err := klfile.WriteKLFile(newKlFile); err != nil {
 					fn.PrintError(err)
