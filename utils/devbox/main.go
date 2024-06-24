@@ -649,6 +649,7 @@ func Start(fpath string) error {
 	if err != nil {
 		return functions.Error(err)
 	}
+
 	err = envhash.SyncBoxHash(env.Name)
 	if err != nil {
 		return functions.Error(err)

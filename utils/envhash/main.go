@@ -81,6 +81,11 @@ func BoxHashFileName(path string) (string, error) {
 }
 
 func SyncBoxHash(envName string) error {
+
+	if envName == "" {
+		return functions.NewError("envName is required")
+	}
+
 	configFolder, err := server.GetConfigFolder()
 	if err != nil {
 		return functions.Error(err)

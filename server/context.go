@@ -10,9 +10,8 @@ import (
 	"strings"
 
 	"github.com/adrg/xdg"
-	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"sigs.k8s.io/yaml"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -69,13 +68,13 @@ func GetCompletionContext() (string, error) {
 func SaveBaseURL(url string) error {
 	extraData, err := GetExtraData()
 	if err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
 	extraData.BaseUrl = url
 	file, err := yaml.Marshal(extraData)
 	if err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
 	return writeOnUserScope(ExtraDataFileName, file)
@@ -93,7 +92,7 @@ func GetBaseURL() (string, error) {
 func SaveExtraData(extraData *ExtraData) error {
 	file, err := yaml.Marshal(extraData)
 	if err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
 	return writeOnUserScope(ExtraDataFileName, file)
@@ -175,7 +174,7 @@ func GetAuthSession() (string, error) {
 func SaveAuthSession(session string) error {
 	file, err := yaml.Marshal(Session{Session: session})
 	if err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
 	return writeOnUserScope(SessionFileName, file)
@@ -184,7 +183,7 @@ func SaveAuthSession(session string) error {
 func writeOnUserScope(name string, data []byte) error {
 	dir, err := GetConfigFolder()
 	if err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
 	if _, er := os.Stat(dir); errors.Is(er, os.ErrNotExist) {
@@ -197,14 +196,14 @@ func writeOnUserScope(name string, data []byte) error {
 	filePath := path.Join(dir, name)
 
 	if err := os.WriteFile(filePath, data, 0644); err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 
 	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
 		if err := fn.ExecCmd(
 			fmt.Sprintf("chown %s %s", usr, filePath), nil, false,
 		); err != nil {
-			return functions.Error(err)
+			return fn.Error(err)
 		}
 	}
 
@@ -235,45 +234,47 @@ func ReadFile(name string) ([]byte, error) {
 func SetEnvAtPath(path string, env *LocalEnv) error {
 	extradata, err := GetExtraData()
 	if err != nil {
-		return functions.Error(err)
+		return fn.Error(err)
 	}
 	extradata.SelectedEnvs[path] = *env
 	return SaveExtraData(extradata)
 }
 
 func EnvAtPath(path string) (*LocalEnv, error) {
-	// extradata, err := GetExtraData()
-	// if err != nil {
-	// 	return nil, err
-	// }
+	extradata, err := GetExtraData()
+	if err != nil {
+		return nil, err
+	}
 
-	// env, ok := extradata.SelectedEnvs[path]
-	// if !ok {
-	// 	return nil, fmt.Errorf("no env found for path %s", path)
-	// }
+	env, ok := extradata.SelectedEnvs[path]
+	if !ok {
+		return nil, fmt.Errorf("no env found for path %s", path)
+	}
 
-	// if !ok {
-	// return nil, fmt.Errorf("no env found for path %s", path)
+	if !ok {
+		return nil, fmt.Errorf("no env found for path %s, please choose using 'kl use env'", path)
 
-	// klFile, err := klfile.GetKlFile(path + "/kl.yml")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// e, err := server.GetEnvironment(klFile.DefaultEnv)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// env = Env{
-	// 	Name:            e.Metadata.Name,
-	// 	ClusterName:     e.ClusterName,
-	// 	TargetNamespace: e.Spec.TargetNamespace,
-	// }
+		// todo: fetch default env from kl.yml and server
 
-	// env = Env(klFile.DefaultEnv)
-	// }
-	return &LocalEnv{}, nil
+		// klFile, err := klfile.GetKlFile(path + "/kl.yml")
+		// if err != nil {
+		// 	return nil, err
+		// }
+		//
+		// // e, err := server.GetEnvironment(klFile.DefaultEnv)
+		// // if err != nil {
+		// // 	return nil, err
+		// // }
+		// //
+		// // env = Env{
+		// // 	Name:            e.Metadata.Name,
+		// // 	ClusterName:     e.ClusterName,
+		// // 	TargetNamespace: e.Spec.TargetNamespace,
+		// // }
+		//
+		// env = Env(klFile.DefaultEnv)
+	}
+	return &env, nil
 }
 
 func GetUserHomeDir() (string, error) {
