@@ -3,16 +3,9 @@ package intercept
 import (
 	"os"
 
-<<<<<<< HEAD
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/server"
-	"github.com/kloudlite/kl/utils"
-	"github.com/kloudlite/kl/utils/klfile"
-=======
-	fn "github.com/kloudlite/kl2/pkg/functions"
 	"github.com/kloudlite/kl2/server"
 	"github.com/kloudlite/kl2/utils/klfile"
->>>>>>> exeperimental
 	"github.com/spf13/cobra"
 )
 

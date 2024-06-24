@@ -29,6 +29,7 @@ import (
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
+	"github.com/kloudlite/kl/pkg/ui/table"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/server"
 	"github.com/kloudlite/kl/utils/envhash"
@@ -89,16 +90,67 @@ func getImageName() string {
 	return fmt.Sprintf("ghcr.io/kloudlite/kl/box:%s", "v1.0.0-nightly")
 }
 
-func getFreePort() (int, error) {
+func getFreePort(path string) (int, error) {
+	localEnv, err := server.EnvAtPath(path)
+	if err != nil {
+		return 0, err
+	}
+
+	if localEnv.SShPort != 0 {
+		return localEnv.SShPort, nil
+	}
+
+	defer server.SetEnvAtPath(path, localEnv)
+
+	var resp int
 	for {
 		port := rand.Intn(65535-1024) + 1025
 		addr := fmt.Sprintf(":%d", port)
 		listener, err := net.Listen("tcp", addr)
 		if err == nil {
 			listener.Close()
-			return port, nil
+			resp = port
+			localEnv.SShPort = resp
+			break
 		}
 	}
+
+	return resp, nil
+}
+
+func ContainerInfo(fpath string) error {
+	cli, err := dockerClient()
+	if err != nil {
+		return fn.Error(err, "failed to create docker client")
+	}
+
+	existingContainers, err := cli.ContainerList(context.Background(), container.ListOptions{
+		Filters: filters.NewArgs(
+			filters.Arg("label", "kloudlite=true"),
+			filters.Arg("label", "workspacebox=true"),
+			filters.Arg("label", fmt.Sprintf("working_dir=%s", fpath)),
+		),
+		All: true,
+	})
+	if len(existingContainers) == 0 {
+		return fn.NewError("no container running")
+	}
+
+	cr := existingContainers[0]
+
+	sshPort := cr.Labels["ssh_port"]
+	fn.Println()
+
+	table.KVOutput("User:", "kl", true)
+
+	table.KVOutput("Name:", strings.Join(cr.Names, ", "), true)
+	table.KVOutput("State:", cr.State, true)
+	table.KVOutput("Path:", fpath, true)
+	table.KVOutput("SSH Port:", sshPort, true)
+
+	fn.Logf("%s %s %s\n", text.Bold("command:"), text.Blue("ssh"), text.Blue(strings.Join([]string{fmt.Sprintf("kl@%s", GetSSHDomainFromPath(fpath)), "-p", fmt.Sprint(sshPort), "-oStrictHostKeyChecking=no"}, " ")))
+
+	return nil
 }
 
 func stopContainer(path string) error {
@@ -472,7 +524,7 @@ func startContainer(path string) (string, error) {
 		return existingContainers[0].ID, nil
 	}
 
-	sshPort, err := getFreePort()
+	sshPort, err := getFreePort(path)
 	if err != nil {
 		return "", errors.New("failed to get free port")
 	}
@@ -689,6 +741,8 @@ func Start(fpath string) error {
 	if err != nil {
 		return functions.Error(err)
 	}
+
+	fn.Logf("%s %s %s\n", text.Bold("command:"), text.Blue("ssh"), text.Blue(strings.Join([]string{fmt.Sprintf("kl@%s", GetSSHDomainFromPath(fpath)), "-p", fmt.Sprint(env.SShPort), "-oStrictHostKeyChecking=no"}, " ")))
 
 	return nil
 }

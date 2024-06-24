@@ -24,6 +24,7 @@ type LocalEnv struct {
 	Name            string `json:"name"`
 	ClusterName     string `json:"clusterName"`
 	TargetNamespace string `json:"targetNamespace"`
+	SShPort         int    `json:"sshPort"`
 }
 
 type Session struct {
@@ -248,7 +249,7 @@ func EnvAtPath(path string) (*LocalEnv, error) {
 
 	env, ok := extradata.SelectedEnvs[path]
 	if !ok {
-		return nil, fmt.Errorf("no env found for path %s", path)
+		return nil, fmt.Errorf("no env found for path %s, please choose using 'kl use env'", path)
 	}
 
 	if !ok {
