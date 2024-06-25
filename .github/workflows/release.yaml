@@ -79,7 +79,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [kl,kli]
+        # app: [kl,kli]
+        app: [kl]
         os: [ubuntu-latest, windows-latest, macos-14, macos-13]
         arch: [amd64, arm64]
         include:
