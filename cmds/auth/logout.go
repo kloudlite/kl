@@ -5,6 +5,7 @@ import (
 	"github.com/kloudlite/kl/server"
 	"github.com/spf13/cobra"
 	"os"
+	"path"
 )
 
 var logoutCmd = &cobra.Command{
@@ -19,26 +20,27 @@ var logoutCmd = &cobra.Command{
 			return
 		}
 
-		if err := os.RemoveAll(configFolder); err != nil {
-			fn.Log(err)
+		if err = logout(configFolder); err != nil {
+			fn.PrintError(err)
 			return
 		}
 	},
 }
 
-//func logout(configPath string) error {
-//	sessionFile, err := os.Stat(path.Join(configPath, server.SessionFileName))
-//	if err != nil && os.IsNotExist(err) {
-//		return errors.New("not logged in")
-//	}
-//	if err != nil {
-//		return err
-//	}
-//	extraDataFile, _ := os.Stat(path.Join(configPath, server.ExtraDataFileName))
-//	if extraDataFile != nil {
-//		if err := os.Remove(path.Join(configPath, extraDataFile.Name())); err != nil {
-//			return err
-//		}
-//	}
-//	return os.Remove(path.Join(configPath, sessionFile.Name()))
-//}
+func logout(configPath string) error {
+	sessionFile, err := os.Stat(path.Join(configPath, server.SessionFileName))
+	if err != nil && os.IsNotExist(err) {
+		return fn.Error(err,"not logged in")
+	}
+	if err != nil {
+		return err
+	}
+
+	extraDataFile, _ := os.Stat(path.Join(configPath, server.ExtraDataFileName))
+	if extraDataFile != nil {
+		if err := os.Remove(path.Join(configPath, extraDataFile.Name())); err != nil {
+			return err
+		}
+	}
+	return os.Remove(path.Join(configPath, sessionFile.Name()))
+}
