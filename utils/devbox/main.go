@@ -292,26 +292,26 @@ func setup() error {
 	return nil
 }
 
-func generateMounts() ([]mount.Mount, string, string, error) {
+func generateMounts() ([]mount.Mount, error) {
 	td, err := os.MkdirTemp("", "kl-tmp")
 	if err != nil {
-		return nil, "", "", err
+		return nil, err
 	}
 
 	if err := userOwn(td); err != nil {
-		return nil, "", "", err
+		return nil, err
 	}
 
 	homeDir, err := GetUserHomeDir()
 	if err != nil {
-		return nil, "", "", err
+		return nil, err
 	}
 
 	sshPath := path.Join(homeDir, ".ssh", "id_rsa.pub")
 
 	akByte, err := os.ReadFile(sshPath)
 	if err != nil {
-		return nil, "", "", err
+		return nil, err
 	}
 
 	ak := string(akByte)
@@ -356,32 +356,20 @@ func generateMounts() ([]mount.Mount, string, string, error) {
 
 		return nil
 	}(); err != nil {
-		return nil, "", "", err
-	}
-	stdErrPath := path.Join(td, "stderr.log")
-	stdOutPath := path.Join(td, "stdout.log")
-
-	if err := writeOnUserScope(stdOutPath, []byte("")); err != nil {
-		return nil, "", "", err
-	}
-
-	if err := writeOnUserScope(stdErrPath, []byte("")); err != nil {
-		return nil, "", "", err
+		return nil, err
 	}
 
 	if err := writeOnUserScope(akTmpPath, []byte(ak)); err != nil {
-		return nil, "", "", err
+		return nil, err
 	}
 
 	configFolder, err := getConfigFolder()
 	if err != nil {
-		return nil, "", "", err
+		return nil, err
 	}
 
 	volumes := []mount.Mount{
 		{Type: mount.TypeBind, Source: akTmpPath, Target: "/tmp/ssh2/authorized_keys", ReadOnly: true},
-		{Type: mount.TypeBind, Source: stdOutPath, Target: "/tmp/stdout.log"},
-		{Type: mount.TypeBind, Source: stdErrPath, Target: "/tmp/stderr.log"},
 		{Type: mount.TypeVolume, Source: "kl-home-cache", Target: "/home"},
 		{Type: mount.TypeVolume, Source: "kl-nix-store", Target: "/nix"},
 		{Type: mount.TypeBind, Source: configFolder, Target: "/.cache/kl"},
@@ -396,7 +384,7 @@ func generateMounts() ([]mount.Mount, string, string, error) {
 		mount.Mount{Type: mount.TypeBind, Source: dockerSock, Target: "/var/run/docker.sock"},
 	)
 
-	return volumes, stdOutPath, stdErrPath, nil
+	return volumes, nil
 }
 
 func EnsureContainerRunning(containerId string) error {
@@ -536,7 +524,7 @@ func startContainer(path string) (string, error) {
 		return "", errors.New("failed to get free port")
 	}
 
-	vmounts, _, _, err := generateMounts()
+	vmounts, err := generateMounts()
 	if err != nil {
 		return "", err
 	}
