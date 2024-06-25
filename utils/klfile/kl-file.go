@@ -22,7 +22,7 @@ type KLFileType struct {
 	EnvVars envvars.EnvVars `json:"envVars" yaml:"envVars"`
 	Mounts  types.Mounts    `json:"mounts" yaml:"mounts"`
 
-	InitScripts []string `json:"initScripts" yaml:"initScripts"`
+	// InitScripts []string `json:"initScripts" yaml:"initScripts"`
 	AccountName string   `json:"accountName" yaml:"accountName"`
 }
 
