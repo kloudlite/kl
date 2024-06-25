@@ -3,6 +3,7 @@ package intercept
 import (
 	"errors"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -100,6 +101,25 @@ Examples:
 		}...)
 
 		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		containerWorkspacePath := cwd
+		if val, ok := os.LookupEnv("KL_WORKSPACE"); ok {
+			containerWorkspacePath = val
+		}
+
+		for _, ap := range ports {
+			if !slices.Contains(klFile.Ports, ap.DevicePort) {
+				klFile.Ports = append(klFile.Ports, ap.DevicePort)
+			}
+		}
+
+		if err = devbox.SyncProxy(devbox.ProxyConfig{
+			ExposedPorts:        klFile.Ports,
+			TargetContainerPath: containerWorkspacePath,
+		}); err != nil {
 			fn.PrintError(err)
 			return
 		}

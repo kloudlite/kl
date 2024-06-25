@@ -50,7 +50,7 @@ RUN mkdir -p /kl-nix-profile && chown kl /kl-nix-profile
 USER kl
 RUN mkdir -p ~/.local/state/nix
 RUN ln -sf /kl-nix-profile ~/.local/state/nix/profiles
-RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon --no-modify-profile
+RUN curl -L https://nixos.org/nix/install | sh -s --
 
 RUN mkdir -p "/home/kl/.config/zsh"
 RUN git clone https://github.com/sindresorhus/pure.git "/home/kl/.config/zsh/pure"
