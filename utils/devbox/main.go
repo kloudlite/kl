@@ -582,7 +582,7 @@ func startContainer(path string) (string, error) {
 		EndpointsConfig: map[string]*network.EndpointSettings{
 			"kloudlite": {},
 		},
-	}, nil, "")
+	}, nil, fmt.Sprintf("kl-%s", boxhashFileName[len(boxhashFileName)-8:]))
 	if err != nil {
 		return "", functions.Error(err, "failed to create container")
 	}
@@ -678,7 +678,7 @@ func readTillLine(ctx context.Context, containerId string, desiredLine, stream s
 	for scanner.Scan() {
 		txt := scanner.Text()
 
-		if len(txt) > 0 {
+		if len(txt) > 8 {
 			txt = txt[8:]
 		}
 
