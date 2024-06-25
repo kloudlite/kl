@@ -687,7 +687,7 @@ func readTillLine(_ context.Context, file string, desiredLine, stream string, fo
 		default:
 			functions.Logf("%s: %s", text.Blue("[stdout]"), l.Text)
 		}
-		// }
+		// 	}
 
 	}
 
@@ -703,16 +703,6 @@ func Start(fpath string) error {
 	if err != nil {
 		return functions.Error(err)
 	}
-	exist, err := envhash.BoxHashFileExist(fpath)
-	if err != nil {
-		return functions.Error(err)
-	}
-	if !exist {
-		err = envhash.SyncBoxHash(env.Name)
-		if err != nil {
-			return functions.Error(err)
-		}
-	}
 
 	err = ensureKloudliteNetwork()
 	if err != nil {
@@ -726,6 +716,28 @@ func Start(fpath string) error {
 	klConfig, err := klfile.GetKlFile(path.Join(fpath, "/kl.yml"))
 	if err != nil {
 		return fn.Error(err)
+	}
+
+	boxHash, err := envhash.BoxHashFile(fpath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			err = envhash.SyncBoxHash(env.Name)
+			if err != nil {
+				return functions.Error(err)
+			}
+		}
+		return functions.Error(err)
+	} else {
+		klconfHash, err := envhash.GenerateKLConfigHash(klConfig)
+		if err != nil {
+			return functions.Error(err)
+		}
+		if klconfHash != boxHash.KLConfHash {
+			err = envhash.SyncBoxHash(env.Name)
+			if err != nil {
+				return functions.Error(err)
+			}
+		}
 	}
 
 	containerId, err := startContainer(fpath)

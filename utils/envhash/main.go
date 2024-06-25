@@ -7,10 +7,12 @@ import (
 	"os"
 	"path"
 	"slices"
+	"strings"
 
 	"github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/server"
 	"github.com/kloudlite/kl/types"
+	"github.com/kloudlite/kl/utils/envvars"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/kloudlite/kl/utils/packages"
 )
@@ -67,24 +69,28 @@ func generateBoxHashContent(envName string) ([]byte, error) {
 	return marshal, nil
 }
 
-func BoxHashFileExist(workspacePath string) (bool, error) {
+func BoxHashFile(workspacePath string) (*types.PersistedEnv, error) {
 	fileName, err := BoxHashFileName(workspacePath)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	configFolder, err := server.GetConfigFolder()
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	filePath := path.Join(configFolder, "box-hash", fileName)
-	_, err = os.Stat(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return false, nil
+			return nil, nil
 		}
-		return false, err
+		return nil, err
 	}
-	return true, nil
+	r := types.PersistedEnv{}
+	if err = json.Unmarshal(data, &r); err != nil {
+		return nil, err
+	}
+	return &r, nil
 }
 
 func BoxHashFileName(path string) (string, error) {
@@ -137,6 +143,61 @@ func SyncBoxHash(envName string) error {
 	return nil
 }
 
+func GenerateKLConfigHash(kf *klfile.KLFileType) (string, error) {
+	klConfhash := md5.New()
+	slices.SortFunc(kf.EnvVars, func(a, b envvars.EnvType) int {
+		return strings.Compare(a.Key, b.Key)
+	})
+	for _, v := range kf.EnvVars {
+		klConfhash.Write([]byte(v.Key))
+		klConfhash.Write([]byte(func() string {
+			if v.Value != nil {
+				return *v.Value
+			}
+			return ""
+		}()))
+		klConfhash.Write([]byte(func() string {
+			if v.ConfigRef != nil {
+				return *v.ConfigRef
+			}
+			return ""
+		}()))
+		klConfhash.Write([]byte(func() string {
+			if v.SecretRef != nil {
+				return *v.SecretRef
+			}
+			return ""
+		}()))
+		klConfhash.Write([]byte(func() string {
+			if v.MresRef != nil {
+				return *v.MresRef
+			}
+			return ""
+		}()))
+	}
+	slices.Sort(kf.Packages)
+	for _, v := range kf.Packages {
+		klConfhash.Write([]byte(v))
+	}
+	for _, v := range kf.Mounts {
+		klConfhash.Write([]byte(v.Path))
+		klConfhash.Write([]byte(func() string {
+			if v.ConfigRef != nil {
+				return *v.ConfigRef
+			}
+			return ""
+		}()))
+		klConfhash.Write([]byte(func() string {
+			if v.SecretRef != nil {
+				return *v.SecretRef
+			}
+			return ""
+		}()))
+		klConfhash.Write([]byte(v.Path))
+	}
+	return string(klConfhash.Sum(nil)), nil
+}
+
 func generatePersistedEnv(kf *klfile.KLFileType, envName string) (*types.PersistedEnv, error) {
 	envs, mm, err := server.GetLoadMaps(envName)
 	if err != nil {
@@ -175,8 +236,13 @@ func generatePersistedEnv(kf *klfile.KLFileType, envName string) (*types.Persist
 	if err == nil {
 		ev["PURE_PROMPT_SYMBOL"] = fmt.Sprintf("(%s) %s", envName, "❯")
 	}
+	klConfhash, err := GenerateKLConfigHash(kf)
+	if err != nil {
+		return nil, err
+	}
 
 	hashConfig.Env = ev
 	hashConfig.Mounts = fm
+	hashConfig.KLConfHash = klConfhash
 	return hashConfig, nil
 }

@@ -10,6 +10,7 @@ type PersistedEnv struct {
 	PackageHashes map[string]string `yaml:"packageHashes" json:"packageHashes"`
 	Env           map[string]string `yaml:"env" json:"env"`
 	Mounts        map[string]string `yaml:"mounts" json:"mounts"`
+	KLConfHash    string            `yaml:"klConfHash" json:"klConfHash"`
 }
 
 func (k *PersistedEnv) ToJson() ([]byte, error) {
