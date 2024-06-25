@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
+	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/server"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
@@ -45,16 +45,16 @@ var secretsCmd = &cobra.Command{
 			return
 		}
 
-		if err := printSecrets(cmd, sec); err != nil {
+		if err := printSecrets(cmd, sec, env.Name); err != nil {
 			fn.PrintError(err)
 			return
 		}
 	},
 }
 
-func printSecrets(_ *cobra.Command, secrets []server.Secret) error {
+func printSecrets(_ *cobra.Command, secrets []server.Secret, envName string) error {
 	if len(secrets) == 0 {
-		return fn.NewError("no secrets found")
+		return fn.NewError(fmt.Sprintf("[#] no secrets found in environemnt: %s", text.Blue(envName)))
 	}
 
 	header := table.Row{

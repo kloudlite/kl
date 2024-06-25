@@ -56,7 +56,8 @@ var configsCmd = &cobra.Command{
 func printConfigs(cmd *cobra.Command, configs []server.Config, envName string) error {
 
 	if len(configs) == 0 {
-		return fmt.Errorf("[#] no configs found in environemnt: %s", text.Blue(envName))
+		return fn.NewError(fmt.Sprintf("[#] no configs found in environemnt: %s", text.Blue(envName)))
+
 	}
 
 	header := table.Row{
