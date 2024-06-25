@@ -13,6 +13,7 @@ import (
 	"github.com/kloudlite/kl/cmds/runner"
 	set_base_url "github.com/kloudlite/kl/cmds/set-base-url"
 	"github.com/kloudlite/kl/cmds/use"
+	"github.com/kloudlite/kl/flags"
 	"github.com/spf13/cobra"
 )
 
@@ -22,9 +23,9 @@ func init() {
 		Hidden: true,
 	})
 
-	// if flags.IsDev() {
-	// 	rootCmd.AddCommand(DocsCmd)
-	// }
+	if flags.IsDev() {
+		rootCmd.AddCommand(DocsCmd)
+	}
 	rootCmd.AddCommand(add.Command)
 	rootCmd.AddCommand(auth.Cmd)
 	rootCmd.AddCommand(runner.InitCommand)
