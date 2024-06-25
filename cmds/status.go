@@ -66,4 +66,3 @@ var StatusCmd = &cobra.Command{
 		// }
 	},
 }
-

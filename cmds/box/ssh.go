@@ -11,6 +11,7 @@ import (
 
 	"github.com/adrg/xdg"
 	"github.com/docker/docker/api/types"
+	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/sshclient"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -79,7 +80,8 @@ var sshCmd = &cobra.Command{
 		} else {
 			dir, _ := os.Getwd()
 			if os.Getenv("IN_DEV_BOX") == "true" {
-				dir = os.Getenv("KL_WORKSPACE")
+				functions.PrintError(fmt.Errorf("you are already in a devbox"))
+				return
 			}
 			err = devbox.Start(dir)
 			if err != nil {

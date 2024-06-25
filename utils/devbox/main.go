@@ -382,7 +382,7 @@ func generateMounts() ([]mount.Mount, error) {
 	}
 
 	volumes = append(volumes,
-		mount.Mount{Type: mount.TypeBind, Source: dockerSock, Target: "/var/run/docker.sock"},
+		mount.Mount{Type: mount.TypeVolume, Source: dockerSock, Target: "/var/run/docker.sock"},
 	)
 
 	return volumes, nil
@@ -548,12 +548,12 @@ func startContainer(path string) (string, error) {
 			fmt.Sprintf("SSH_PORT=%d", sshPort),
 			fmt.Sprintf("KL_WORKSPACE=%s", path),
 			"KL_DNS=100.64.0.1",
-
 			fmt.Sprintf("KL_BASE_URL=%s", constants.BaseURL),
 		},
 		Hostname:     "box",
 		ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%d/tcp", sshPort)): {}},
 	}, &container.HostConfig{
+		Privileged:  true,
 		NetworkMode: "kloudlite",
 		PortBindings: nat.PortMap{
 			nat.Port(fmt.Sprintf("%d/tcp", sshPort)): []nat.PortBinding{
@@ -755,14 +755,13 @@ func Start(fpath string) error {
 		}
 	}
 
-	containerId, err := startContainer(fpath)
+	_, err = startContainer(fpath)
 	if err != nil {
 		return fn.Error(err)
 	}
 
 	if err = SyncProxy(ProxyConfig{
 		ExposedPorts:        klConfig.Ports,
-		TargetContainerId:   containerId,
 		TargetContainerPath: fpath,
 	}); err != nil {
 		return fn.Error(err)

@@ -6,6 +6,7 @@ import (
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/utils/devbox"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -31,9 +32,20 @@ func sync() error {
 	if err != nil {
 		return functions.Error(err)
 	}
-	err = devbox.Start(cwd)
+	klFile, err := klfile.GetKlFile("")
 	if err != nil {
-		return err
+		return functions.Error(err, "please run 'kl init' if you are not initialized the file already")
+	}
+	containerWorkspacePath := cwd
+	if val, ok := os.LookupEnv("KL_WORKSPACE"); ok {
+		containerWorkspacePath = val
+	}
+
+	if err = devbox.SyncProxy(devbox.ProxyConfig{
+		ExposedPorts:        klFile.Ports,
+		TargetContainerPath: containerWorkspacePath,
+	}); err != nil {
+		return fn.Error(err)
 	}
 	return nil
 }

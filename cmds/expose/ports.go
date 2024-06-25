@@ -57,9 +57,18 @@ func exposePorts(args []string) error {
 	if err := klfile.WriteKLFile(*klFile); err != nil {
 		return functions.Error(err)
 	}
-	err = devbox.Start(cwd)
-	if err != nil {
-		return err
+
+	containerWorkspacePath := cwd
+	if val, ok := os.LookupEnv("KL_WORKSPACE"); ok {
+		containerWorkspacePath = val
 	}
+
+	if err = devbox.SyncProxy(devbox.ProxyConfig{
+		ExposedPorts:        klFile.Ports,
+		TargetContainerPath: containerWorkspacePath,
+	}); err != nil {
+		return fn.Error(err)
+	}
+
 	return nil
 }

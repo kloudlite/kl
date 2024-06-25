@@ -22,7 +22,7 @@ EOL
 
 sudo dnsmasq --server=/.local/$KL_DNS --server=1.1.1.1
 
-
+sudo chown kl /var/run/docker.sock
 
 entrypoint_executed="/home/kl/.kloudlite_entrypoint_executed"
 if [ ! -f "$entrypoint_executed" ]; then

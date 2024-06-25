@@ -251,9 +251,10 @@ func EnvAtPath(fpath string) (*LocalEnv, error) {
 	if err != nil {
 		return nil, err
 	}
-	if os.Getenv("IN_DEV_BOX") == "true" {
-		fpath = os.Getenv("KL_WORKSPACE")
+	if ev, ok := os.LookupEnv("KL_WORKSPACE"); ok {
+		fpath = ev
 	}
+
 	localEnv, ok := extraData.SelectedEnvs[fpath]
 	if !ok {
 		env, err := GetEnvironment(klFile.AccountName, klFile.DefaultEnv)

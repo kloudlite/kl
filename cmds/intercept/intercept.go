@@ -36,7 +36,6 @@ func EnsureApp(apps []server.App) (*server.App, error) {
 			if item.IsMainApp {
 				return ""
 			}
-
 			return " [external]"
 		}())
 	}, fzf.WithPrompt("Select App>"))
