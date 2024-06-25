@@ -1,6 +1,7 @@
 package devbox
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -34,7 +35,6 @@ import (
 	"github.com/kloudlite/kl/server"
 	"github.com/kloudlite/kl/utils/envhash"
 	"github.com/kloudlite/kl/utils/klfile"
-	"github.com/nxadm/tail"
 )
 
 const (
@@ -490,6 +490,7 @@ func stopOtherContainers(path string) error {
 }
 
 func startContainer(path string) (string, error) {
+
 	if err := stopOtherContainers(path); err != nil {
 		return "", err
 	}
@@ -518,7 +519,13 @@ func startContainer(path string) (string, error) {
 
 	if len(existingContainers) > 0 {
 		if existingContainers[0].State != "running" {
-			return "", cli.ContainerStart(context.Background(), existingContainers[0].ID, container.StartOptions{})
+			if err := cli.ContainerStart(context.Background(), existingContainers[0].ID, container.StartOptions{}); err != nil {
+				return "", err
+			}
+
+			if err := waitForContainerReady(existingContainers[0].ID); err != nil {
+				return "", err
+			}
 		}
 
 		return existingContainers[0].ID, nil
@@ -529,7 +536,7 @@ func startContainer(path string) (string, error) {
 		return "", errors.New("failed to get free port")
 	}
 
-	vmounts, stdOut, stdErr, err := generateMounts()
+	vmounts, _, _, err := generateMounts()
 	if err != nil {
 		return "", err
 	}
@@ -589,31 +596,32 @@ func startContainer(path string) (string, error) {
 		},
 	}, nil, "")
 	if err != nil {
-		fmt.Println(err)
-		return "", errors.New("failed to create container")
+		return "", functions.Error(err, "failed to create container")
 	}
 
 	if err := cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{}); err != nil {
 		return "", functions.Error(err, "failed to start container")
 	}
 
-	if err := waitForContainerReady(stdOut, stdErr); err != nil {
+	if err := waitForContainerReady(resp.ID); err != nil {
 		return "", err
 	}
 
 	return resp.ID, nil
 }
 
-func waitForContainerReady(stdOutPath string, stdErrPath string) error {
+func waitForContainerReady(containerId string) error {
 	timeoutCtx, cf := context.WithTimeout(context.TODO(), 1*time.Minute)
 
 	cancelFn := func() {
 		defer cf()
 	}
 
+	defer cancelFn()
+
 	status := make(chan int, 1)
 	go func() {
-		ok, err := readTillLine(timeoutCtx, stdErrPath, "kloudlite-entrypoint:CRASHED", "stderr", true, false)
+		ok, err := readTillLine(timeoutCtx, containerId, "kloudlite-entrypoint:CRASHED", "stderr", true, false)
 		if err != nil {
 			functions.PrintError(err)
 			status <- 2
@@ -626,7 +634,7 @@ func waitForContainerReady(stdOutPath string, stdErrPath string) error {
 	}()
 
 	go func() {
-		ok, err := readTillLine(timeoutCtx, stdOutPath, "kloudlite-entrypoint: SETUP_COMPLETE", "stdout", true, false)
+		ok, err := readTillLine(timeoutCtx, containerId, "kloudlite-entrypoint:SETUP_COMPLETE", "stdout", true, false)
 		if err != nil {
 			functions.PrintError(err)
 			status <- 2
@@ -644,8 +652,8 @@ func waitForContainerReady(stdOutPath string, stdErrPath string) error {
 			spinner.Client.Stop()
 			cancelFn()
 			if exitCode != 0 {
-				readTillLine(timeoutCtx, stdOutPath, "kloudlite-entrypoint: SETUP_COMPLETE", "stdout", false, true)
-				readTillLine(timeoutCtx, stdErrPath, "kloudlite-entrypoint:CRASHED", "stderr", false, true)
+				readTillLine(timeoutCtx, containerId, "kloudlite-entrypoint:SETUP_COMPLETE", "stdout", false, true)
+				readTillLine(timeoutCtx, containerId, "kloudlite-entrypoint:CRASHED", "stderr", false, true)
 				return fn.NewError("failed to start container")
 			}
 
@@ -656,38 +664,57 @@ func waitForContainerReady(stdOutPath string, stdErrPath string) error {
 	return nil
 }
 
-func readTillLine(_ context.Context, file string, desiredLine, stream string, follow bool, verbose bool) (bool, error) {
+func readTillLine(ctx context.Context, containerId string, desiredLine, stream string, follow bool, verbose bool) (bool, error) {
 
-	t, err := tail.TailFile(file, tail.Config{Follow: follow, ReOpen: follow, Poll: runtime.GOOS == constants.RuntimeWindows})
-
+	cli, err := dockerClient()
 	if err != nil {
 		return false, err
 	}
 
-	for l := range t.Lines {
-		if l.Text == desiredLine {
+	cout, err := cli.ContainerLogs(ctx, containerId, container.LogsOptions{
+		ShowStdout: func() bool {
+			return stream == "stdout"
+		}(),
+		ShowStderr: func() bool {
+			return stream == "stderr"
+		}(),
+		Follow: true,
+		Since:  time.Now().Format(time.RFC3339),
+	})
+	if err != nil {
+		return false, err
+	}
+
+	scanner := bufio.NewScanner(cout)
+
+	for scanner.Scan() {
+		txt := scanner.Text()
+
+		if len(txt) > 0 {
+			txt = txt[8:]
+		}
+
+		if txt == desiredLine {
 			return true, nil
 		}
-		if l.Text == "kloudlite-entrypoint:INSTALLING_PACKAGES" {
-			fmt.Println("installing nix packages")
+		if txt == "kloudlite-entrypoint:INSTALLING_PACKAGES" {
 			spinner.Client.UpdateMessage("installing nix packages")
 			continue
 		}
 
-		if l.Text == "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE" {
-			fmt.Println("Done")
+		if txt == "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE" {
 			spinner.Client.UpdateMessage("loading please wait")
 			continue
 		}
 
-		// if verbose {
-		switch stream {
-		case "stderr":
-			functions.Logf("%s: %s", text.Yellow("[stderr]"), l.Text)
-		default:
-			functions.Logf("%s: %s", text.Blue("[stdout]"), l.Text)
+		if verbose {
+			switch stream {
+			case "stderr":
+				functions.Logf("%s: %s", text.Yellow("[stderr]"), txt)
+			default:
+				functions.Logf("%s: %s", text.Blue("[stdout]"), txt)
+			}
 		}
-		// 	}
 
 	}
 
@@ -757,6 +784,7 @@ func Start(fpath string) error {
 	if err != nil {
 		return functions.Error(err)
 	}
+
 	err = SyncVpn(vpnCfg.WGconf)
 	if err != nil {
 		return functions.Error(err)

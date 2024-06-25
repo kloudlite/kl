@@ -106,22 +106,20 @@ var sshCmd = &cobra.Command{
 }
 
 func connectSSH(host string, port int) {
-	for {
-		err := sshclient.DoSSH(sshclient.SSHConfig{
-			User:    "kl",
-			Host:    host,
-			SSHPort: port,
-			KeyPath: path.Join(xdg.Home, ".ssh", "id_rsa"),
-		})
-		if err != nil {
-			if errors.Is(err, sshclient.ErrSSHNotReady) {
-				<-time.After(100 * time.Millisecond)
-				continue
-			}
-			fn.PrintError(err)
-			return
-		} else {
-			break
-		}
+
+	if !isPortOpen(port) {
+		fn.PrintError(fmt.Errorf("port %d is not open", port))
+		return
+	}
+
+	err := sshclient.DoSSH(sshclient.SSHConfig{
+		User:    "kl",
+		Host:    host,
+		SSHPort: port,
+		KeyPath: path.Join(xdg.Home, ".ssh", "id_rsa"),
+	})
+	if err != nil {
+		fn.PrintError(err)
+		return
 	}
 }

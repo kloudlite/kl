@@ -86,11 +86,15 @@ func BoxHashFile(workspacePath string) (*types.PersistedEnv, error) {
 		}
 		return nil, err
 	}
-	r := types.PersistedEnv{}
+	var r struct {
+		Config types.PersistedEnv `json:"config"`
+		Hash   string             `json:"hash"`
+	}
+
 	if err = json.Unmarshal(data, &r); err != nil {
 		return nil, err
 	}
-	return &r, nil
+	return &r.Config, nil
 }
 
 func BoxHashFileName(path string) (string, error) {
@@ -195,7 +199,7 @@ func GenerateKLConfigHash(kf *klfile.KLFileType) (string, error) {
 		}()))
 		klConfhash.Write([]byte(v.Path))
 	}
-	return string(klConfhash.Sum(nil)), nil
+	return fmt.Sprintf("%x", klConfhash.Sum(nil)), nil
 }
 
 func generatePersistedEnv(kf *klfile.KLFileType, envName string) (*types.PersistedEnv, error) {

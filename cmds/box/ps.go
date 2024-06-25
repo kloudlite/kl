@@ -31,18 +31,20 @@ var psCmd = &cobra.Command{
 
 func printConts(conts []types.Container) error {
 	if len(conts) == 0 {
-		return functions.NewError("no containers found")
+		functions.Log("no containers found")
+		return nil
 	}
 
 	header := table.Row{
 		table.HeaderText("Name"),
 		table.HeaderText("State"),
+		table.HeaderText("SSH Port"),
 	}
 
 	rows := make([]table.Row, 0)
 
 	for _, c := range conts {
-		rows = append(rows, table.Row{strings.Join(c.Names, ", "), c.State})
+		rows = append(rows, table.Row{strings.Join(c.Names, ", "), c.State, c.Labels["ssh_port"]})
 	}
 
 	fmt.Println(table.Table(&header, rows))

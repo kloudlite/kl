@@ -1,10 +1,11 @@
 #! /usr/bin/env bash
 
-(tail -f /tmp/stdout.log) &
-pid=$!
-(tail -f /tmp/stderr.log) &
-pid="$pid $!"
+# (tail -f /tmp/stdout.log) &
+# pid=$!
+# (tail -f /tmp/stderr.log) &
+# pid="$pid $!"
 
-trap "eval kill -9 $pid" EXIT TERM
-/start.sh > /tmp/stdout.log 2>/tmp/stderr.log&
-tail -f /tmp/stdout.log /tmp/stderr.log
+# trap "eval kill -9 $pid" EXIT TERM
+# /start.sh > /tmp/stdout.log 2>/tmp/stderr.log&
+# tail -f /tmp/stdout.log /tmp/stderr.log
+/start.sh
