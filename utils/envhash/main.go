@@ -80,11 +80,23 @@ func BoxHashFile(workspacePath string) (*types.PersistedEnv, error) {
 	}
 	filePath := path.Join(configFolder, "box-hash", fileName)
 	data, err := os.ReadFile(filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
+	if err != nil && !os.IsNotExist(err) {
 		return nil, err
+	}
+	if os.IsNotExist(err) {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, functions.Error(err)
+		}
+
+		env, err := server.EnvAtPath(cwd)
+		if err != nil {
+			return nil, functions.Error(err)
+		}
+		if err = SyncBoxHash(env.Name); err != nil {
+			return nil, functions.Error(err)
+		}
+		return BoxHashFile(cwd)
 	}
 	var r struct {
 		Config types.PersistedEnv `json:"config"`

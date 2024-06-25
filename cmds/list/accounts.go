@@ -6,9 +6,7 @@ import (
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
-	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/server"
-	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -34,13 +32,8 @@ func listAccounts(cmd *cobra.Command) error {
 		return functions.Error(err, "no accounts found")
 	}
 
-	klFile, err := klfile.GetKlFile("")
-	if err != nil {
-		fn.PrintError(err)
-		return functions.Error(err, "please run 'kl init' if you are not initialized the file already")
-	}
 
-	accountName := klFile.AccountName
+
 
 	header := table.Row{table.HeaderText("name"), table.HeaderText("id")}
 	rows := make([]table.Row, 0)
@@ -48,16 +41,10 @@ func listAccounts(cmd *cobra.Command) error {
 	for _, a := range accounts {
 		rows = append(rows, table.Row{
 			func() string {
-				if a.Metadata.Name == accountName {
-					return text.Colored(fmt.Sprint("*", a.DisplayName), 2)
-				}
 				return a.DisplayName
 			}(),
 
 			func() string {
-				if a.Metadata.Name == accountName {
-					return text.Colored(a.Metadata.Name, 2)
-				}
 				return a.Metadata.Name
 			}(),
 		})
