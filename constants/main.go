@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DefaultBaseURL = "https://auth.dev.kloudlite.io"
+	DefaultBaseURL = "https://auth.kloudlite.io"
 	RuntimeLinux   = "linux"
 	RuntimeDarwin  = "darwin"
 	RuntimeWindows = "windows"
