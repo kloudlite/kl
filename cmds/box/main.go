@@ -14,4 +14,5 @@ func init() {
 	Cmd.AddCommand(execCmd)
 	Cmd.AddCommand(sshCmd)
 	Cmd.AddCommand(infoCmd)
+	Cmd.AddCommand(restartCmd)
 }

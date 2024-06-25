@@ -714,6 +714,14 @@ func Stop(path string) error {
 	return stopContainer(path)
 }
 
+func Restart(fpath string) error {
+	if err := Stop(fpath); err != nil {
+		return err
+	}
+
+	return Start(fpath)
+}
+
 func Start(fpath string) error {
 	env, err := server.EnvAtPath(fpath)
 	if err != nil {
