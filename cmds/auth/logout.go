@@ -35,6 +35,7 @@ func logout(configPath string) error {
 	if err != nil {
 		return err
 	}
+
 	extraDataFile, _ := os.Stat(path.Join(configPath, server.ExtraDataFileName))
 	if extraDataFile != nil {
 		if err := os.Remove(path.Join(configPath, extraDataFile.Name())); err != nil {
