@@ -27,6 +27,7 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/go-connections/nat"
 	"github.com/kloudlite/kl/constants"
+	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
@@ -87,7 +88,7 @@ func ensureImage(i string) error {
 }
 
 func getImageName() string {
-	return fmt.Sprintf("ghcr.io/kloudlite/kl/box:%s", "v1.0.0-nightly")
+	return fmt.Sprintf("ghcr.io/kloudlite/kl/box:%s", flags.Version)
 }
 
 func getFreePort(path string) (int, error) {
