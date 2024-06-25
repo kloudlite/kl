@@ -205,7 +205,7 @@ func selectAndAddSecret(args []string) error {
 
 	fn.Log(fmt.Sprintf("added secret %s/%s to your kl-file\n", selectedSecretGroup.Metadata.Name, selectedSecretKey.Key))
 
-	if err := envhash.SyncBoxHash(env.Name); err != nil {
+	if err := envhash.SyncBoxHash(env.Name, cwd); err != nil {
 		return functions.Error(err)
 	}
 

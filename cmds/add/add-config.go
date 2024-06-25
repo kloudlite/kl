@@ -205,7 +205,7 @@ func selectAndAddConfig(args []string) error {
 		return functions.Error(err)
 	}
 
-	if err := envhash.SyncBoxHash(env.Name); err != nil {
+	if err := envhash.SyncBoxHash(env.Name, cwd); err != nil {
 		return functions.Error(err)
 	}
 

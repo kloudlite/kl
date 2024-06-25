@@ -535,15 +535,6 @@ func startContainer(path string) (string, error) {
 		return "", err
 	}
 
-	e, err := server.EnvAtPath(path)
-	if err != nil {
-		return "", err
-	}
-
-	if err := envhash.SyncBoxHash(e.Name); err != nil {
-		return "", err
-	}
-
 	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
 		Image: getImageName(),
 		Labels: map[string]string{
@@ -557,7 +548,7 @@ func startContainer(path string) (string, error) {
 			fmt.Sprintf("SSH_PORT=%d", sshPort),
 			fmt.Sprintf("KL_WORKSPACE=%s", path),
 			"KL_DNS=100.64.0.1",
-			fmt.Sprintf("KL_SEARCH_DOMAIN=%s", fmt.Sprintf("%s.svc.%s.local", e.TargetNamespace, e.ClusterName)),
+
 			fmt.Sprintf("KL_BASE_URL=%s", constants.BaseURL),
 		},
 		Hostname:     "box",
@@ -745,7 +736,7 @@ func Start(fpath string) error {
 	boxHash, err := envhash.BoxHashFile(fpath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			err = envhash.SyncBoxHash(env.Name)
+			err = envhash.SyncBoxHash(env.Name, fpath)
 			if err != nil {
 				return functions.Error(err)
 			}
@@ -757,7 +748,7 @@ func Start(fpath string) error {
 			return functions.Error(err)
 		}
 		if klconfHash != boxHash.KLConfHash {
-			err = envhash.SyncBoxHash(env.Name)
+			err = envhash.SyncBoxHash(env.Name, fpath)
 			if err != nil {
 				return functions.Error(err)
 			}

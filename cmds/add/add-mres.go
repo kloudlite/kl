@@ -117,7 +117,7 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 
 	fn.Log(fmt.Sprintf("added mres %s/%s to your kl-file", mres.Metadata.Name, *mresKey))
 
-	if err := envhash.SyncBoxHash(env.Name); err != nil {
+	if err := envhash.SyncBoxHash(env.Name, cwd); err != nil {
 		return functions.Error(err)
 	}
 

@@ -22,13 +22,7 @@ EOL
 
 sudo dnsmasq --server=/.local/$KL_DNS --server=1.1.1.1
 
-cat > /tmp/resolv.conf <<EOF
-nameserver 127.0.0.1
-search $KL_SEARCH_DOMAIN
-options ndots:0
-EOF
 
-sudo cp /tmp/resolv.conf /etc/resolv.conf
 
 entrypoint_executed="/home/kl/.kloudlite_entrypoint_executed"
 if [ ! -f "$entrypoint_executed" ]; then
@@ -78,6 +72,14 @@ echo "export KL_HASH_FILE=$KL_HASH_FILE" >> /tmp/env
 echo "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE"
 
 source /tmp/env
+
+cat > /tmp/resolv.conf <<EOF
+nameserver 127.0.0.1
+search $KL_SEARCH_DOMAIN
+options ndots:0
+EOF
+
+sudo cp /tmp/resolv.conf /etc/resolv.conf
 
 
 if [ -d "/tmp/ssh2" ]; then

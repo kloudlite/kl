@@ -25,13 +25,13 @@ func keys[K comparable, V any](m map[K]V) []K {
 	return keys
 }
 
-func generateBoxHashContent(envName string) ([]byte, error) {
+func generateBoxHashContent(envName string, path string) ([]byte, error) {
 	klFile, err := klfile.GetKlFile("")
 	if err != nil {
 		return nil, functions.Error(err)
 	}
 
-	persistedConfig, err := generatePersistedEnv(klFile, envName)
+	persistedConfig, err := generatePersistedEnv(klFile, envName, path)
 	if err != nil {
 		return nil, functions.Error(err)
 	}
@@ -84,19 +84,15 @@ func BoxHashFile(workspacePath string) (*types.PersistedEnv, error) {
 		return nil, err
 	}
 	if os.IsNotExist(err) {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil, functions.Error(err)
-		}
-
-		env, err := server.EnvAtPath(cwd)
-		if err != nil {
-			return nil, functions.Error(err)
-		}
-		if err = SyncBoxHash(env.Name); err != nil {
-			return nil, functions.Error(err)
-		}
-		return BoxHashFile(cwd)
+		return nil, err
+		// env, err := server.EnvAtPath(workspacePath)
+		// if err != nil {
+		// 	return nil, functions.Error(err)
+		// }
+		// if err = SyncBoxHash(env.Name, workspacePath); err != nil {
+		// 	return nil, functions.Error(err)
+		// }
+		// return BoxHashFile(workspacePath)
 	}
 	var r struct {
 		Config types.PersistedEnv `json:"config"`
@@ -122,7 +118,7 @@ func BoxHashFileName(path string) (string, error) {
 	return fmt.Sprintf("hash-%x", hash.Sum(nil)), nil
 }
 
-func SyncBoxHash(envName string) error {
+func SyncBoxHash(envName string, fpath string) error {
 
 	if envName == "" {
 		return functions.NewError("envName is required")
@@ -133,17 +129,12 @@ func SyncBoxHash(envName string) error {
 		return functions.Error(err)
 	}
 
-	cwd, _ := os.Getwd()
-	if os.Getenv("IN_DEV_BOX") == "true" {
-		cwd = os.Getenv("KL_WORKSPACE")
-	}
-
-	boxHashFilePath, err := BoxHashFileName(cwd)
+	boxHashFilePath, err := BoxHashFileName(fpath)
 	if err != nil {
 		return functions.Error(err)
 	}
 
-	content, err := generateBoxHashContent(envName)
+	content, err := generateBoxHashContent(envName, fpath)
 	if err != nil {
 		return functions.Error(err)
 	}
@@ -214,7 +205,7 @@ func GenerateKLConfigHash(kf *klfile.KLFileType) (string, error) {
 	return fmt.Sprintf("%x", klConfhash.Sum(nil)), nil
 }
 
-func generatePersistedEnv(kf *klfile.KLFileType, envName string) (*types.PersistedEnv, error) {
+func generatePersistedEnv(kf *klfile.KLFileType, envName string, path string) (*types.PersistedEnv, error) {
 	envs, mm, err := server.GetLoadMaps(envName)
 	if err != nil {
 		return nil, err
@@ -249,9 +240,14 @@ func generatePersistedEnv(kf *klfile.KLFileType, envName string) (*types.Persist
 		ev[ne.Key] = ne.Value
 	}
 
-	if err == nil {
-		ev["PURE_PROMPT_SYMBOL"] = fmt.Sprintf("(%s) %s", envName, "❯")
+	e, err := server.EnvAtPath(path)
+	if err != nil {
+		return nil, err
 	}
+
+	ev["PURE_PROMPT_SYMBOL"] = fmt.Sprintf("(%s) %s", envName, "❯")
+	ev["KL_SEARCH_DOMAIN"] = fmt.Sprintf("%s.svc.%s.local", e.TargetNamespace, e.ClusterName)
+
 	klConfhash, err := GenerateKLConfigHash(kf)
 	if err != nil {
 		return nil, err

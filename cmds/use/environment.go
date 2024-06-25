@@ -2,10 +2,11 @@ package use
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/utils/devbox"
 	"github.com/kloudlite/kl/utils/envhash"
-	"os"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -55,7 +56,7 @@ var envCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		if err := envhash.SyncBoxHash(e.Metadata.Name); err != nil {
+		if err := envhash.SyncBoxHash(e.Metadata.Name, cwd); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -124,7 +125,7 @@ func selectEnvironment() error {
 	}
 
 	fn.Log(fmt.Sprintf("switched to %s environment", selectedEnv.Metadata.Name))
-	if err := envhash.SyncBoxHash(selectedEnv.Metadata.Name); err != nil {
+	if err := envhash.SyncBoxHash(selectedEnv.Metadata.Name, cwd); err != nil {
 		return err
 	}
 	if !(os.Getenv("IN_DEV_BOX") == "true") {

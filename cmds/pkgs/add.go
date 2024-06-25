@@ -86,7 +86,7 @@ var addCmd = &cobra.Command{
 			return
 		}
 
-		if err := envhash.SyncBoxHash(env.Name); err != nil {
+		if err := envhash.SyncBoxHash(env.Name, cwd); err != nil {
 			fn.PrintError(err)
 			return
 		}
