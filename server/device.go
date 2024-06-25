@@ -71,6 +71,23 @@ func CreateDevice(devName string, accountName string) (*Device, error) {
 	return d, nil
 }
 
+func GetVPNDevice(devName string, options ...fn.Option) (*Device, error) {
+	cookie, err := getCookieString(options...)
+	if err != nil {
+		return nil, err
+	}
+
+	respData, err := klFetch("cli_getGlobalVpnDevice", map[string]any{
+		"gvpn":       Default_GVPN,
+		"deviceName": devName,
+	}, &cookie)
+	if err != nil {
+		return nil, err
+	}
+
+	return GetFromResp[Device](respData)
+}
+
 type CheckName struct {
 	Result         bool     `json:"result"`
 	SuggestedNames []string `json:"suggestedNames"`

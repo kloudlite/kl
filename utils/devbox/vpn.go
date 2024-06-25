@@ -13,6 +13,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/kloudlite/kl/constants"
+	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/server"
 )
 
@@ -46,17 +47,17 @@ func createVpnForAccount(account string) (*server.Device, error) {
 func GetAccVPNConfig(account string) (*AccountVpnConfig, error) {
 	cfgFolder, err := getConfigFolder()
 	if err != nil {
-		return nil, err
+		return nil, fn.Error(err)
 	}
 	err = os.MkdirAll(path.Join(cfgFolder, "vpn"), 0755)
 	if err != nil {
-		return nil, err
+		return nil, fn.Error(err)
 	}
 	cfgPath := path.Join(cfgFolder, "vpn", fmt.Sprintf("%s.json", account))
 	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
 		dev, err := createVpnForAccount(account)
 		if err != nil {
-			return nil, err
+			return nil, fn.Error(err)
 		}
 		accountVpnConfig := AccountVpnConfig{
 			WGconf:     dev.WireguardConfig.Value,
@@ -64,23 +65,42 @@ func GetAccVPNConfig(account string) (*AccountVpnConfig, error) {
 		}
 		marshal, err := json.Marshal(accountVpnConfig)
 		if err != nil {
-			return nil, err
+			return nil, fn.Error(err)
 		}
 		err = os.WriteFile(cfgPath, marshal, 0644)
 		if err != nil {
-			return nil, err
+			return nil, fn.Error(err)
 		}
 	}
 
-	accVPNConfig := AccountVpnConfig{}
+	var accVPNConfig AccountVpnConfig
 	c, err := os.ReadFile(cfgPath)
 	if err != nil {
-		return nil, errors.New("failed to read vpn config")
+		return nil, fn.NewError("failed to read vpn config")
 	}
 	err = json.Unmarshal(c, &accVPNConfig)
 	if err != nil {
-		return nil, errors.New("failed to parse vpn config")
+		return nil, fn.NewError("failed to parse vpn config")
 	}
+
+	if accVPNConfig.WGconf == "" {
+		d, err := server.GetVPNDevice(accVPNConfig.DeviceName, fn.MakeOption("accountName", account))
+		if err != nil {
+			return nil, fn.Error(err)
+		}
+
+		accVPNConfig.WGconf = d.WireguardConfig.Value
+
+		marshal, err := json.Marshal(accVPNConfig)
+		if err != nil {
+			return nil, fn.Error(err)
+		}
+		err = os.WriteFile(cfgPath, marshal, 0644)
+		if err != nil {
+			return nil, fn.Error(err)
+		}
+	}
+
 	return &accVPNConfig, nil
 }
 
