@@ -18,6 +18,7 @@ export KL_WORKSPACE="$KL_WORKSPACE"
 export KL_BASE_URL="$KL_BASE_URL"
 export MAIN_PATH=$PATH
 export KL_TMP_PATH="/kl-tmp"
+export KLCONFIG_PATH="$KLCONFIG_PATH"
 EOL
 
 sudo dnsmasq --server=/.local/$KL_DNS --server=1.1.1.1

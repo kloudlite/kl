@@ -547,6 +547,7 @@ func startContainer(path string) (string, error) {
 			fmt.Sprintf("KL_HASH_FILE=/.cache/kl/box-hash/%s", boxhashFileName),
 			fmt.Sprintf("SSH_PORT=%d", sshPort),
 			fmt.Sprintf("KL_WORKSPACE=%s", path),
+			"KLCONFIG_PATH=/workspace/kl.yml",
 			"KL_DNS=100.64.0.1",
 			fmt.Sprintf("KL_BASE_URL=%s", constants.BaseURL),
 		},
@@ -705,15 +706,14 @@ func Stop(path string) error {
 	return stopContainer(path)
 }
 
-func Restart(fpath string) error {
+func Restart(fpath string, klConfig *klfile.KLFileType) error {
 	if err := Stop(fpath); err != nil {
 		return err
 	}
-
-	return Start(fpath)
+	return Start(fpath, klConfig)
 }
 
-func Start(fpath string) error {
+func Start(fpath string, klConfig *klfile.KLFileType) error {
 	env, err := server.EnvAtPath(fpath)
 	if err != nil {
 		return functions.Error(err)
@@ -728,15 +728,10 @@ func Start(fpath string) error {
 		return fn.Error(err)
 	}
 
-	klConfig, err := klfile.GetKlFile(path.Join(fpath, "/kl.yml"))
-	if err != nil {
-		return fn.Error(err)
-	}
-
 	boxHash, err := envhash.BoxHashFile(fpath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			err = envhash.SyncBoxHash(env.Name, fpath)
+			err = envhash.SyncBoxHash(env.Name, fpath, klConfig)
 			if err != nil {
 				return functions.Error(err)
 			}
@@ -748,7 +743,7 @@ func Start(fpath string) error {
 			return functions.Error(err)
 		}
 		if klconfHash != boxHash.KLConfHash {
-			err = envhash.SyncBoxHash(env.Name, fpath)
+			err = envhash.SyncBoxHash(env.Name, fpath, klConfig)
 			if err != nil {
 				return functions.Error(err)
 			}

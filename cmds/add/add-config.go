@@ -205,7 +205,7 @@ func selectAndAddConfig(args []string) error {
 		return functions.Error(err)
 	}
 
-	if err := envhash.SyncBoxHash(env.Name, cwd); err != nil {
+	if err := envhash.SyncBoxHash(env.Name, cwd, klFile); err != nil {
 		return functions.Error(err)
 	}
 
@@ -226,7 +226,7 @@ func selectAndAddConfig(args []string) error {
 			if err != nil {
 				return functions.Error(err)
 			}
-			err = devbox.Start(cwd)
+			err = devbox.Start(cwd, klFile)
 			if err != nil {
 				return functions.Error(err)
 			}

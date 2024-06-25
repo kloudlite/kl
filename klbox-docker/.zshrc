@@ -52,6 +52,8 @@ precmd() {
 		if [ "$cprefix" != "$dirtyPrefix" ]; then
 			PURE_PROMPT_SYMBOL="$dirtyPrefix $PURE_PROMPT_SYMBOL"
 		fi
+	else
+		PURE_PROMPT_SYMBOL=${PURE_PROMPT_SYMBOL#"$dirtyPrefix "}
 	fi
 }
 # go to workspace

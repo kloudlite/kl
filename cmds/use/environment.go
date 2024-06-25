@@ -45,12 +45,12 @@ func setLocalEnv(localEnv *server.LocalEnv) error {
 	return nil
 }
 
-func syncBoxHash(envName string) error {
+func syncBoxHash(envName string, klFile *klfile.KLFileType) error {
 	cwd, err := effectiveCWD()
 	if err != nil {
 		return err
 	}
-	if err := envhash.SyncBoxHash(envName, *cwd); err != nil {
+	if err := envhash.SyncBoxHash(envName, *cwd, klFile); err != nil {
 		return err
 	}
 	return nil
@@ -109,7 +109,7 @@ var envCmd = &cobra.Command{
 			return
 		}
 
-		err = syncBoxHash(selectedEnv.Metadata.Name)
+		err = syncBoxHash(selectedEnv.Metadata.Name, klFile)
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -134,7 +134,7 @@ var envCmd = &cobra.Command{
 					fn.PrintError(err)
 					return
 				}
-				if err = devbox.Start(cwd); err != nil {
+				if err = devbox.Start(cwd, klFile); err != nil {
 					fn.PrintError(err)
 					return
 				}

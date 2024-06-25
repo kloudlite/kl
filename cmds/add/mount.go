@@ -201,7 +201,7 @@ func configMount(cmd *cobra.Command, args []string) error {
 	}
 
 	fn.Log("added mount to your kl-file")
-	if err = envhash.SyncBoxHash(env.Name, cwd); err != nil {
+	if err = envhash.SyncBoxHash(env.Name, cwd, klFile); err != nil {
 		return fn.Error(err)
 	}
 
@@ -222,7 +222,7 @@ func configMount(cmd *cobra.Command, args []string) error {
 				return fn.Error(err)
 			}
 
-			if err = devbox.Start(cwd); err != nil {
+			if err = devbox.Start(cwd, klFile); err != nil {
 				return fn.Error(err)
 			}
 		}

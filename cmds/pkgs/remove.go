@@ -44,7 +44,7 @@ var removeCmd = &cobra.Command{
 					return
 				}
 
-				err = envhash.SyncBoxHash(env.Name, cwd)
+				err = envhash.SyncBoxHash(env.Name, cwd, config)
 				if err != nil {
 					fn.PrintError(err)
 					return
@@ -69,7 +69,7 @@ var removeCmd = &cobra.Command{
 							fn.PrintError(err)
 							return
 						}
-						err = devbox.Start(cwd)
+						err = devbox.Start(cwd, config)
 						if err != nil {
 							fn.PrintError(err)
 							return

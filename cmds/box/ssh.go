@@ -42,9 +42,7 @@ var sshCmd = &cobra.Command{
 	Use:   "ssh",
 	Short: "ssh into devbox",
 	Run: func(*cobra.Command, []string) {
-		_, err := klfile.GetKlFile("")
-		if err != nil {
-
+		if klFile, err := klfile.GetKlFile(""); err != nil {
 			if errors.Is(err, klfile.ErrorKlFileNotExists) {
 				containers, err := devbox.AllWorkspaceContainers()
 				if err != nil {
@@ -83,7 +81,7 @@ var sshCmd = &cobra.Command{
 				functions.PrintError(fmt.Errorf("you are already in a devbox"))
 				return
 			}
-			err = devbox.Start(dir)
+			err = devbox.Start(dir, klFile)
 			if err != nil {
 				fn.PrintError(err)
 				if err := devbox.Stop(dir); err != nil {

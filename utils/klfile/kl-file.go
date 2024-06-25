@@ -23,7 +23,7 @@ type KLFileType struct {
 	Mounts  types.Mounts    `json:"mounts" yaml:"mounts"`
 
 	// InitScripts []string `json:"initScripts" yaml:"initScripts"`
-	AccountName string   `json:"accountName" yaml:"accountName"`
+	AccountName string `json:"accountName" yaml:"accountName"`
 }
 
 func (k *KLFileType) ToJson() ([]byte, error) {
