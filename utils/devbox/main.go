@@ -134,7 +134,7 @@ func ContainerInfo(fpath string) error {
 		All: true,
 	})
 	if len(existingContainers) == 0 {
-		return fn.NewError("no container running")
+		return fn.NewError("no container running in current directory")
 	}
 
 	cr := existingContainers[0]
@@ -773,7 +773,6 @@ func Start(fpath string) error {
 	if err != nil {
 		return functions.Error(err)
 	}
-
 
 	err = SyncVpn(vpnCfg.WGconf)
 	if err != nil {
