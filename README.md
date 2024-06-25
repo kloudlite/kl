@@ -1,4 +1,4 @@
-# Kloudlite CLI `kl`
+# [Kloudlite](https://github.com/kloudlite/kloudlite) CLI `kl`
 
 `kl` is command line interface for developers to work with environments in kloudlite. This will help developers to create
 local development containers which are connected to remote environments.
