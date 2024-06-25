@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
+	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/pkg/functions"
 )
 
@@ -18,7 +19,7 @@ type ProxyConfig struct {
 }
 
 func SyncProxy(config ProxyConfig) error {
-	if err := ensureImage("ghcr.io/kloudlite/hub/socat:latest"); err != nil {
+	if err := ensureImage(constants.SocatImage); err != nil {
 		return functions.Error(err, "failed to pull image")
 	}
 
@@ -75,7 +76,7 @@ func SyncProxy(config ProxyConfig) error {
 	socatCommand += "tail -f /dev/null"
 
 	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
-		Image: "ghcr.io/kloudlite/hub/socat:latest",
+		Image: constants.SocatImage,
 		Labels: map[string]string{
 			"kloudlite": "true",
 			"proxy":     "true",

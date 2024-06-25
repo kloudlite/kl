@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
+	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/server"
 )
 
@@ -47,11 +48,11 @@ func GetAccVPNConfig(account string) (*AccountVpnConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = os.MkdirAll(path.Join(cfgFolder, "/vpn"), 0755)
+	err = os.MkdirAll(path.Join(cfgFolder, "vpn"), 0755)
 	if err != nil {
 		return nil, err
 	}
-	cfgPath := path.Join(cfgFolder, "/vpn/", fmt.Sprintf("%s.json", account))
+	cfgPath := path.Join(cfgFolder, "vpn", fmt.Sprintf("%s.json", account))
 	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
 		dev, err := createVpnForAccount(account)
 		if err != nil {
@@ -70,6 +71,7 @@ func GetAccVPNConfig(account string) (*AccountVpnConfig, error) {
 			return nil, err
 		}
 	}
+
 	accVPNConfig := AccountVpnConfig{}
 	c, err := os.ReadFile(cfgPath)
 	if err != nil {
@@ -83,7 +85,7 @@ func GetAccVPNConfig(account string) (*AccountVpnConfig, error) {
 }
 
 func SyncVpn(wg string) error {
-	err := ensureImage("ghcr.io/kloudlite/hub/wireguard:latest")
+	err := ensureImage(constants.WireguardImage)
 	if err != nil {
 		return errors.New("failed to pull image")
 	}
@@ -102,7 +104,7 @@ func SyncVpn(wg string) error {
 	}
 	md5sum := md5.Sum([]byte(wg))
 	if len(existingVPN) > 0 {
-		if existingVPN[0].Labels["wgsum"] == string(md5sum[:]) {
+		if existingVPN[0].Labels["wgsum"] == fmt.Sprintf("%x", md5sum[:]) {
 			if existingVPN[0].State != "running" {
 				err := cli.ContainerStart(context.Background(), existingVPN[0].ID, container.StartOptions{})
 				if err != nil {
@@ -130,9 +132,9 @@ func SyncVpn(wg string) error {
 		Labels: map[string]string{
 			"kloudlite": "true",
 			"wg":        "true",
-			"wgsum":     string(md5sum[:]),
+			"wgsum":     fmt.Sprintf("%x", md5sum[:]),
 		},
-		Image: "ghcr.io/kloudlite/hub/wireguard:latest",
+		Image: constants.WireguardImage,
 		Cmd:   []string{"sh", "-c", script},
 	}, &container.HostConfig{
 		CapAdd:      []string{"NET_ADMIN"},

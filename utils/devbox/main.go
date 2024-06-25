@@ -774,6 +774,7 @@ func Start(fpath string) error {
 		return functions.Error(err)
 	}
 
+
 	err = SyncVpn(vpnCfg.WGconf)
 	if err != nil {
 		return functions.Error(err)
