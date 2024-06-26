@@ -377,9 +377,9 @@ func generateMounts() ([]mount.Mount, error) {
 	}
 
 	dockerSock := "/var/run/docker.sock"
-	if runtime.GOOS == constants.RuntimeWindows {
-		dockerSock = "\\\\.\\pipe\\docker_engine"
-	}
+	// if runtime.GOOS == constants.RuntimeWindows {
+	// 	dockerSock = "\\\\.\\pipe\\docker_engine"
+	// }
 
 	volumes = append(volumes,
 		mount.Mount{Type: mount.TypeVolume, Source: dockerSock, Target: "/var/run/docker.sock"},

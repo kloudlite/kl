@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/adrg/xdg"
+	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/utils/klfile"
 	"gopkg.in/yaml.v2"
@@ -119,7 +120,7 @@ func GetExtraData() (*ExtraData, error) {
 	}
 
 	if err = yaml.Unmarshal(file, &extraData); err != nil {
-		return nil, err
+		return nil, functions.Error(err)
 	}
 	if extraData.SelectedEnvs == nil {
 		extraData.SelectedEnvs = make(map[string]LocalEnv)
@@ -167,7 +168,7 @@ func GetAuthSession() (string, error) {
 	}
 
 	if err = yaml.Unmarshal(file, &session); err != nil {
-		return "", err
+		return "", functions.Error(err)
 	}
 
 	return session.Session, nil

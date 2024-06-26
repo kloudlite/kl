@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	nanoid "github.com/matoous/go-nanoid/v2"
 )
@@ -37,7 +38,7 @@ func CreateRemoteLogin() (loginId string, err error) {
 	var resp Response
 	err = json.Unmarshal(respData, &resp)
 	if err != nil {
-		return "", err
+		return "", functions.Error(err)
 	}
 	return resp.Id, nil
 }
@@ -91,7 +92,7 @@ type Response[T any] struct {
 func GetFromResp[T any](respData []byte) (*T, error) {
 	var resp Response[T]
 	if err := json.Unmarshal(respData, &resp); err != nil {
-		return nil, err
+		return nil, functions.Error(err)
 	}
 
 	if len(resp.Errors) > 0 {
