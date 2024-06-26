@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/utils/klfile"
 )
 
@@ -23,7 +24,7 @@ func SyncLockfileWithNewConfig(config klfile.KLFileType) (map[string]string, err
 		}
 
 		if err = json.Unmarshal(file, &packages); err != nil {
-			return nil, err
+			return nil, functions.Error(err)
 		}
 	}
 
@@ -59,7 +60,7 @@ func SyncLockfileWithNewConfig(config klfile.KLFileType) (map[string]string, err
 		var res Res
 		err = json.Unmarshal(all, &res)
 		if err != nil {
-			return nil, err
+			return nil, functions.Error(err)
 		}
 
 		packages[splits[0]+"@"+res.Version] = fmt.Sprintf("nixpkgs/%s#%s", res.CommitHash, splits[0])

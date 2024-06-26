@@ -96,7 +96,7 @@ func BoxHashFile(workspacePath string) (*types.PersistedEnv, error) {
 	}
 
 	if err = json.Unmarshal(data, &r); err != nil {
-		return nil, err
+		return nil, functions.Error(err)
 	}
 	return &r.Config, nil
 }
