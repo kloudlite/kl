@@ -512,9 +512,9 @@ func startContainer(path string) (string, error) {
 				return "", err
 			}
 
-			if err := waitForContainerReady(existingContainers[0].ID); err != nil {
-				return "", err
-			}
+			// if err := waitForContainerReady(existingContainers[0].ID); err != nil {
+			// 	return "", err
+			// }
 		}
 
 		return existingContainers[0].ID, nil
@@ -584,11 +584,24 @@ func startContainer(path string) (string, error) {
 		return "", functions.Error(err, "failed to start container")
 	}
 
-	if err := waitForContainerReady(resp.ID); err != nil {
-		return "", err
-	}
+	// if err := waitForContainerReady(resp.ID); err != nil {
+	// 	return "", err
+	// }
 
 	return resp.ID, nil
+}
+
+func GetContainerLogs(ctx context.Context, containerId string) (io.ReadCloser, error) {
+	cli, err := dockerClient()
+	if err != nil {
+		return nil, errors.New("failed to create docker client")
+	}
+	return cli.ContainerLogs(ctx, containerId, container.LogsOptions{
+		ShowStdout: false,
+		ShowStderr: false,
+		Follow:     true,
+		Since:      time.Now().Format(time.RFC3339),
+	})
 }
 
 func waitForContainerReady(containerId string) error {

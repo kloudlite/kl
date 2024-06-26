@@ -1,6 +1,8 @@
 package box
 
 import (
+	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -15,6 +17,7 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/sshclient"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/utils/devbox"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
@@ -29,8 +32,11 @@ func isPortOpen(port int) bool {
 	return true
 }
 
-func waitForPort(port int, checkInterval time.Duration) {
+func waitForPort(cxt context.Context, port int, checkInterval time.Duration) {
 	for {
+		if cxt.Err() != nil {
+			return
+		}
 		if isPortOpen(port) {
 			return
 		}
@@ -41,7 +47,7 @@ func waitForPort(port int, checkInterval time.Duration) {
 var sshCmd = &cobra.Command{
 	Use:   "ssh",
 	Short: "ssh into devbox",
-	Run: func(*cobra.Command, []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		if klFile, err := klfile.GetKlFile(""); err != nil {
 			if errors.Is(err, klfile.ErrorKlFileNotExists) {
 				containers, err := devbox.AllWorkspaceContainers()
@@ -69,7 +75,41 @@ var sshCmd = &cobra.Command{
 					fn.PrintError(err)
 					return
 				}
-				waitForPort(port, 100*time.Millisecond)
+				ctx, cf := context.WithCancel(cmd.Context())
+				defer cf()
+				go func() {
+					rc, err := devbox.GetContainerLogs(ctx, selectedContainer.ID)
+					if err != nil && !errors.Is(err, context.Canceled) {
+						fn.PrintError(err)
+						cf()
+						return
+					}
+					defer rc.Close()
+					scanner := bufio.NewScanner(rc)
+					for scanner.Scan() {
+						if ctx.Err() != nil {
+							break
+						}
+						txt := scanner.Text()
+						if len(txt) > 8 {
+							txt = txt[8:]
+						}
+						if txt == "kloudlite-entrypoint:INSTALLING_PACKAGES" {
+							spinner.Client.UpdateMessage("installing nix packages")
+							continue
+						}
+
+						if txt == "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE" {
+							spinner.Client.UpdateMessage("loading please wait")
+							continue
+						}
+					}
+					cf()
+				}()
+				go func() {
+					waitForPort(ctx, port, 100*time.Millisecond)
+					cf()
+				}()
 				connectSSH(devbox.GetSSHDomainFromPath(selectedContainer.Labels["working_dir"]), port)
 			} else {
 				fn.PrintError(err)
@@ -99,27 +139,78 @@ var sshCmd = &cobra.Command{
 				fn.PrintError(err)
 				return
 			}
-			waitForPort(port, 100*time.Millisecond)
+
+			ctx, cf := context.WithCancel(cmd.Context())
+			defer cf()
+
+			go func() {
+				rc, err := devbox.GetContainerLogs(ctx, c.ID)
+				if err != nil {
+					if !errors.Is(err, context.Canceled) {
+						fmt.Printf("stream error %v", err)
+						fn.PrintError(err)
+					}
+					cf()
+					return
+				}
+				defer rc.Close()
+				scanner := bufio.NewScanner(rc)
+				for scanner.Scan() {
+					if ctx.Err() != nil {
+						break
+					}
+					txt := scanner.Text()
+					if len(txt) > 8 {
+						txt = txt[8:]
+					}
+					fmt.Println(txt)
+					if txt == "kloudlite-entrypoint:INSTALLING_PACKAGES" {
+						spinner.Client.UpdateMessage("installing nix packages")
+						continue
+					}
+
+					if txt == "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE" {
+						spinner.Client.UpdateMessage("loading please wait")
+						continue
+					}
+					// if verbose {
+					// 	switch stream {
+					// 	case "stderr":
+					// 		functions.Logf("%s: %s", text.Yellow("[stderr]"), txt)
+					// 	default:
+					// 		functions.Logf("%s: %s", text.Blue("[stdout]"), txt)
+					// 	}
+					// }
+				}
+				cf()
+			}()
+			go func() {
+				waitForPort(ctx, port, 100*time.Millisecond)
+				cf()
+			}()
+			<-ctx.Done()
 			connectSSH(devbox.GetSSHDomainFromPath(c.Labels["working_dir"]), port)
 		}
 	},
 }
 
 func connectSSH(host string, port int) {
-
-	if !isPortOpen(port) {
-		fn.PrintError(fmt.Errorf("port %d is not open", port))
-		return
+	var err error
+	for i := 0; i < 3; i++ {
+		err = sshclient.DoSSH(sshclient.SSHConfig{
+			User:    "kl",
+			Host:    host,
+			SSHPort: port,
+			KeyPath: path.Join(xdg.Home, ".ssh", "id_rsa"),
+		})
+		if err != nil {
+			<-time.After(1 * time.Second)
+			continue
+		} else {
+			return
+		}
 	}
-
-	err := sshclient.DoSSH(sshclient.SSHConfig{
-		User:    "kl",
-		Host:    host,
-		SSHPort: port,
-		KeyPath: path.Join(xdg.Home, ".ssh", "id_rsa"),
-	})
 	if err != nil {
-		fn.PrintError(err)
-		return
+		functions.PrintError(err)
 	}
 }
