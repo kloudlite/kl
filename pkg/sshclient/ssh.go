@@ -32,6 +32,27 @@ func publicKeyFile(file string) (ssh.AuthMethod, error) {
 	return ssh.PublicKeys(key), nil
 }
 
+func CheckSSHConnection(sc SSHConfig) error {
+	pkFile, err := publicKeyFile(sc.KeyPath)
+	if err != nil {
+		return fmt.Errorf("failed to parse private key: %s, please ensure you have the correct key", err)
+	}
+	config := &ssh.ClientConfig{
+		User: sc.User,
+		Auth: []ssh.AuthMethod{
+			pkFile,
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", sc.Host, sc.SSHPort), config)
+	if err != nil {
+		return ErrSSHNotReady
+	}
+	defer client.Close()
+	return nil
+}
+
 func DoSSH(sc SSHConfig) error {
 	pkFile, err := publicKeyFile(sc.KeyPath)
 	if err != nil {

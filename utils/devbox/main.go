@@ -597,8 +597,8 @@ func GetContainerLogs(ctx context.Context, containerId string) (io.ReadCloser, e
 		return nil, errors.New("failed to create docker client")
 	}
 	return cli.ContainerLogs(ctx, containerId, container.LogsOptions{
-		ShowStdout: false,
-		ShowStderr: false,
+		ShowStdout: true,
+		ShowStderr: true,
 		Follow:     true,
 		Since:      time.Now().Format(time.RFC3339),
 	})

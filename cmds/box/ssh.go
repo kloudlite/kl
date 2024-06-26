@@ -18,6 +18,7 @@ import (
 	"github.com/kloudlite/kl/pkg/sshclient"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
+	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/utils/devbox"
 	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
@@ -107,10 +108,10 @@ var sshCmd = &cobra.Command{
 					cf()
 				}()
 				go func() {
-					waitForPort(ctx, port, 100*time.Millisecond)
+					connectSSH(ctx, devbox.GetSSHDomainFromPath(selectedContainer.Labels["working_dir"]), port)
 					cf()
 				}()
-				connectSSH(devbox.GetSSHDomainFromPath(selectedContainer.Labels["working_dir"]), port)
+				<-ctx.Done()
 			} else {
 				fn.PrintError(err)
 				return
@@ -164,53 +165,65 @@ var sshCmd = &cobra.Command{
 						txt = txt[8:]
 					}
 					fmt.Println(txt)
-					if txt == "kloudlite-entrypoint:INSTALLING_PACKAGES" {
-						spinner.Client.UpdateMessage("installing nix packages")
-						continue
-					}
+					// if txt == "kloudlite-entrypoint:INSTALLING_PACKAGES" {
+					// 	spinner.Client.UpdateMessage("installing nix packages")
+					// 	continue
+					// }
 
-					if txt == "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE" {
-						spinner.Client.UpdateMessage("loading please wait")
-						continue
-					}
+					// if txt == "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE" {
+					// 	spinner.Client.UpdateMessage("loading please wait")
+					// 	continue
+					// }
 					// if verbose {
-					// 	switch stream {
-					// 	case "stderr":
-					// 		functions.Logf("%s: %s", text.Yellow("[stderr]"), txt)
-					// 	default:
-					// 		functions.Logf("%s: %s", text.Blue("[stdout]"), txt)
-					// 	}
+					functions.Logf("%s: %s", text.Yellow("[stderr]"), txt)
+					// switch stream {
+					// case "stderr":
+					// 	functions.Logf("%s: %s", text.Yellow("[stderr]"), txt)
+					// default:
+					// 	functions.Logf("%s: %s", text.Blue("[stdout]"), txt)
+					// }
 					// }
 				}
 				cf()
 			}()
 			go func() {
-				waitForPort(ctx, port, 100*time.Millisecond)
-				cf()
+				for {
+					if ctx.Err() != nil {
+						return
+					}
+					err := sshclient.CheckSSHConnection(sshConf(devbox.GetSSHDomainFromPath(c.Labels["working_dir"]), port))
+					if err != nil {
+						<-time.After(1 * time.Second)
+						continue
+					} else {
+						cf()
+						return
+					}
+				}
 			}()
 			<-ctx.Done()
-			connectSSH(devbox.GetSSHDomainFromPath(c.Labels["working_dir"]), port)
+			connectSSH(cmd.Context(), devbox.GetSSHDomainFromPath(c.Labels["working_dir"]), port)
 		}
 	},
 }
 
-func connectSSH(host string, port int) {
-	var err error
-	for i := 0; i < 3; i++ {
-		err = sshclient.DoSSH(sshclient.SSHConfig{
-			User:    "kl",
-			Host:    host,
-			SSHPort: port,
-			KeyPath: path.Join(xdg.Home, ".ssh", "id_rsa"),
-		})
-		if err != nil {
-			<-time.After(1 * time.Second)
-			continue
-		} else {
-			return
-		}
+func sshConf(host string, port int) sshclient.SSHConfig {
+	return sshclient.SSHConfig{
+		User:    "kl",
+		Host:    host,
+		SSHPort: port,
+		KeyPath: path.Join(xdg.Home, ".ssh", "id_rsa"),
 	}
+}
+
+func connectSSH(ctx context.Context, host string, port int) {
+	err := sshclient.DoSSH(sshclient.SSHConfig{
+		User:    "kl",
+		Host:    host,
+		SSHPort: port,
+		KeyPath: path.Join(xdg.Home, ".ssh", "id_rsa"),
+	})
 	if err != nil {
-		functions.PrintError(err)
+		fn.PrintError(err)
 	}
 }

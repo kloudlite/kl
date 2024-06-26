@@ -59,7 +59,7 @@ sudo bash /tmp/mount.sh
 cat > /tmp/pkg-install.sh <<EOF
 npkgs=$(cat $KL_HASH_FILE | jq '.config.packageHashes | length')
 if [ \$npkgs -gt 0 ]; then
-  nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed packages"
+  nix shell --log-format bar-with-logs $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed packages"
   npath=$(nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command printenv PATH)
   echo export PATH=$PATH:\$npath >> /tmp/env
 fi
