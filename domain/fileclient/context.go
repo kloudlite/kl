@@ -102,7 +102,7 @@ func GetUserHomeDir() (string, error) {
 }
 
 func GetConfigFolder() (configFolder string, err error) {
-	if os.Getenv("IN_DEV_BOX") == "true" {
+	if InsideBox() {
 		return path.Join("/.cache", "/kl"), nil
 	}
 	homePath, err := GetUserHomeDir()

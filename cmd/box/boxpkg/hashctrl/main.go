@@ -95,7 +95,7 @@ func BoxHashFile(workspacePath string) (*PersistedEnv, error) {
 }
 
 func BoxHashFileName(path string) (string, error) {
-	if os.Getenv("IN_DEV_BOX") == "true" {
+	if fileclient.InsideBox() {
 		path = os.Getenv("KL_WORKSPACE")
 	}
 

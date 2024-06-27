@@ -21,7 +21,7 @@ var InitCommand = &cobra.Command{
 	Short: "initialize a kl-config file",
 	Long:  `use this command to initialize a kl-config file`,
 	Run: func(_ *cobra.Command, _ []string) {
-		if os.Getenv("IN_DEV_BOX") == "true" {
+		if fileclient.InsideBox() {
 			fn.PrintError(functions.Error("cannot re-initialize workspace in dev box"))
 			return
 		}
