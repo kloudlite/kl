@@ -8,7 +8,8 @@ import (
 	"path"
 )
 
-func Logout(configPath string) error {
+func Logout() error {
+	configPath := GetConfigPath()
 	sessionFile, err := os.Stat(path.Join(configPath, SessionFileName))
 	if err != nil && os.IsNotExist(err) {
 		return fn.Error( "not logged in")

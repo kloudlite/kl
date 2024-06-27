@@ -12,13 +12,8 @@ var logoutCmd = &cobra.Command{
 	Example: `# Logout from kloudlite
 {cmd} auth logout`,
 	Run: func(*cobra.Command, []string) {
-		configFolder, err := fileclient.GetConfigFolder()
-		if err != nil {
-			fn.Log(err)
-			return
-		}
 
-		if err = fileclient.Logout(configFolder); err != nil {
+		if err := fileclient.Logout(); err != nil {
 			fn.PrintError(err)
 			return
 		}
