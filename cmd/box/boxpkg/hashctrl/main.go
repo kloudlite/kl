@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/packagectrl"
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
@@ -116,7 +116,6 @@ func SyncBoxHash(fpath string) error {
 	}
 	envName := ""
 	e, err := fileclient.EnvOfPath(fpath)
-	fmt.Println("here2", errors.Is(err, fileclient.NoEnvSelected))
 	if err != nil && errors.Is(err, fileclient.NoEnvSelected) {
 		envName = klFile.DefaultEnv
 	} else if err != nil {
@@ -249,7 +248,6 @@ func generatePersistedEnv(kf *fileclient.KLFileType, envName string, path string
 
 	e, err := fileclient.EnvOfPath(path)
 	if err != nil {
-		fmt.Println("here1", errors.Is(err, fileclient.NoEnvSelected))
 		return nil, functions.NewE(err)
 	}
 	ev["PURE_PROMPT_SYMBOL"] = fmt.Sprintf("(%s) %s", envName, "❯")

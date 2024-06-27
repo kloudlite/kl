@@ -68,7 +68,6 @@ func NewClient(cmd *cobra.Command, args []string) (BoxClient, error) {
 		return nil, functions.NewE(err)
 	}
 	env, err := cl.EnvOfPath(cwd)
-	fmt.Println("here3", errors.Is(err, cl.NoEnvSelected))
 	if err != nil && errors.Is(err, cl.NoEnvSelected) {
 		environment, err := apiclient.GetEnvironment(klFile.AccountName, klFile.DefaultEnv)
 		if err != nil {
