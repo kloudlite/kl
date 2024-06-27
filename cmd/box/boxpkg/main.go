@@ -5,7 +5,7 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"io"
 	"os"
 
@@ -70,7 +70,7 @@ func NewClient(cmd *cobra.Command, args []string) (BoxClient, error) {
 	env, err := cl.EnvOfPath(cwd)
 	fmt.Println("here3", errors.Is(err, cl.NoEnvSelected))
 	if err != nil && errors.Is(err, cl.NoEnvSelected) {
-		environment, err := server.GetEnvironment(klFile.AccountName, klFile.DefaultEnv)
+		environment, err := apiclient.GetEnvironment(klFile.AccountName, klFile.DefaultEnv)
 		if err != nil {
 			return nil, functions.NewE(err)
 		}

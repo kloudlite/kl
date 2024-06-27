@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/kloudlite/kl/domain/fileclient"
 
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -31,7 +31,7 @@ var configCmd = &cobra.Command{
 			return
 		}
 
-		config, err := server.EnsureConfig([]fn.Option{
+		config, err := apiclient.EnsureConfig([]fn.Option{
 			fn.MakeOption("configName", configName),
 			fn.MakeOption("accountName",klFile.AccountName),
 		}...)
@@ -47,7 +47,7 @@ var configCmd = &cobra.Command{
 	},
 }
 
-func printConfig(config *server.Config, cmd *cobra.Command) error {
+func printConfig(config *apiclient.Config, cmd *cobra.Command) error {
 	outputFormat := cmd.Flag("output").Value.String()
 
 	switch outputFormat {

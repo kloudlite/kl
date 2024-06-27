@@ -8,7 +8,7 @@ import (
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -48,7 +48,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	configs, err := server.ListConfigs([]fn.Option{
+	configs, err := apiclient.ListConfigs([]fn.Option{
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
 	if err != nil {
@@ -56,10 +56,10 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(configs) == 0 {
-		return fn.Error("no configs created yet on server")
+		return fn.Error("no configs created yet on apiclient")
 	}
 
-	selectedConfigGroup := server.Config{}
+	selectedConfigGroup := apiclient.Config{}
 
 	if name != "" {
 		for _, c := range configs {
@@ -73,7 +73,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 
 		selectedGroup, e := fzf.FindOne(
 			configs,
-			func(item server.Config) string { return item.Metadata.Name },
+			func(item apiclient.Config) string { return item.Metadata.Name },
 			fzf.WithPrompt("Select Config Group >"),
 		)
 		if e != nil {

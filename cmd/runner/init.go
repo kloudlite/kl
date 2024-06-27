@@ -6,7 +6,7 @@ import (
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	confighandler "github.com/kloudlite/kl/pkg/config-handler"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -72,10 +72,10 @@ var InitCommand = &cobra.Command{
 }
 
 func selectAccount() (*string, error) {
-	if accounts, err := server.ListAccounts(); err == nil {
+	if accounts, err := apiclient.ListAccounts(); err == nil {
 		if selectedAccount, err := fzf.FindOne(
 			accounts,
-			func(account server.Account) string {
+			func(account apiclient.Account) string {
 				return account.Metadata.Name + " #" + account.Metadata.Name
 			},
 			fzf.WithPrompt("select kloudlite team > "),
@@ -90,12 +90,12 @@ func selectAccount() (*string, error) {
 }
 
 func selectEnv(accountName string) (*string, error) {
-	if envs, err := server.ListEnvs([]fn.Option{
+	if envs, err := apiclient.ListEnvs([]fn.Option{
 		fn.MakeOption("accountName", accountName),
 	}...); err == nil {
 		if selectedEnv, err := fzf.FindOne(
 			envs,
-			func(env server.Env) string {
+			func(env apiclient.Env) string {
 				return env.Metadata.Name + " #" + env.Metadata.Name
 			},
 			fzf.WithPrompt("select environment > "),

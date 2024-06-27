@@ -2,7 +2,7 @@ package list
 
 import (
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -31,7 +31,7 @@ func listapps(cmd *cobra.Command, _ []string) error {
 		return functions.NewE(err)
 	}
 
-	apps, err := server.ListApps([]fn.Option{
+	apps, err := apiclient.ListApps([]fn.Option{
 		fn.MakeOption("accountName", klFile.AccountName),
 		fn.MakeOption("envName", envName),
 	}...)

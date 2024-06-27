@@ -23,7 +23,7 @@ import (
 // 		return functions.NewE(err)
 // 	}
 //
-// 	if !server.CheckDeviceStatus() {
+// 	if !apiclient.CheckDeviceStatus() {
 // 		if err := p.Start(); err != nil {
 // 			return functions.NewE(err)
 // 		}

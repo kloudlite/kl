@@ -6,7 +6,7 @@ import (
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 
@@ -43,7 +43,7 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 	//TODO: add changes to the klbox-hash file
 	mresName := fn.ParseStringFlag(cmd, "resource")
 
-	mres, err := server.SelectMres([]fn.Option{
+	mres, err := apiclient.SelectMres([]fn.Option{
 		fn.MakeOption("mresName", mresName),
 		fn.MakeOption("accountName", kt.AccountName),
 	}...)
@@ -52,7 +52,7 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 		return functions.NewE(err)
 	}
 
-	mresKey, err := server.SelectMresKey([]fn.Option{
+	mresKey, err := apiclient.SelectMresKey([]fn.Option{
 		fn.MakeOption("mresName", mres.Metadata.Name),
 		fn.MakeOption("accountName", kt.AccountName),
 	}...)
@@ -124,7 +124,7 @@ func AddMres(cmd *cobra.Command, _ []string) error {
 		return functions.NewE(err)
 	}
 
-	//if err := server.SyncDevboxJsonFile(); err != nil {
+	//if err := apiclient.SyncDevboxJsonFile(); err != nil {
 	//	return functions.NewE(err)
 	//}
 	//

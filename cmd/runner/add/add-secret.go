@@ -7,7 +7,7 @@ import (
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -47,7 +47,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	secrets, err := server.ListSecrets([]fn.Option{
+	secrets, err := apiclient.ListSecrets([]fn.Option{
 		fn.MakeOption("accountName", klFile.AccountName),
 	}...)
 	if err != nil {
@@ -55,10 +55,10 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(secrets) == 0 {
-		return fmt.Errorf("no secrets created yet on server")
+		return fmt.Errorf("no secrets created yet on apiclient")
 	}
 
-	selectedSecretGroup := server.Secret{}
+	selectedSecretGroup := apiclient.Secret{}
 
 	if name != "" {
 		for _, c := range secrets {
@@ -72,7 +72,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 	} else {
 		selectedGroup, err := fzf.FindOne(
 			secrets,
-			func(item server.Secret) string {
+			func(item apiclient.Secret) string {
 				return item.Metadata.Name
 			},
 			fzf.WithPrompt("Select Secret Group >"),
@@ -207,7 +207,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 		return functions.NewE(err)
 	}
 
-	//if err := server.SyncDevboxJsonFile(); err != nil {
+	//if err := apiclient.SyncDevboxJsonFile(); err != nil {
 	//	return functions.NewE(err)
 	//}
 	//

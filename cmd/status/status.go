@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
@@ -16,7 +16,7 @@ var Cmd = &cobra.Command{
 	Example: fn.Desc("{cmd} status"),
 	Run: func(_ *cobra.Command, _ []string) {
 
-		if u, err := server.GetCurrentUser(); err == nil {
+		if u, err := apiclient.GetCurrentUser(); err == nil {
 			fn.Logf("\nLogged in as %s (%s)\n",
 				text.Blue(u.Name),
 				text.Blue(u.Email),
@@ -33,7 +33,7 @@ var Cmd = &cobra.Command{
 
 		if s, err := fileclient.CurrentDeviceName(); err == nil {
 
-			// dev, err := server.GetDevice(fn.MakeOption("deviceName", s))
+			// dev, err := apiclient.GetDevice(fn.MakeOption("deviceName", s))
 			// if err != nil {
 			// 	fn.PrintError(err)
 			// 	return
@@ -44,7 +44,7 @@ var Cmd = &cobra.Command{
 			// 	fn.Log(fmt.Sprint(text.Bold("Cluster:"), dev.ClusterName))
 			// }
 
-			b := server.CheckDeviceStatus()
+			b := apiclient.CheckDeviceStatus()
 			fn.Log(fmt.Sprint(text.Bold(text.Blue("Device: ")), s, func() string {
 				if b {
 					return text.Bold(text.Green(" (Connected) "))

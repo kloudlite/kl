@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -31,7 +31,7 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return functions.NewE(err)
 	}
-	envs, err := server.ListEnvs(fn.MakeOption("accountName", klFile.AccountName))
+	envs, err := apiclient.ListEnvs(fn.MakeOption("accountName", klFile.AccountName))
 	if err != nil {
 		return functions.NewE(err)
 	}

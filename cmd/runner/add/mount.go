@@ -6,7 +6,7 @@ import (
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 
@@ -84,9 +84,9 @@ func selectConfigMount(path string, klFile fileclient.KLFileType, cmd *cobra.Com
 		cOrs = fileclient.CSType(*cOrsValue)
 	}
 
-	items := make([]server.ConfigORSecret, 0)
+	items := make([]apiclient.ConfigORSecret, 0)
 	if cOrs == fileclient.ConfigType {
-		configs, e := server.ListConfigs([]fn.Option{
+		configs, e := apiclient.ListConfigs([]fn.Option{
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 
@@ -95,14 +95,14 @@ func selectConfigMount(path string, klFile fileclient.KLFileType, cmd *cobra.Com
 		}
 
 		for _, c := range configs {
-			items = append(items, server.ConfigORSecret{
+			items = append(items, apiclient.ConfigORSecret{
 				Entries: c.Data,
 				Name:    c.Metadata.Name,
 			})
 		}
 
 	} else {
-		secrets, e := server.ListSecrets([]fn.Option{
+		secrets, e := apiclient.ListSecrets([]fn.Option{
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 
@@ -111,7 +111,7 @@ func selectConfigMount(path string, klFile fileclient.KLFileType, cmd *cobra.Com
 		}
 
 		for _, c := range secrets {
-			items = append(items, server.ConfigORSecret{
+			items = append(items, apiclient.ConfigORSecret{
 				Entries: c.StringData,
 				Name:    c.Metadata.Name,
 			})
@@ -119,10 +119,10 @@ func selectConfigMount(path string, klFile fileclient.KLFileType, cmd *cobra.Com
 	}
 
 	if len(items) == 0 {
-		return fmt.Errorf("no %ss created yet on server ", cOrs)
+		return fmt.Errorf("no %ss created yet on apiclient ", cOrs)
 	}
 
-	selectedItem := server.ConfigORSecret{}
+	selectedItem := apiclient.ConfigORSecret{}
 
 	if c != "" || s != "" {
 		csId := func() string {
@@ -143,7 +143,7 @@ func selectConfigMount(path string, klFile fileclient.KLFileType, cmd *cobra.Com
 	} else {
 		selectedItemVal, err := fzf.FindOne(
 			items,
-			func(item server.ConfigORSecret) string {
+			func(item apiclient.ConfigORSecret) string {
 				return item.Name
 			},
 			fzf.WithPrompt(fmt.Sprintf("Select %s >", cOrs)),

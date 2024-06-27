@@ -12,7 +12,7 @@ import (
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/packagectrl"
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
@@ -213,7 +213,7 @@ func GenerateKLConfigHash(kf *fileclient.KLFileType) (string, error) {
 
 func generatePersistedEnv(kf *fileclient.KLFileType, envName string, path string) (*PersistedEnv, error) {
 
-	envs, mm, err := server.GetLoadMaps()
+	envs, mm, err := apiclient.GetLoadMaps()
 	if err != nil {
 		return nil, functions.NewE(err)
 	}

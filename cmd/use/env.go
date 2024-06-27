@@ -8,7 +8,7 @@ import (
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/ui/text"
 
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
 )
@@ -26,7 +26,7 @@ var switchCmd = &cobra.Command{
 			return
 		}
 
-		env, err := server.SelectEnv(envName, []fn.Option{
+		env, err := apiclient.SelectEnv(envName, []fn.Option{
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
 		if err != nil {

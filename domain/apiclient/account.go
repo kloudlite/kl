@@ -1,4 +1,4 @@
-package server
+package apiclient
 
 import (
 	"github.com/kloudlite/kl/domain/fileclient"

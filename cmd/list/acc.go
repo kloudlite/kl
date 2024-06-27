@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -26,7 +26,7 @@ var accCmd = &cobra.Command{
 }
 
 func listAccounts(cmd *cobra.Command) error {
-	accounts, err := server.ListAccounts()
+	accounts, err := apiclient.ListAccounts()
 
 	if err != nil {
 		return functions.NewE(err)

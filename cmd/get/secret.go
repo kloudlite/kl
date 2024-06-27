@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/kloudlite/kl/domain/fileclient"
 
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -32,7 +32,7 @@ var secretCmd = &cobra.Command{
 			return
 		}
 
-		sec, err := server.EnsureSecret([]fn.Option{
+		sec, err := apiclient.EnsureSecret([]fn.Option{
 			fn.MakeOption("secretName", secName),
 			fn.MakeOption("accountName", klFile.AccountName),
 		}...)
@@ -48,7 +48,7 @@ var secretCmd = &cobra.Command{
 	},
 }
 
-func printSecret(secret *server.Secret, cmd *cobra.Command) error {
+func printSecret(secret *apiclient.Secret, cmd *cobra.Command) error {
 	outputFormat := cmd.Flag("output").Value.String()
 
 	switch outputFormat {

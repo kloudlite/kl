@@ -8,7 +8,7 @@ import (
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	cl "github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/domain/server"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
@@ -62,7 +62,7 @@ func (c *client) Start(klConfig *cl.KLFileType) error {
 		return fn.NewE(err)
 	}
 
-	vpnCfg, err := server.GetAccVPNConfig(klConfig.AccountName)
+	vpnCfg, err := apiclient.GetAccVPNConfig(klConfig.AccountName)
 	if err != nil {
 		return functions.NewE(err)
 	}
