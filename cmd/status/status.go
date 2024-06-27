@@ -3,7 +3,7 @@ package status
 import (
 	"fmt"
 
-	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -23,15 +23,15 @@ var Cmd = &cobra.Command{
 			)
 		}
 
-		if s, err := client.CurrentAccountName(); err == nil {
+		if s, err := fileclient.CurrentAccountName(); err == nil {
 			fn.Log(fmt.Sprint(text.Bold(text.Blue("Account: ")), s))
 		}
 
-		if e, err := client.CurrentEnv(); err == nil {
+		if e, err := fileclient.CurrentEnv(); err == nil {
 			fn.Log(fmt.Sprint(text.Bold(text.Blue("Environment: ")), e.Name))
 		}
 
-		if s, err := client.CurrentDeviceName(); err == nil {
+		if s, err := fileclient.CurrentDeviceName(); err == nil {
 
 			// dev, err := server.GetDevice(fn.MakeOption("deviceName", s))
 			// if err != nil {
@@ -53,7 +53,7 @@ var Cmd = &cobra.Command{
 				}
 			}()))
 
-			ip, err := client.CurrentDeviceIp()
+			ip, err := fileclient.CurrentDeviceIp()
 			if err == nil {
 				fn.Logf("%s %s\n", text.Bold(text.Blue("Device IP:")), *ip)
 			}

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
-	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/server"
 	confighandler "github.com/kloudlite/kl/pkg/config-handler"
 	"github.com/kloudlite/kl/pkg/functions"
@@ -25,7 +25,7 @@ var InitCommand = &cobra.Command{
 			fn.PrintError(functions.Error("cannot re-initialize workspace in dev box"))
 			return
 		}
-		_, err := client.GetKlFile("")
+		_, err := fileclient.GetKlFile("")
 		if err == nil {
 			fn.Printf(text.Yellow("Workspace is already initilized. Do you want to override? (y/N): "))
 			if !fn.Confirm("Y", "N") {
@@ -44,13 +44,13 @@ var InitCommand = &cobra.Command{
 			if selectedEnv, err := selectEnv(*selectedAccount); err != nil {
 				fn.PrintError(err)
 			} else {
-				newKlFile := client.KLFileType{
+				newKlFile := fileclient.KLFileType{
 					AccountName: *selectedAccount,
 					DefaultEnv:  *selectedEnv,
 					Version:     "v1",
 					Packages:    []string{"neovim", "git"},
 				}
-				if err := client.WriteKLFile(newKlFile); err != nil {
+				if err := fileclient.WriteKLFile(newKlFile); err != nil {
 					fn.PrintError(err)
 				} else {
 					fn.Printf(text.Green("Workspace initialized successfully.\n"))

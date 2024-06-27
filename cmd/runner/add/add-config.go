@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
-	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -43,7 +43,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 		name = args[0]
 	}
 
-	klFile, err := client.GetKlFile(filePath)
+	klFile, err := fileclient.GetKlFile(filePath)
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -153,7 +153,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 	//			fmt.Println(rt.RefKey, selectedConfigKey.Key, j)
 	//			if rt.RefKey == selectedConfigKey.Key {
 	//				//if len(currConfigs) >= 1 {
-	//				//	currConfigs = []client.ResType{}
+	//				//	currConfigs = []fileclient.ResType{}
 	//				//	matchedGroupIndex = -1
 	//				//	break
 	//				//}
@@ -162,11 +162,11 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 	//			}
 	//		}
 	//	}
-	//	err := client.WriteKLFile(*klFile)
+	//	err := fileclient.WriteKLFile(*klFile)
 	//	if err != nil {
 	//		return functions.NewE(err)
 	//	}
-	//	klFile, err = client.GetKlFile("")
+	//	klFile, err = fileclient.GetKlFile("")
 	//	if err != nil {
 	//		return functions.NewE(err)
 	//	}
@@ -183,7 +183,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 			}
 		}
 		if matchedKeyIndex == -1 {
-			currConfigs[matchedGroupIndex].Env = append(currConfigs[matchedGroupIndex].Env, client.ResEnvType{
+			currConfigs[matchedGroupIndex].Env = append(currConfigs[matchedGroupIndex].Env, fileclient.ResEnvType{
 				Key: RenameKey(func() string {
 					if m != "" {
 						kk := strings.Split(m, "=")
@@ -195,9 +195,9 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 			})
 		}
 	} else {
-		currConfigs = append(currConfigs, client.ResType{
+		currConfigs = append(currConfigs, fileclient.ResType{
 			Name: selectedConfigGroup.Metadata.Name,
-			Env: []client.ResEnvType{
+			Env: []fileclient.ResEnvType{
 				{
 					Key: RenameKey(func() string {
 						if m != "" {
@@ -212,9 +212,9 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 		})
 	}
 	//fmt.Println(currConfigs)
-	klFile.EnvVars.AddResTypes(currConfigs, client.Res_config)
+	klFile.EnvVars.AddResTypes(currConfigs, fileclient.Res_config)
 
-	err = client.WriteKLFile(*klFile)
+	err = fileclient.WriteKLFile(*klFile)
 	if err != nil {
 		return fn.NewE(err)
 	}

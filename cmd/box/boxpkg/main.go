@@ -10,7 +10,7 @@ import (
 	"os"
 
 	dockerclient "github.com/docker/docker/client"
-	cl "github.com/kloudlite/kl/domain/client"
+	cl "github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"

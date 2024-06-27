@@ -3,7 +3,7 @@ package get
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/fileclient"
 
 	"github.com/kloudlite/kl/domain/server"
 	"github.com/kloudlite/kl/pkg/functions"
@@ -26,7 +26,7 @@ var secretCmd = &cobra.Command{
 		}
 
 		filePath := fn.ParseKlFile(cmd)
-		klFile, err := client.GetKlFile(filePath)
+		klFile, err := fileclient.GetKlFile(filePath)
 		if err != nil {
 			fn.PrintError(err)
 			return

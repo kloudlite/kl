@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/adrg/xdg"
-	cl "github.com/kloudlite/kl/domain/client"
+	cl "github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/sshclient"
 	"github.com/kloudlite/kl/pkg/ui/spinner"

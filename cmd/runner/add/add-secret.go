@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
-	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/server"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -42,7 +42,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 		name = args[0]
 	}
 
-	klFile, err := client.GetKlFile(filePath)
+	klFile, err := fileclient.GetKlFile(filePath)
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -160,7 +160,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 		}
 
 		if matchedKeyIndex == -1 {
-			currSecs[matchedGroupIndex].Env = append(currSecs[matchedGroupIndex].Env, client.ResEnvType{
+			currSecs[matchedGroupIndex].Env = append(currSecs[matchedGroupIndex].Env, fileclient.ResEnvType{
 				Key: RenameKey(func() string {
 					if m != "" {
 						kk := strings.Split(m, "=")
@@ -172,9 +172,9 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 			})
 		}
 	} else {
-		currSecs = append(currSecs, client.ResType{
+		currSecs = append(currSecs, fileclient.ResType{
 			Name: selectedSecretGroup.Metadata.Name,
-			Env: []client.ResEnvType{
+			Env: []fileclient.ResEnvType{
 				{
 					Key: RenameKey(func() string {
 						if m != "" {
@@ -190,8 +190,8 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 
 	}
 
-	klFile.EnvVars.AddResTypes(currSecs, client.Res_secret)
-	err = client.WriteKLFile(*klFile)
+	klFile.EnvVars.AddResTypes(currSecs, fileclient.Res_secret)
+	err = fileclient.WriteKLFile(*klFile)
 	if err != nil {
 		return functions.NewE(err)
 	}
@@ -211,7 +211,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 	//	return functions.NewE(err)
 	//}
 	//
-	//if err := client.SyncDevboxShellEnvFile(cmd); err != nil {
+	//if err := fileclient.SyncDevboxShellEnvFile(cmd); err != nil {
 	//	return functions.NewE(err)
 	//}
 	return nil

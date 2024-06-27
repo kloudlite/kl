@@ -92,7 +92,7 @@ func newForwarder(localPort, remotePort, sshUser, sshHost, sshPort, keyPath stri
 		return nil, functions.NewE(err)
 	}
 
-	// Setup SSH client configuration
+	// Setup SSH fileclient configuration
 	sshConfig := &ssh.ClientConfig{
 		User: sshUser,
 		Auth: []ssh.AuthMethod{

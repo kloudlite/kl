@@ -27,7 +27,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/constants"
-	cl "github.com/kloudlite/kl/domain/client"
+	cl "github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/sshclient"

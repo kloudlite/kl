@@ -7,7 +7,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/miekg/dns"
 
 	"github.com/kloudlite/kl/pkg/functions"
@@ -104,7 +104,7 @@ func createDevice(devName string) (*Device, error) {
 		return nil, functions.NewE(err)
 	}
 
-	if err := client.SelectDevice(d.Metadata.Name); err != nil {
+	if err := fileclient.SelectDevice(d.Metadata.Name); err != nil {
 		return nil, functions.NewE(err)
 	}
 
@@ -112,7 +112,7 @@ func createDevice(devName string) (*Device, error) {
 }
 
 // func EnsureDevice(options ...fn.Option) (*Device, error) {
-// 	dc, err := client.GetDeviceContext()
+// 	dc, err := fileclient.GetDeviceContext()
 // 	if err != nil {
 // 		return nil, functions.NewE(err)
 // 	}
@@ -157,7 +157,7 @@ func CheckDeviceStatus() bool {
 		}
 	}
 
-	s, err := client.GetDeviceContext()
+	s, err := fileclient.GetDeviceContext()
 	if err != nil {
 		logF(err.Error())
 		return false
@@ -243,8 +243,8 @@ func createVpnForAccount() (*Device, error) {
 	return device, nil
 }
 
-func GetAccVPNConfig(account string) (*client.AccountVpnConfig, error) {
-	cfgFolder, err := client.GetConfigFolder()
+func GetAccVPNConfig(account string) (*fileclient.AccountVpnConfig, error) {
+	cfgFolder, err := fileclient.GetConfigFolder()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -258,7 +258,7 @@ func GetAccVPNConfig(account string) (*client.AccountVpnConfig, error) {
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
-		accountVpnConfig := client.AccountVpnConfig{
+		accountVpnConfig := fileclient.AccountVpnConfig{
 			WGconf:     dev.WireguardConfig.Value,
 			DeviceName: dev.Metadata.Name,
 		}
@@ -272,7 +272,7 @@ func GetAccVPNConfig(account string) (*client.AccountVpnConfig, error) {
 		}
 	}
 
-	var accVPNConfig client.AccountVpnConfig
+	var accVPNConfig fileclient.AccountVpnConfig
 	c, err := os.ReadFile(cfgPath)
 	if err != nil {
 		return nil, fn.Error("failed to read vpn config")

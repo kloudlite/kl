@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
-	cl "github.com/kloudlite/kl/domain/client"
+	cl "github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/server"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"

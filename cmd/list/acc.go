@@ -3,7 +3,7 @@ package list
 import (
 	"fmt"
 
-	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/server"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -36,7 +36,7 @@ func listAccounts(cmd *cobra.Command) error {
 		return functions.Error("no accounts found")
 	}
 
-	accountName, _ := client.CurrentAccountName()
+	accountName, _ := fileclient.CurrentAccountName()
 
 	header := table.Row{table.HeaderText("name"), table.HeaderText("id")}
 	rows := make([]table.Row, 0)

@@ -2,7 +2,7 @@ package list
 
 import (
 	"fmt"
-	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/fileclient"
 
 	"github.com/kloudlite/kl/domain/server"
 	"github.com/kloudlite/kl/pkg/functions"
@@ -18,7 +18,7 @@ var mresCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		filePath := fn.ParseKlFile(cmd)
-		klFile, err := client.GetKlFile(filePath)
+		klFile, err := fileclient.GetKlFile(filePath)
 		if err != nil {
 			fn.PrintError(err)
 			return

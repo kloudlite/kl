@@ -3,7 +3,7 @@ package list
 import (
 	"fmt"
 
-	"github.com/kloudlite/kl/domain/client"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/server"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -27,7 +27,7 @@ var envCmd = &cobra.Command{
 func listEnvironments(cmd *cobra.Command, args []string) error {
 
 	var err error
-	klFile, err := client.GetKlFile("")
+	klFile, err := fileclient.GetKlFile("")
 	if err != nil {
 		return functions.NewE(err)
 	}
@@ -40,7 +40,7 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 		return functions.Error("no environments found")
 	}
 
-	env, _ := client.CurrentEnv()
+	env, _ := fileclient.CurrentEnv()
 	envName := ""
 	if env != nil {
 		envName = env.Name
