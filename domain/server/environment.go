@@ -86,6 +86,26 @@ func ListEnvs(options ...fn.Option) ([]Env, error) {
 	}
 }
 
+func GetEnvironment(accountName, envName string) (*Env, error) {
+	cookie, err := getCookie(fn.MakeOption("accountName", accountName))
+	if err != nil {
+		return nil, err
+	}
+	respData, err := klFetch("cli_getEnvironment", map[string]any{
+		"name": envName,
+	}, &cookie)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if fromResp, err := GetFromResp[Env](respData); err != nil {
+		return nil, err
+	} else {
+		return fromResp, nil
+	}
+}
+
 func SelectEnv(envName string, options ...fn.Option) (*Env, error) {
 
 	persistSelectedEnv := func(env client.Env) error {

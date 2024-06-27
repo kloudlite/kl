@@ -3,6 +3,7 @@ package hashctrl
 import (
 	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -115,7 +116,8 @@ func SyncBoxHash(fpath string) error {
 	}
 	envName := ""
 	e, err := client.EnvOfPath(fpath)
-	if err != nil && err.Error() == "no selected environment" {
+	fmt.Println("here2", errors.Is(err, client.NoEnvSelected))
+	if err != nil && errors.Is(err, client.NoEnvSelected) {
 		envName = klFile.DefaultEnv
 	} else if err != nil {
 		return fn.NewE(err)
@@ -247,9 +249,9 @@ func generatePersistedEnv(kf *client.KLFileType, envName string, path string) (*
 
 	e, err := client.EnvOfPath(path)
 	if err != nil {
+		fmt.Println("here1", errors.Is(err, client.NoEnvSelected))
 		return nil, functions.NewE(err)
 	}
-
 	ev["PURE_PROMPT_SYMBOL"] = fmt.Sprintf("(%s) %s", envName, "❯")
 	ev["KL_SEARCH_DOMAIN"] = fmt.Sprintf("%s.svc.%s.local", e.TargetNs, e.ClusterName)
 
