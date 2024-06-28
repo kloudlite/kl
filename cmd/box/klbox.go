@@ -12,7 +12,7 @@ var BoxCmd = &cobra.Command{
 
 func init() {
 
-	//fileclient.OnlyInsideBox(reloadCmd)
+	// fileclient.OnlyInsideBox(reloadCmd)
 	BoxCmd.AddCommand(reloadCmd)
 
 	fileclient.OnlyOutsideBox(startCmd)

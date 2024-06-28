@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -28,40 +29,29 @@ var Cmd = &cobra.Command{
 			return
 		}
 
-		if s, err := fc.CurrentAccountName(); err == nil {
-			fn.Log(fmt.Sprint(text.Bold(text.Blue("Account: ")), s))
+		acc, err := fc.CurrentAccountName()
+		if err == nil {
+			fn.Log(fmt.Sprint(text.Bold(text.Blue("Account: ")), acc))
 		}
 
 		if e, err := fileclient.CurrentEnv(); err == nil {
 			fn.Log(fmt.Sprint(text.Bold(text.Blue("Environment: ")), e.Name))
 		}
 
-		// if s, err := fileclient.CurrentDeviceName(); err == nil {
-		//
-		// 	// dev, err := apiclient.GetDevice(fn.MakeOption("deviceName", s))
-		// 	// if err != nil {
-		// 	// 	fn.PrintError(err)
-		// 	// 	return
-		// 	// }
-		//
-		// 	// switch flags.CliName {
-		// 	// case constants.InfraCliName:
-		// 	// 	fn.Log(fmt.Sprint(text.Bold("Cluster:"), dev.ClusterName))
-		// 	// }
-		//
-		// 	b := apiclient.CheckDeviceStatus()
-		// 	fn.Log(fmt.Sprint(text.Bold(text.Blue("Device: ")), s, func() string {
-		// 		if b {
-		// 			return text.Bold(text.Green(" (Connected) "))
-		// 		} else {
-		// 			return text.Bold(text.Red(" (Disconnected) "))
-		// 		}
-		// 	}()))
-		//
-		// 	ip, err := fileclient.CurrentDeviceIp()
-		// 	if err == nil {
-		// 		fn.Logf("%s %s\n", text.Bold(text.Blue("Device IP:")), *ip)
-		// 	}
-		// }
+		if envclient.InsideBox() {
+			b := apiclient.CheckDeviceStatus()
+			avc, err := fc.GetVpnAccountConfig(acc)
+			if err != nil {
+				return
+			}
+
+			fn.Log(fmt.Sprint(text.Bold(text.Blue("Device: ")), avc.DeviceName, func() string {
+				if b {
+					return text.Bold(text.Green(" (Connected) "))
+				} else {
+					return text.Bold(text.Red(" (Disconnected) "))
+				}
+			}()))
+		}
 	},
 }

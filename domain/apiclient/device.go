@@ -3,8 +3,11 @@ package apiclient
 import (
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/miekg/dns"
 
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -100,36 +103,8 @@ func createDevice(devName string) (*Device, error) {
 		return nil, functions.NewE(err)
 	}
 
-	// if err := fileclient.SelectDevice(d.Metadata.Name); err != nil {
-	// 	return nil, functions.NewE(err)
-	// }
-
 	return d, nil
 }
-
-// func EnsureDevice(options ...fn.Option) (*Device, error) {
-// 	dc, err := fileclient.GetDeviceContext()
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-//
-// 	hostName, err := os.Hostname()
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-//
-// 	if dc.DeviceName == "" {
-// 		return createDevice(hostName)
-// 	}
-//
-// 	d, err := getVPNDevice(dc.DeviceName, options...)
-// 	if err != nil {
-// 		fn.Warnf("failed to get VPN device: %s", err.Error())
-// 		return createDevice(hostName)
-// 	}
-//
-// 	return d, nil
-// }
 
 type CheckName struct {
 	Result         bool     `json:"result"`
@@ -140,63 +115,50 @@ const (
 	VPNDeviceType = "global_vpn_device"
 )
 
-// func CheckDeviceStatus() bool {
-// 	verbose := false
-//
-// 	logF := func(format string, v ...interface{}) {
-// 		if verbose {
-// 			if len(v) > 0 {
-// 				fn.Log(format, v)
-// 			} else {
-// 				fn.Log(format)
-// 			}
-// 		}
-// 	}
-//
-// 	fileclient.GetVpnAccountConfig(account)
-//
-// 	s, err := fileclient.GetDeviceContext()
-// 	if err != nil {
-// 		logF(err.Error())
-// 		return false
-// 	}
-//
-// 	if len(s.DeviceDns) == 0 {
-// 		logF("No DNS record found for device")
-// 		return false
-// 	}
-//
-// 	dnsServer := s.DeviceDns[0]
-//
-// 	client := new(dns.Client)
-//
-// 	client.Timeout = 2 * time.Second
-//
-// 	// Create a new DNS message
-// 	message := new(dns.Msg)
-// 	message.SetQuestion(dns.Fqdn("one.one.one.one"), dns.TypeA)
-// 	message.RecursionDesired = true
-//
-// 	// Send the DNS query
-// 	response, _, err := client.Exchange(message, dnsServer+":53")
-// 	if err != nil {
-// 		logF("Failed to get DNS response: %v\n", err)
-// 		return false
-// 	}
-//
-// 	// Print the response
-// 	if response.Rcode != dns.RcodeSuccess {
-// 		logF("Query failed: %s\n", dns.RcodeToString[response.Rcode])
-// 		return false
-// 	} else {
-// 		for _, answer := range response.Answer {
-// 			logF("%s\n", answer.String())
-// 		}
-//
-// 	}
-//
-// 	return true
-// }
+func CheckDeviceStatus() bool {
+	if !envclient.InsideBox() {
+		return false
+	}
+
+	verbose := false
+	logF := func(format string, v ...interface{}) {
+		if verbose {
+			if len(v) > 0 {
+				fn.Log(format, v)
+			} else {
+				fn.Log(format)
+			}
+		}
+	}
+
+	client := new(dns.Client)
+
+	client.Timeout = 2 * time.Second
+
+	message := new(dns.Msg)
+	message.SetQuestion(dns.Fqdn("account.kloudlite.local"), dns.TypeA)
+	message.RecursionDesired = true
+
+	// Send the DNS query
+	response, _, err := client.Exchange(message, "127.0.0.1:53")
+	if err != nil {
+		logF("Failed to get DNS response: %v\n", err)
+		return false
+	}
+
+	// Print the response
+	if response.Rcode != dns.RcodeSuccess {
+		logF("Query failed: %s\n", dns.RcodeToString[response.Rcode])
+		return false
+	} else {
+		for _, answer := range response.Answer {
+			logF("%s\n", answer.String())
+		}
+
+	}
+
+	return true
+}
 
 func getDeviceName(devName string) (*CheckName, error) {
 	cookie, err := getCookie()

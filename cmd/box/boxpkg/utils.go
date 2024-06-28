@@ -336,8 +336,8 @@ func (c *client) stopContainer(path string) error {
 	existingContainers, err := c.cli.ContainerList(context.Background(), container.ListOptions{
 		Filters: filters.NewArgs(
 			dockerLabelFilter(CONT_MARK_KEY, "true"),
-			dockerLabelFilter(CONT_WORKSPACE_MARK_KEY, "true"),
-			dockerLabelFilter(CONT_PATH_KEY, path),
+			// dockerLabelFilter(CONT_WORKSPACE_MARK_KEY, "true"),
+			// dockerLabelFilter(CONT_PATH_KEY, path),
 		),
 		All: true,
 	})
@@ -349,17 +349,19 @@ func (c *client) stopContainer(path string) error {
 		return fn.NewE(err, "failed to list containers")
 	}
 
-	timeOut := 0
-	if err := c.cli.ContainerStop(context.Background(), existingContainers[0].ID, container.StopOptions{
-		Timeout: &timeOut,
-	}); err != nil {
-		return fn.NewE(err)
-	}
+	for _, c2 := range existingContainers {
+		timeOut := 0
+		if err := c.cli.ContainerStop(context.Background(), c2.ID, container.StopOptions{
+			Timeout: &timeOut,
+		}); err != nil {
+			return fn.NewE(err)
+		}
 
-	if err := c.cli.ContainerRemove(context.Background(), existingContainers[0].ID, container.RemoveOptions{
-		Force: true,
-	}); err != nil {
-		return fn.NewE(err)
+		if err := c.cli.ContainerRemove(context.Background(), c2.ID, container.RemoveOptions{
+			Force: true,
+		}); err != nil {
+			return fn.NewE(err)
+		}
 	}
 
 	return nil
@@ -640,7 +642,7 @@ func (c *client) waithForSshReady(port int, containerId string) error {
 
 		if cj.State != nil && !cj.State.Running {
 			rc, err := c.cli.ContainerLogs(context.Background(), containerId, container.LogsOptions{
-				ShowStdout: true,
+				ShowStdout: false,
 				ShowStderr: true,
 				Follow:     false,
 				Since:      t.Format(time.RFC3339),
@@ -670,6 +672,5 @@ func (c *client) waithForSshReady(port int, containerId string) error {
 		time.Sleep(1 * time.Second)
 	}
 
-	cf()
 	return nil
 }
