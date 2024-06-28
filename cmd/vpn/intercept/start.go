@@ -108,6 +108,17 @@ func startIntercept(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	p := kt.Ports
+	for _, v := range ports {
+		if !slices.Contains(p, v.DevicePort) {
+			p = append(p, v.DevicePort)
+		}
+	}
+	kt.Ports = p
+	if err = fc.WriteKLFile(*kt); err != nil {
+		return err
+	}
+
 	fn.Log("intercept app started successfully\n")
 	fn.Log("Please check if vpn is connected to your device, if not please connect it using sudo kl vpn start. Ignore this message if already connected.")
 
