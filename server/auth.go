@@ -2,6 +2,8 @@ package server
 
 import (
 	"encoding/json"
+
+	"github.com/kloudlite/kl/pkg/functions"
 )
 
 func GetCurrentUser() (*User, error) {
@@ -22,7 +24,7 @@ func GetCurrentUser() (*User, error) {
 
 	var resp Resp
 	if err = json.Unmarshal(respData, &resp); err != nil {
-		return nil, err
+		return nil, functions.Error(err)
 	}
 
 	if len(resp.Errors) > 0 {

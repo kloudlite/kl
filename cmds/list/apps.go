@@ -23,7 +23,6 @@ var appsCmd = &cobra.Command{
 }
 
 func listapps(cmd *cobra.Command, _ []string) error {
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return functions.Error(err)

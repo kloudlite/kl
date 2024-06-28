@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/adrg/xdg"
+	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/utils/klfile"
 	"gopkg.in/yaml.v2"
@@ -119,7 +120,7 @@ func GetExtraData() (*ExtraData, error) {
 	}
 
 	if err = yaml.Unmarshal(file, &extraData); err != nil {
-		return nil, err
+		return nil, functions.Error(err)
 	}
 	if extraData.SelectedEnvs == nil {
 		extraData.SelectedEnvs = make(map[string]LocalEnv)
@@ -167,7 +168,7 @@ func GetAuthSession() (string, error) {
 	}
 
 	if err = yaml.Unmarshal(file, &session); err != nil {
-		return "", err
+		return "", functions.Error(err)
 	}
 
 	return session.Session, nil
@@ -243,7 +244,11 @@ func SetEnvAtPath(path string, env *LocalEnv) error {
 }
 
 func EnvAtPath(fpath string) (*LocalEnv, error) {
-	klFile, err := klfile.GetKlFile(path.Join(fpath, "kl.yml"))
+	cpath := path.Join(fpath, "kl.yml")
+	if ev, ok := os.LookupEnv("KLCONFIG_PATH"); ok {
+		cpath = ev
+	}
+	klFile, err := klfile.GetKlFile(cpath)
 	if err != nil {
 		return nil, err
 	}
@@ -251,9 +256,10 @@ func EnvAtPath(fpath string) (*LocalEnv, error) {
 	if err != nil {
 		return nil, err
 	}
-	if os.Getenv("IN_DEV_BOX") == "true" {
-		fpath = os.Getenv("KL_WORKSPACE")
+	if ev, ok := os.LookupEnv("KL_WORKSPACE"); ok {
+		fpath = ev
 	}
+
 	localEnv, ok := extraData.SelectedEnvs[fpath]
 	if !ok {
 		env, err := GetEnvironment(klFile.AccountName, klFile.DefaultEnv)

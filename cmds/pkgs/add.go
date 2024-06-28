@@ -53,7 +53,7 @@ var addCmd = &cobra.Command{
 		}
 		installCommand = append(installCommand, "--command", "echo", fmt.Sprintf("Installed %s", args[0]))
 		if !(os.Getenv("IN_DEV_BOX") == "true") {
-			devbox.Start(oswd)
+			devbox.Start(oswd, config)
 			exitCode, err := devbox.Exec(oswd, installCommand, nil)
 			if err != nil {
 				fn.PrintError(err)
@@ -86,7 +86,7 @@ var addCmd = &cobra.Command{
 			return
 		}
 
-		if err := envhash.SyncBoxHash(env.Name, cwd); err != nil {
+		if err := envhash.SyncBoxHash(env.Name, cwd, config); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -111,7 +111,7 @@ var addCmd = &cobra.Command{
 					fn.PrintError(err)
 					return
 				}
-				err = devbox.Start(cwd)
+				err = devbox.Start(cwd, config)
 				if err != nil {
 					fn.PrintError(err)
 					return

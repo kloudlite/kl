@@ -18,11 +18,12 @@ export KL_WORKSPACE="$KL_WORKSPACE"
 export KL_BASE_URL="$KL_BASE_URL"
 export MAIN_PATH=$PATH
 export KL_TMP_PATH="/kl-tmp"
+export KLCONFIG_PATH="$KLCONFIG_PATH"
 EOL
 
 sudo dnsmasq --server=/.local/$KL_DNS --server=1.1.1.1
 
-
+sudo chown kl /var/run/docker.sock
 
 entrypoint_executed="/home/kl/.kloudlite_entrypoint_executed"
 if [ ! -f "$entrypoint_executed" ]; then
@@ -58,7 +59,7 @@ sudo bash /tmp/mount.sh
 cat > /tmp/pkg-install.sh <<EOF
 npkgs=$(cat $KL_HASH_FILE | jq '.config.packageHashes | length')
 if [ \$npkgs -gt 0 ]; then
-  nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed packages"
+  nix shell --log-format bar-with-logs $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed packages"
   npath=$(nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command printenv PATH)
   echo export PATH=$PATH:\$npath >> /tmp/env
 fi

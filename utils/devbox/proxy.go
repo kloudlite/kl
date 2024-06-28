@@ -13,7 +13,7 @@ import (
 )
 
 type ProxyConfig struct {
-	TargetContainerId   string
+	// TargetContainerId   string
 	TargetContainerPath string
 	ExposedPorts        []int
 }

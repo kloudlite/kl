@@ -25,11 +25,7 @@ func keys[K comparable, V any](m map[K]V) []K {
 	return keys
 }
 
-func generateBoxHashContent(envName string, path string) ([]byte, error) {
-	klFile, err := klfile.GetKlFile("")
-	if err != nil {
-		return nil, functions.Error(err)
-	}
+func generateBoxHashContent(envName string, path string, klFile *klfile.KLFileType) ([]byte, error) {
 
 	persistedConfig, err := generatePersistedEnv(klFile, envName, path)
 	if err != nil {
@@ -100,7 +96,7 @@ func BoxHashFile(workspacePath string) (*types.PersistedEnv, error) {
 	}
 
 	if err = json.Unmarshal(data, &r); err != nil {
-		return nil, err
+		return nil, functions.Error(err)
 	}
 	return &r.Config, nil
 }
@@ -118,7 +114,7 @@ func BoxHashFileName(path string) (string, error) {
 	return fmt.Sprintf("hash-%x", hash.Sum(nil)), nil
 }
 
-func SyncBoxHash(envName string, fpath string) error {
+func SyncBoxHash(envName string, fpath string, klFile *klfile.KLFileType) error {
 
 	if envName == "" {
 		return functions.NewError("envName is required")
@@ -134,7 +130,7 @@ func SyncBoxHash(envName string, fpath string) error {
 		return functions.Error(err)
 	}
 
-	content, err := generateBoxHashContent(envName, fpath)
+	content, err := generateBoxHashContent(envName, fpath, klFile)
 	if err != nil {
 		return functions.Error(err)
 	}

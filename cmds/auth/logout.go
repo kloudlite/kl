@@ -3,12 +3,13 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path"
+
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/server"
 	"github.com/kloudlite/kl/utils/devbox"
 	"github.com/spf13/cobra"
-	"os"
-	"path"
 )
 
 var logoutCmd = &cobra.Command{
@@ -33,7 +34,7 @@ var logoutCmd = &cobra.Command{
 func logout(configPath string) error {
 	sessionFile, err := os.Stat(path.Join(configPath, server.SessionFileName))
 	if err != nil && os.IsNotExist(err) {
-		return fn.Error(err,"not logged in")
+		return fn.Error(err, "not logged in")
 	}
 	if err != nil {
 		return err
@@ -49,7 +50,7 @@ func logout(configPath string) error {
 	if err = os.RemoveAll(hashConfigPath); err != nil {
 		return err
 	}
-	vpnConfigPath := configPath + "/vpn"
+	vpnConfigPath := path.Join(configPath, "vpn")
 	files, err := os.ReadDir(vpnConfigPath)
 	if err != nil {
 		return err

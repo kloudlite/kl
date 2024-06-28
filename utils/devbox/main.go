@@ -377,12 +377,12 @@ func generateMounts() ([]mount.Mount, error) {
 	}
 
 	dockerSock := "/var/run/docker.sock"
-	if runtime.GOOS == constants.RuntimeWindows {
-		dockerSock = "\\\\.\\pipe\\docker_engine"
-	}
+	// if runtime.GOOS == constants.RuntimeWindows {
+	// 	dockerSock = "\\\\.\\pipe\\docker_engine"
+	// }
 
 	volumes = append(volumes,
-		mount.Mount{Type: mount.TypeBind, Source: dockerSock, Target: "/var/run/docker.sock"},
+		mount.Mount{Type: mount.TypeVolume, Source: dockerSock, Target: "/var/run/docker.sock"},
 	)
 
 	return volumes, nil
@@ -512,9 +512,9 @@ func startContainer(path string) (string, error) {
 				return "", err
 			}
 
-			if err := waitForContainerReady(existingContainers[0].ID); err != nil {
-				return "", err
-			}
+			// if err := waitForContainerReady(existingContainers[0].ID); err != nil {
+			// 	return "", err
+			// }
 		}
 
 		return existingContainers[0].ID, nil
@@ -547,13 +547,14 @@ func startContainer(path string) (string, error) {
 			fmt.Sprintf("KL_HASH_FILE=/.cache/kl/box-hash/%s", boxhashFileName),
 			fmt.Sprintf("SSH_PORT=%d", sshPort),
 			fmt.Sprintf("KL_WORKSPACE=%s", path),
+			"KLCONFIG_PATH=/workspace/kl.yml",
 			"KL_DNS=100.64.0.1",
-
 			fmt.Sprintf("KL_BASE_URL=%s", constants.BaseURL),
 		},
 		Hostname:     "box",
 		ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%d/tcp", sshPort)): {}},
 	}, &container.HostConfig{
+		Privileged:  true,
 		NetworkMode: "kloudlite",
 		PortBindings: nat.PortMap{
 			nat.Port(fmt.Sprintf("%d/tcp", sshPort)): []nat.PortBinding{
@@ -583,11 +584,24 @@ func startContainer(path string) (string, error) {
 		return "", functions.Error(err, "failed to start container")
 	}
 
-	if err := waitForContainerReady(resp.ID); err != nil {
-		return "", err
-	}
+	// if err := waitForContainerReady(resp.ID); err != nil {
+	// 	return "", err
+	// }
 
 	return resp.ID, nil
+}
+
+func GetContainerLogs(ctx context.Context, containerId string) (io.ReadCloser, error) {
+	cli, err := dockerClient()
+	if err != nil {
+		return nil, errors.New("failed to create docker client")
+	}
+	return cli.ContainerLogs(ctx, containerId, container.LogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow:     true,
+		Since:      time.Now().Format(time.RFC3339),
+	})
 }
 
 func waitForContainerReady(containerId string) error {
@@ -705,15 +719,14 @@ func Stop(path string) error {
 	return stopContainer(path)
 }
 
-func Restart(fpath string) error {
+func Restart(fpath string, klConfig *klfile.KLFileType) error {
 	if err := Stop(fpath); err != nil {
 		return err
 	}
-
-	return Start(fpath)
+	return Start(fpath, klConfig)
 }
 
-func Start(fpath string) error {
+func Start(fpath string, klConfig *klfile.KLFileType) error {
 	env, err := server.EnvAtPath(fpath)
 	if err != nil {
 		return functions.Error(err)
@@ -728,15 +741,10 @@ func Start(fpath string) error {
 		return fn.Error(err)
 	}
 
-	klConfig, err := klfile.GetKlFile(path.Join(fpath, "/kl.yml"))
-	if err != nil {
-		return fn.Error(err)
-	}
-
 	boxHash, err := envhash.BoxHashFile(fpath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			err = envhash.SyncBoxHash(env.Name, fpath)
+			err = envhash.SyncBoxHash(env.Name, fpath, klConfig)
 			if err != nil {
 				return functions.Error(err)
 			}
@@ -748,21 +756,20 @@ func Start(fpath string) error {
 			return functions.Error(err)
 		}
 		if klconfHash != boxHash.KLConfHash {
-			err = envhash.SyncBoxHash(env.Name, fpath)
+			err = envhash.SyncBoxHash(env.Name, fpath, klConfig)
 			if err != nil {
 				return functions.Error(err)
 			}
 		}
 	}
 
-	containerId, err := startContainer(fpath)
+	_, err = startContainer(fpath)
 	if err != nil {
 		return fn.Error(err)
 	}
 
 	if err = SyncProxy(ProxyConfig{
 		ExposedPorts:        klConfig.Ports,
-		TargetContainerId:   containerId,
 		TargetContainerPath: fpath,
 	}); err != nil {
 		return fn.Error(err)

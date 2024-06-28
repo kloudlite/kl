@@ -5,6 +5,7 @@ import (
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/utils/devbox"
+	"github.com/kloudlite/kl/utils/klfile"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +18,12 @@ var startCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		if err = devbox.Start(oswd); err != nil {
+		klfile, err := klfile.GetKlFile(oswd)
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+		if err = devbox.Start(oswd, klfile); err != nil {
 			fn.PrintError(err)
 			if err := devbox.Stop(oswd); err != nil {
 				fn.PrintError(err)
