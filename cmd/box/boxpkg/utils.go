@@ -342,7 +342,7 @@ func (c *client) stopOtherContainers() error {
 	for _, d := range existingContainers {
 		if d.Labels[CONT_PATH_KEY] != c.cwd {
 			spinner.Client.Stop()
-			fn.Logf("An other container is running in %s, do you want to stop it? [Y/n]", d.Labels[CONT_PATH_KEY])
+			fn.Logf("[#] another workspace is active and running at %s. this action will stop that workspace and terminate all the processes running in the that container. do you want to proceed? [Y/n]", d.Labels[CONT_PATH_KEY])
 			if !fn.Confirm("y", "y") {
 				return fn.NewE(fn.NewE(UserCanceled))
 			}
