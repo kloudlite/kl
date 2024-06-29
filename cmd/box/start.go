@@ -23,6 +23,9 @@ var startCmd = &cobra.Command{
 
 		err = c.Start()
 		if err != nil && errors.Is(err, boxpkg.UserCanceled) {
+			log.Println("Operation canceled by user")
+			return
+		}
 			return
 		} else if err != nil {
 			fn.PrintError(err)
