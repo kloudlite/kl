@@ -12,7 +12,7 @@ var stopCmd = &cobra.Command{
 	Short: "stop running box",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fn.Logf(text.Yellow("[#] current process will be stopped, do you want to stop the container? [Y/n] "))
+		fn.Logf(text.Yellow("[#] this action will stop the current workspace. this will end all current running processes in the container. do you want to do you want to proceed? [Y/n] "))
 		if !fn.Confirm(strings.ToUpper("Y"), strings.ToUpper("Y")) {
 			return
 		}
