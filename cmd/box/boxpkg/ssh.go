@@ -41,6 +41,7 @@ func (c *client) Ssh() error {
 
 	err := c.Start()
 	if err != nil && errors.Is(err, UserCanceled) {
+		log.Println("Operation was canceled by the user")
 		return nil
 	} else if err != nil {
 		if err2 := c.Stop(); err2 != nil {
