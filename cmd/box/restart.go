@@ -12,7 +12,6 @@ var restartCmd = &cobra.Command{
 	Short: "restart the box according to the current kl.yml configuration",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fn.Logf(text.Yellow("[#] current process will be stopped, do you want to restart the container? [Y/n] "))
 		if !fn.Confirm(strings.ToUpper("Y"), strings.ToUpper("Y")) {
 			return
 		}
