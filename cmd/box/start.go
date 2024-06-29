@@ -1,6 +1,7 @@
 package box
 
 import (
+	"errors"
 	"github.com/kloudlite/kl/cmd/box/boxpkg"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -20,7 +21,10 @@ var startCmd = &cobra.Command{
 			return
 		}
 
-		if err := c.Start(); err != nil {
+		err = c.Start()
+		if err != nil && errors.Is(err, boxpkg.UserCanceled) {
+			return
+		} else if err != nil {
 			fn.PrintError(err)
 			return
 		}

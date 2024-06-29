@@ -5,6 +5,7 @@ import (
 )
 
 func (c *client) Restart() error {
+
 	if envclient.InsideBox() {
 		path, err := envclient.GetWorkspacePath()
 		if err != nil {
