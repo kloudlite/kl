@@ -1,6 +1,8 @@
 package box
 
 import (
+	"strings"
+
 	"github.com/kloudlite/kl/cmd/box/boxpkg"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"

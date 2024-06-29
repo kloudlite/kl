@@ -3,7 +3,6 @@ package box
 import (
 	"github.com/kloudlite/kl/cmd/box/boxpkg"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
 )
 
