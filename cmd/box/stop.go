@@ -13,7 +13,7 @@ var stopCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		fn.Logf(text.Yellow("[#] current process will be stopped, do you want to stop the container? [Y/n] "))
-		if !fn.Confirm("Y", "Y") {
+		if !fn.Confirm(strings.ToUpper("Y"), strings.ToUpper("Y")) {
 			return
 		}
 
