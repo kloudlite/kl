@@ -11,11 +11,6 @@ var restartCmd = &cobra.Command{
 	Use:   "restart",
 	Short: "restart the box according to the current kl.yml configuration",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		if !fn.Confirm(strings.ToUpper("Y"), strings.ToUpper("Y")) {
-			return
-		}
-
 		c, err := boxpkg.NewClient(cmd, args)
 		if err != nil {
 			fn.PrintError(err)
