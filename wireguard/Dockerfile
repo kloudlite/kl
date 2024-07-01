@@ -4,4 +4,4 @@ COPY healthcheck.sh /usr/local/bin/healthcheck.sh
 
 RUN chmod +x /usr/local/bin/healthcheck.sh
 
-HEALTHCHECK --interval=10s --timeout=10s --retries=1  CMD /usr/local/bin/healthcheck.sh
+HEALTHCHECK --interval=2s --timeout=2s --retries=1  CMD /usr/local/bin/healthcheck.sh
