@@ -47,7 +47,6 @@ func (c *K3sClientImpl) imageExists(imageName string) (bool, error) {
 	images, err := c.dClient.ImageList(context.Background(), image.ListOptions{
 		All: true,
 	})
-	
 	if err != nil {
 		return false, err
 	}

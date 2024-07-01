@@ -23,11 +23,19 @@ func (k *K3sClientImpl) CreateCluster(accName, name string) error {
 	if err != nil {
 		return err
 	}
-	err = k.ensureVolume(name + "_varlib")
+	err = k.ensureVolume(name + "_var_lib_cni")
 	if err != nil {
 		return err
 	}
-	err = k.ensureVolume(name + "_varlog")
+	err = k.ensureVolume(name + "_var_lib_kubelet")
+	if err != nil {
+		return err
+	}
+	err = k.ensureVolume(name + "_var_lib_rancher_k3s")
+	if err != nil {
+		return err
+	}
+	err = k.ensureVolume(name + "_var_log")
 	if err != nil {
 		return err
 	}
@@ -75,8 +83,10 @@ func (k *K3sClientImpl) start(accName, name string) error {
 	}, &container.HostConfig{
 		Privileged: true,
 		Binds: []string{
-			fmt.Sprintf("%s:/var/lib", name+"_varlib"),
-			fmt.Sprintf("%s:/var/log", name+"_varlog"),
+			fmt.Sprintf("%s:/var/lib/cni", name+"_var_lib_cni"),
+			fmt.Sprintf("%s:/var/lib/kubelet", name+"_var_lib_kubelet"),
+			fmt.Sprintf("%s:/var/lib/rancher/k3s", name+"_var_lib_rancher_k3s"),
+			fmt.Sprintf("%s:/var/log", name+"_var_log"),
 		},
 	}, nil, nil, "kl-cluster-"+name)
 	if err != nil {

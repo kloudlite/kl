@@ -6,15 +6,22 @@ func (k *K3sClientImpl) RemoveCluster(name string) error {
 	if err != nil {
 		return err
 	}
-	err = k.deleteVolume(name + "_varlib")
+	err = k.deleteVolume(name + "_var_lib_cni")
 	if err != nil {
 		return err
 	}
-	err = k.deleteVolume(name + "_varlog")
+	err = k.deleteVolume(name + "_var_lib_kubelet")
 	if err != nil {
 		return err
 	}
-
+	err = k.deleteVolume(name + "_var_lib_rancher_k3s")
+	if err != nil {
+		return err
+	}
+	err = k.deleteVolume(name + "_var_log")
+	if err != nil {
+		return err
+	}
 	err = k.fc.DeleteCluster(name)
 	if err != nil {
 		return err
