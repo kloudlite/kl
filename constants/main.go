@@ -12,9 +12,7 @@ const (
 	RuntimeLinux   = "linux"
 	RuntimeDarwin  = "darwin"
 	RuntimeWindows = "windows"
-
 	SocatImage = "ghcr.io/kloudlite/hub/socat:latest"
-	//WireguardImage = "ghcr.io/kloudlite/hub/wireguard:latest"
 )
 
 func GetWireguardImageName() string {
