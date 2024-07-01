@@ -2,6 +2,7 @@ package constants
 
 import (
 	"fmt"
+
 	"github.com/kloudlite/kl/flags"
 
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -12,7 +13,8 @@ const (
 	RuntimeLinux   = "linux"
 	RuntimeDarwin  = "darwin"
 	RuntimeWindows = "windows"
-	SocatImage = "ghcr.io/kloudlite/hub/socat:latest"
+	SocatImage     = "ghcr.io/kloudlite/hub/socat:latest"
+	K3SImage       = "docker.io/rancher/k3s:v1.27.5-k3s1"
 )
 
 func GetWireguardImageName() string {

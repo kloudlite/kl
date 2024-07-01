@@ -12,7 +12,8 @@ func init() {
 	Cmd.Aliases = append(Cmd.Aliases, "clus")
 
 	Cmd.AddCommand(listCmd)
-	Cmd.AddCommand(addCmd)
-	Cmd.AddCommand(rmCmd)
-	Cmd.AddCommand(searchCmd)
+	Cmd.AddCommand(createCmd)
+	Cmd.AddCommand(removeCmd)
+	Cmd.AddCommand(startCmd)
+	Cmd.AddCommand(stopCmd)
 }

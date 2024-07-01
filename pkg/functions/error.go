@@ -56,10 +56,10 @@ func PrintError(err error) {
 		return
 	}
 
+	Logf("%s %s\n\n", text.Red("[error]"), err.Error())
+
 	if flags.IsDev() {
 		tracerr.Print(err)
 		return
 	}
-
-	Logf("%s %s\n\n", text.Red("[error]"), err.Error())
 }
