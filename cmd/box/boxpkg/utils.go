@@ -520,6 +520,7 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 
 func (c *client) SyncVpn(wg string) error {
 	defer spinner.Client.UpdateMessage("validating vpn configuration")()
+
 	err := c.ensureImage(constants.GetWireguardImageName())
 	if err != nil {
 		return fn.Error("failed to pull image")
