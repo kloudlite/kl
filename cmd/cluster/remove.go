@@ -10,12 +10,17 @@ var removeCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "remove cluster",
 	Run: func(cmd *cobra.Command, args []string) {
+		verbose, err := cmd.Flags().GetBool("verbose")
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
 		if len(args) == 0 {
 			fn.PrintError(fn.Error("cluster name is required"))
 			cmd.Help()
 			return
 		}
-		clusterClient, err := k3s.NewK3sClient()
+		clusterClient, err := k3s.NewK3sClient(verbose)
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -30,5 +35,5 @@ var removeCmd = &cobra.Command{
 }
 
 func init() {
-	removeCmd.Aliases = append(removeCmd.Aliases, "rm")
+	removeCmd.Aliases = append(removeCmd.Aliases, "rm", "delete")
 }

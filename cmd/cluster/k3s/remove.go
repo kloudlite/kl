@@ -1,8 +1,21 @@
 package k3s
 
-// RemoveCluster implements K3SClient.
+import (
+	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/pkg/functions"
+)
+
+// RemoveCluster implements K3SClient
 func (k *K3sClientImpl) RemoveCluster(name string) error {
-	err := k.stop(name)
+	c, err := k.fc.GetCluster(name)
+	if err != nil {
+		return err
+	}
+	err = apiclient.DeleteClusterReference(c.ReferenceName, functions.MakeOption("accountName", c.AccountName))
+	if err != nil {
+		return err
+	}
+	err = k.stop(name)
 	if err != nil {
 		return err
 	}

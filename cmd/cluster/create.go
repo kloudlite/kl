@@ -24,7 +24,12 @@ var createCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		clusterClient, err := k3s.NewK3sClient()
+		verbose, err := cmd.Flags().GetBool("verbose")
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+		clusterClient, err := k3s.NewK3sClient(verbose)
 		if err != nil {
 			fn.PrintError(err)
 			return

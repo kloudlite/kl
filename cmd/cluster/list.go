@@ -13,7 +13,14 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "list clusters",
 	Run: func(cmd *cobra.Command, args []string) {
-		clusterClient, err := k3s.NewK3sClient()
+
+		verbose, err := cmd.Flags().GetBool("verbose")
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		clusterClient, err := k3s.NewK3sClient(verbose)
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -47,5 +54,5 @@ var listCmd = &cobra.Command{
 }
 
 func init() {
-	listCmd.Aliases = append(listCmd.Aliases, "ls")
+	listCmd.Aliases = append(listCmd.Aliases, "ls", "list")
 }

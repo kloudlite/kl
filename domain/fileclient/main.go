@@ -12,7 +12,7 @@ type FileClient interface {
 	GetVpnAccountConfig(account string) (*AccountVpnConfig, error)
 	SetVpnAccountConfig(account string, config *AccountVpnConfig) error
 
-	AddCluster(accName, clusterName string) error
+	AddCluster(accName, clusterName, referenceName string) error
 	GetCluster(clusterName string) (*Cluster, error)
 	DeleteCluster(clusterName string) error
 	Clusters() ([]*Cluster, error)

@@ -10,8 +10,9 @@ import (
 )
 
 type Cluster struct {
-	Name        string `json:"name"`
-	AccountName string `json:"accountName"`
+	ReferenceName string `json:"reference"`
+	Name          string `json:"name"`
+	AccountName   string `json:"accountName"`
 }
 
 type ClustersFile struct {
@@ -79,7 +80,7 @@ func (f *fclient) writeClusters(clusters []*Cluster) error {
 }
 
 // AddCluster implements FileClient.
-func (f *fclient) AddCluster(accName, clusterName string) error {
+func (f *fclient) AddCluster(accName, clusterName, referenceName string) error {
 	clusters, err := f.getClusters()
 	if err != nil {
 		return err
@@ -91,8 +92,9 @@ func (f *fclient) AddCluster(accName, clusterName string) error {
 		}
 	}
 	clusters = append(clusters, &Cluster{
-		AccountName: accName,
-		Name:        clusterName,
+		AccountName:   accName,
+		Name:          clusterName,
+		ReferenceName: referenceName,
 	})
 	if err := f.writeClusters(clusters); err != nil {
 		return err

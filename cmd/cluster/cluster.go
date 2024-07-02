@@ -10,7 +10,7 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Aliases = append(Cmd.Aliases, "clusters")
 	Cmd.Aliases = append(Cmd.Aliases, "clus")
-
+	Cmd.Flags().BoolP("verbose", "v", false, "verbose output")
 	Cmd.AddCommand(listCmd)
 	Cmd.AddCommand(createCmd)
 	Cmd.AddCommand(removeCmd)

@@ -22,9 +22,10 @@ type K3SClient interface {
 type K3sClientImpl struct {
 	fc      fileclient.FileClient
 	dClient *dockerclient.Client
+	verbose bool
 }
 
-func NewK3sClient() (K3SClient, error) {
+func NewK3sClient(verbose bool) (K3SClient, error) {
 	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
@@ -36,5 +37,6 @@ func NewK3sClient() (K3SClient, error) {
 	return &K3sClientImpl{
 		fc:      fc,
 		dClient: cli,
+		verbose: verbose,
 	}, nil
 }
