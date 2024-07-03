@@ -226,6 +226,7 @@ func GetAccVPNConfig(account string) (*fileclient.AccountVpnConfig, error) {
 		if err := fc.SetVpnAccountConfig(account, &accountVpnConfig); err != nil {
 			return nil, fn.NewE(err)
 		}
+		avc = &accountVpnConfig
 	}
 
 	if avc.WGconf == "" {
