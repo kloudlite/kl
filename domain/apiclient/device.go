@@ -212,9 +212,6 @@ func GetAccVPNConfig(account string) (*fileclient.AccountVpnConfig, error) {
 	}
 
 	avc, err := fc.GetVpnAccountConfig(account)
-	if err != nil {
-		return nil, functions.NewE(err)
-	}
 
 	if err != nil && os.IsNotExist(err) {
 		dev, err := createVpnForAccount()
