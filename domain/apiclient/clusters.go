@@ -16,7 +16,7 @@ type ClusterSetupInstructions struct {
 	ChartRepo    string         `json:"chart-repo"`
 	ChartVersion string         `json:"chart-version"`
 	CRDSUrl      string         `json:"crds-url"`
-	HelmValues   map[string]any `json:"helm-values"`
+	HelmValues   map[string]any `json:"helm-values" yaml:"helm-values"`
 }
 
 func getClusterName(clusterName string, options ...fn.Option) (*CheckName, error) {

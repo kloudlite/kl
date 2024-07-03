@@ -3,6 +3,7 @@ package k3s
 import (
 	"context"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"os"
 	"strings"
 
@@ -15,6 +16,15 @@ import (
 	"github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
 )
+
+func indent(text []byte, spaces int) string {
+	pad := strings.Repeat(" ", spaces)
+	lines := strings.Split(string(text), "\n")
+	for i, line := range lines {
+		lines[i] = pad + line
+	}
+	return strings.Join(lines, "\n")
+}
 
 func dockerLabelFilter(key, value string) filters.KeyValuePair {
 	return filters.Arg("label", fmt.Sprintf("%s=%s", key, value))
@@ -85,6 +95,7 @@ func (k *K3sClientImpl) CreateCluster(accName, name string) error {
 }
 
 func (k *K3sClientImpl) stop(name string) error {
+	spinner.Client.UpdateMessage(fmt.Sprintf("stopping cluster %s", name))
 	data, err := k.dClient.ContainerInspect(context.Background(), "kl-cluster-"+name)
 	if err != nil {
 		if !errdefs.IsInvalidParameter(err) {
@@ -107,6 +118,52 @@ func (k *K3sClientImpl) stop(name string) error {
 }
 
 func (k *K3sClientImpl) setup(name string, instructions apiclient.ClusterSetupInstructions) error {
+	spinner.Client.UpdateMessage(fmt.Sprintf("setting up cluster %s", name))
+
+	helmValuesYaml, err := yaml.Marshal(instructions.HelmValues)
+	if err != nil {
+		return fmt.Errorf("failed to marshal Helm values to YAML: %w", err)
+	}
+
+	indentedHelmValues := indent(helmValuesYaml, 4)
+
+	formattedCommand := fmt.Sprintf(
+		`
+			while true; do
+				if kubectl get nodes 2>/dev/null | grep -q ' Ready'; then
+					break
+				else
+					echo "Waiting for cluster to be ready..."
+					sleep 5
+				fi
+			done
+			kubectl apply -f %s --server-side
+
+		    cat <<EOF | kubectl apply -f -\
+			apiVersion: v1
+			kind: Namespace
+			metadata:
+			  name: kloudlite
+       		---
+			apiVersion: helm.cattle.io/v1
+			kind: HelmChart
+			metadata:
+			  namespace: kloudlite
+			  name: kloudlite
+			spec:
+			  targetNamespace: kloudlite
+			  createNamespace: true
+			  version: %s
+			  chart: kloudlite
+			  repo: %s
+			  valuesContent: |-
+%s
+			EOF
+		`, instructions.CRDSUrl, instructions.ChartVersion, instructions.ChartRepo, indentedHelmValues,
+	)
+	fmt.Println(formattedCommand)
+	return nil
+
 	exec, err := k.dClient.ContainerExecCreate(context.Background(), "kl-cluster-"+name, container.ExecOptions{
 		AttachStdout: true,
 		AttachStderr: true,
@@ -121,7 +178,28 @@ func (k *K3sClientImpl) setup(name string, instructions apiclient.ClusterSetupIn
 				fi
 			done
 			kubectl apply -f %s --server-side
-		`, instructions.CRDSUrl,
+
+		    cat  <<EOF | kubectl apply -f -\
+			apiVersion: v1
+			kind: Namespace
+			metadata:
+			  name: kloudlite
+       		---
+			apiVersion: helm.cattle.io/v1
+			kind: HelmChart
+			metadata:
+			  namespace: kloudlite
+			  name: kloudlite
+			spec:
+			  targetNamespace:  kloudlite
+			  createNamespace: true
+			  version: %s
+			  chart: kloudlite
+			  repo: %s
+			  valuesContent: |-
+				%s
+			EOF
+		`, instructions.CRDSUrl, instructions.ChartVersion, instructions.ChartRepo, indentedHelmValues,
 		)},
 	})
 	if err != nil {
@@ -144,6 +222,7 @@ func (k *K3sClientImpl) setup(name string, instructions apiclient.ClusterSetupIn
 }
 
 func (k *K3sClientImpl) start(accName, name string) error {
+	spinner.Client.UpdateMessage(fmt.Sprintf("starting cluster %s", name))
 	data, err := k.dClient.ContainerInspect(context.Background(), "kl-cluster-"+name)
 	if err == nil && data.State.Running {
 		return nil

@@ -135,5 +135,5 @@ func (fc *fclient) GetCluster(clusterName string) (*Cluster, error) {
 			return c, nil
 		}
 	}
-	return nil, nil
+	return nil, fn.NewE(fmt.Errorf("cluster %s not found", clusterName))
 }

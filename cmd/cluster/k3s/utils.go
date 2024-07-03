@@ -58,7 +58,6 @@ func (c *K3sClientImpl) imageExists(imageName string) (bool, error) {
 			}
 		}
 	}
-	fmt.Println("image does not exist")
 	return false, nil
 }
 
