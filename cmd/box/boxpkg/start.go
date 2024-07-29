@@ -108,13 +108,11 @@ func (c *client) Start() error {
 	if err != nil {
 		return fn.NewE(err)
 	}
-	for k, v := range data.SelectedEnvs {
-		if k == c.cwd {
-			v.SSHPort = c.env.SSHPort
+	if data.SelectedEnvs[c.cwd].SSHPort == 0 {
+		data.SelectedEnvs[c.cwd].SSHPort = c.env.SSHPort
+		if err := fileclient.SaveExtraData(data); err != nil {
+			return fn.NewE(err)
 		}
-	}
-	if err := fileclient.SaveExtraData(data); err != nil {
-		return fn.NewE(err)
 	}
 
 	fn.Logf("%s %s %s\n", text.Bold("command:"), text.Blue("ssh"), text.Blue(strings.Join([]string{fmt.Sprintf("kl@%s", getDomainFromPath(c.cwd)), "-p", fmt.Sprint(c.env.SSHPort), "-oStrictHostKeyChecking=no"}, " ")))
