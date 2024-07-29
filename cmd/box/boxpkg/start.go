@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"os"
 	"strconv"
 	"strings"
@@ -101,6 +102,19 @@ func (c *client) Start() error {
 		if err != nil {
 			return fn.NewE(err)
 		}
+	}
+
+	data, err := fileclient.GetExtraData()
+	if err != nil {
+		return fn.NewE(err)
+	}
+	for k, v := range data.SelectedEnvs {
+		if k == c.cwd {
+			v.SSHPort = c.env.SSHPort
+		}
+	}
+	if err := fileclient.SaveExtraData(data); err != nil {
+		return fn.NewE(err)
 	}
 
 	fn.Logf("%s %s %s\n", text.Bold("command:"), text.Blue("ssh"), text.Blue(strings.Join([]string{fmt.Sprintf("kl@%s", getDomainFromPath(c.cwd)), "-p", fmt.Sprint(c.env.SSHPort), "-oStrictHostKeyChecking=no"}, " ")))
