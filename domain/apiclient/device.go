@@ -132,7 +132,6 @@ func (apic *apiClient) CheckDeviceStatus() bool {
 	}
 
 	client := new(dns.Client)
-
 	client.Timeout = 2 * time.Second
 
 	message := new(dns.Msg)
@@ -140,7 +139,7 @@ func (apic *apiClient) CheckDeviceStatus() bool {
 	message.RecursionDesired = true
 
 	// Send the DNS query
-	response, _, err := client.Exchange(message, "127.0.0.1:53")
+	response, _, err := client.Exchange(message, "100.64.0.1:53")
 	if err != nil {
 		logF("Failed to get DNS response: %v\n", err)
 		return false
@@ -154,7 +153,6 @@ func (apic *apiClient) CheckDeviceStatus() bool {
 		for _, answer := range response.Answer {
 			logF("%s\n", answer.String())
 		}
-
 	}
 	return true
 }

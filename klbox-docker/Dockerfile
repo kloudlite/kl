@@ -11,7 +11,9 @@ COPY --from=project . /kl-app
 
 ARG VERSION
 
-RUN go build --tags=box -ldflags="-X github.com/kloudlite/kl/flags.Version=${VERSION} -X github.com/kloudlite/kl/flags.CliName=kl" -o ./bin/kl main.go
+ENV CGO_ENABLED=0
+
+RUN go build -x --tags=box -ldflags="-X github.com/kloudlite/kl/flags.Version=${VERSION} -X github.com/kloudlite/kl/flags.CliName=kl" -o ./bin/kl main.go
 
 
 FROM --platform=$TARGETPLATFORM ubuntu:latest
