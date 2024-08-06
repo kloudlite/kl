@@ -2,6 +2,7 @@ package apiclient
 
 import (
 	"fmt"
+	"github.com/kloudlite/kl/constants"
 	"os"
 
 	"time"
@@ -139,7 +140,7 @@ func (apic *apiClient) CheckDeviceStatus() bool {
 	message.RecursionDesired = true
 
 	// Send the DNS query
-	response, _, err := client.Exchange(message, "100.64.0.1:53")
+	response, _, err := client.Exchange(message, constants.KLDNS+":53")
 	if err != nil {
 		logF("Failed to get DNS response: %v\n", err)
 		return false

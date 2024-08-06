@@ -17,7 +17,7 @@ var rootCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 		if s, ok := os.LookupEnv("KL_DEV"); ok && s == "true" {
 			flags.DevMode = "true"
-		} else if s == "false" {
+		} else if ok && s == "false" {
 			flags.DevMode = "false"
 		}
 
