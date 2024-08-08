@@ -56,9 +56,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Push Image
-        if: startsWith(github.ref, 'refs/heads/release-') || startsWith(github.ref, 'refs/tags/')
+        # if: startsWith(github.ref, 'refs/heads/release-') || startsWith(github.ref, 'refs/tags/')
         env:
-          IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
+          #IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
+          # IMAGE_TAG: v1.0.7-nightly
+          IMAGE_TAG: ci-testing
           OVERRIDE_PUSHED_IMAGE: "false"
         run: |
           set +e
