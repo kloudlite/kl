@@ -328,7 +328,7 @@ jobs:
 
   release:
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     needs: build
