@@ -11,6 +11,8 @@ type FileClient interface {
 	Logout() error
 	GetVpnAccountConfig(account string) (*AccountVpnConfig, error)
 	SetVpnAccountConfig(account string, config *AccountVpnConfig) error
+	GetClusterConfig(account string) (*AccountClusterConfig, error)
+	SetClusterConfig(account string, accClusterConfig *AccountClusterConfig) error
 
 	WriteKLFile(fileObj KLFileType) error
 	GetKlFile(filePath string) (*KLFileType, error)
