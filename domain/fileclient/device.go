@@ -14,6 +14,13 @@ type AccountVpnConfig struct {
 	DeviceName string `json:"device"`
 }
 
+type AccountClusterConfig struct {
+	ClusterToken          string `json:"cluster_token"`
+	ClusterName           string `json:"cluster"`
+	MessageOfficeGRPCAddr string `json:"message_office_grpc_addr"`
+	KloudliteDNSSuffix    string `json:"kloudlite_dns_suffix"`
+}
+
 func (a *AccountVpnConfig) Marshal() ([]byte, error) {
 	return json.Marshal(a)
 }

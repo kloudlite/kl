@@ -2,6 +2,7 @@ package constants
 
 import (
 	"fmt"
+
 	"github.com/kloudlite/kl/flags"
 
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -18,6 +19,10 @@ const (
 
 func GetWireguardImageName() string {
 	return fmt.Sprintf("ghcr.io/kloudlite/kl/box/wireguard:%s", flags.Version)
+}
+
+func GetK3SImageName() string {
+	return "docker.io/rancher/k3s:v1.27.5-k3s1"
 }
 
 var (

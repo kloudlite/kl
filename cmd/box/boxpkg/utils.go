@@ -66,7 +66,7 @@ func (c *client) ensurePublicKey() error {
 }
 func (c *client) ensureCacheExist() error {
 
-	caches := []string{"kl-nix-store", "kl-nix-home-cache"}
+	caches := []string{"kl-nix-store", "kl-home-cache", "kl-k3s-cache"}
 
 	for _, cache := range caches {
 		vlist, err := c.cli.VolumeList(c.cmd.Context(), volume.ListOptions{
@@ -594,6 +594,61 @@ func (c *client) SyncVpn(wg string) error {
 		},
 	}, &network.NetworkingConfig{}, nil, "")
 	if err != nil {
+		return fn.Error("failed to create container")
+	}
+	err = c.cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{})
+	if err != nil {
+		return fn.Error("failed to start container")
+	}
+	return nil
+}
+
+func (c *client) EnsureK3SCluster() error {
+	err := c.ensureImage(constants.GetK3SImageName())
+	if err != nil {
+		return err
+	}
+	existingContainer, err := c.cli.ContainerList(context.Background(), container.ListOptions{
+		Filters: filters.NewArgs(
+			dockerLabelFilter(CONT_MARK_KEY, "true"),
+			dockerLabelFilter("kl-k3s", "true"),
+		),
+	})
+	if err != nil {
+		return fn.Error("failed to list containers")
+	}
+
+	if existingContainer != nil && (len(existingContainer) > 0) {
+		if existingContainer[0].State != "running" {
+			err := c.cli.ContainerStart(context.Background(), existingContainer[0].ID, container.StartOptions{})
+			if err != nil {
+				return fn.Error("failed to start container")
+			}
+		}
+		return nil
+	}
+
+	// {Type: mount.TypeVolume, Source: "kl-home-cache", Target: "/home"},
+
+	resp, err := c.cli.ContainerCreate(context.Background(), &container.Config{
+		Labels: map[string]string{
+			CONT_MARK_KEY: "true",
+			"kl-k3s":      "true",
+		},
+		Image: constants.GetK3SImageName(),
+		Cmd:   []string{"server"},
+	}, &container.HostConfig{
+		Privileged:  true,
+		NetworkMode: "host",
+		RestartPolicy: container.RestartPolicy{
+			Name: "always",
+		},
+		Binds: []string{
+			"kl-k3s-cache:/var/lib/rancher/k3s",
+		},
+	}, &network.NetworkingConfig{}, nil, "")
+	if err != nil {
+		fmt.Println(err)
 		return fn.Error("failed to create container")
 	}
 	err = c.cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{})

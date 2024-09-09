@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/kloudlite/kl/domain/fileclient"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/kloudlite/kl/domain/fileclient"
 
 	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/pkg/functions"
@@ -58,6 +59,12 @@ func (c *client) Start() error {
 			return fn.NewE(err)
 		}
 	}
+
+	err = c.StartClusterContainer()
+	if err != nil {
+		return fn.NewE(err)
+	}
+
 	_, err = c.startContainer(boxHash.KLConfHash)
 	if err != nil {
 		return fn.NewE(err)
@@ -70,10 +77,10 @@ func (c *client) Start() error {
 		return fn.NewE(err)
 	}
 
-	err = c.StartWgContainer()
-	if err != nil {
-		return fn.NewE(err)
-	}
+	// err = c.StartWgContainer()
+	// if err != nil {
+	// 	return fn.NewE(err)
+	// }
 
 	if c.env.SSHPort == 0 {
 		existingContainers, err := c.cli.ContainerList(context.Background(), container.ListOptions{
@@ -114,6 +121,11 @@ func (c *client) Start() error {
 	fn.Logf("%s %s %s\n", text.Bold("command:"), text.Blue("ssh"), text.Blue(strings.Join([]string{fmt.Sprintf("kl@%s", getDomainFromPath(c.cwd)), "-p", fmt.Sprint(c.env.SSHPort), "-oStrictHostKeyChecking=no"}, " ")))
 
 	return nil
+}
+
+func (c *client) StartClusterContainer() error {
+	defer spinner.Client.UpdateMessage("starting k3s cluster")()
+	return c.EnsureK3SCluster()
 }
 
 func (c *client) StartWgContainer() error {

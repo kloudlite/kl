@@ -26,6 +26,8 @@ type ApiClient interface {
 	CheckDeviceStatus() bool
 	GetAccVPNConfig(account string) (*fileclient.AccountVpnConfig, error)
 
+	GetClusterConfig(account string) (*fileclient.AccountClusterConfig, error)
+
 	ListEnvs(accountName string) ([]Env, error)
 	GetEnvironment(accountName, envName string) (*Env, error)
 	EnsureEnv() (*fileclient.Env, error)
