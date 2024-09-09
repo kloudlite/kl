@@ -114,6 +114,7 @@ type CheckName struct {
 
 const (
 	VPNDeviceType = "global_vpn_device"
+	ClusterType   = "byok_cluster"
 )
 
 func (apic *apiClient) CheckDeviceStatus() bool {

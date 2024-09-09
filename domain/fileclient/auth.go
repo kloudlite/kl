@@ -73,6 +73,5 @@ func (fc *fclient) Logout() error {
 			}
 		}
 	}
-
 	return os.Remove(path.Join(configPath, sessionFile.Name()))
 }

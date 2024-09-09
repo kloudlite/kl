@@ -9,10 +9,24 @@ import (
 )
 
 type AccountClusterConfig struct {
+	ClusterToken   string `json:"clusterToken"`
+	ClusterName    string `json:"cluster"`
+	InstallCommand InstallCommand
+}
+
+type InstallHelmValues struct {
+	AccountName           string `json:"accountName"`
+	ClusterName           string `json:"clusterName"`
 	ClusterToken          string `json:"clusterToken"`
-	ClusterName           string `json:"cluster"`
-	MessageOfficeGRPCAddr string `json:"MessageOfficeGRPCAddr"`
 	KloudliteDNSSuffix    string `json:"kloudliteDNSSuffix"`
+	MessageOfficeGRPCAddr string `json:"messageOfficeGRPCAddr"`
+}
+
+type InstallCommand struct {
+	ChartRepo    string `json:"chart-repo"`
+	ChartVersion string `json:"chart-version"`
+	CRDsURL      string `json:"crds-url"`
+	HelmValues   InstallHelmValues
 }
 
 func (a *AccountClusterConfig) Marshal() ([]byte, error) {
