@@ -603,7 +603,7 @@ func (c *client) SyncVpn(wg string) error {
 	return nil
 }
 
-func (c *client) EnsureK3SCluster() error {
+func (c *client) EnsureK3SCluster(clusterConfig *fileclient.AccountClusterConfig) error {
 	err := c.ensureImage(constants.GetK3SImageName())
 	if err != nil {
 		return err

@@ -8,9 +8,12 @@ import (
 )
 
 type Cluster struct {
-	ClusterToken   string `json:"clusterToken"`
-	ClusterName    string `json:"cluster"`
-	InstallCommand InstallCommand
+	ClusterToken   string         `json:"clusterToken"`
+	Name           string         `json:"name"`
+	InstallCommand InstallCommand `json:"installCommand"`
+	Metadata       struct {
+		Name string `json:"name"`
+	} `json:"metadata"`
 }
 
 type InstallCommand struct {
@@ -40,7 +43,7 @@ func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClus
 		}
 		config := fileclient.AccountClusterConfig{
 			ClusterToken: forAccount.ClusterToken,
-			ClusterName:  forAccount.ClusterName,
+			ClusterName:  forAccount.Metadata.Name,
 			InstallCommand: fileclient.InstallCommand{
 				ChartRepo:    forAccount.InstallCommand.ChartRepo,
 				ChartVersion: forAccount.InstallCommand.ChartVersion,
@@ -121,7 +124,7 @@ func createCluster(clusterName string) (*Cluster, error) {
 	}
 
 	respData, err = klFetch("cli_clusterReferenceInstructions", map[string]any{
-		"name": d.ClusterName,
+		"name": d.Metadata.Name,
 	}, &cookie)
 
 	if err != nil {

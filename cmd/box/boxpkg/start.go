@@ -125,11 +125,11 @@ func (c *client) Start() error {
 
 func (c *client) StartClusterContainer() error {
 	defer spinner.Client.UpdateMessage("starting k3s cluster")()
-	_, err := c.apic.GetClusterConfig(c.klfile.AccountName)
+	clusterConfig, err := c.apic.GetClusterConfig(c.klfile.AccountName)
 	if err != nil {
 		return fn.NewE(err)
 	}
-	return c.EnsureK3SCluster()
+	return c.EnsureK3SCluster(clusterConfig)
 }
 
 func (c *client) StartWgContainer() error {
