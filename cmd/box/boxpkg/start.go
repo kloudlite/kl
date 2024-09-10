@@ -129,7 +129,15 @@ func (c *client) StartClusterContainer() error {
 	if err != nil {
 		return fn.NewE(err)
 	}
-	return c.EnsureK3SCluster(clusterConfig)
+	err = c.EnsureK3SCluster()
+	if err != nil {
+		return fn.NewE(err)
+	}
+	err = c.ConnectClusterToAccount(clusterConfig)
+	if err != nil {
+		return fn.NewE(err)
+	}
+	return nil
 }
 
 func (c *client) StartWgContainer() error {

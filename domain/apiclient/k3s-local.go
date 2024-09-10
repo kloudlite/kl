@@ -8,9 +8,9 @@ import (
 )
 
 type Cluster struct {
-	ClusterToken   string         `json:"clusterToken"`
-	Name           string         `json:"name"`
-	InstallCommand InstallCommand `json:"installCommand"`
+	ClusterToken   string          `json:"clusterToken"`
+	Name           string          `json:"name"`
+	InstallCommand *InstallCommand `json:"installCommand"`
 	Metadata       struct {
 		Name string `json:"name"`
 	} `json:"metadata"`
@@ -26,7 +26,7 @@ type InstallCommand struct {
 		ClusterToken          string `json:"clusterToken"`
 		KloudliteDNSSuffix    string `json:"kloudliteDNSSuffix"`
 		MessageOfficeGRPCAddr string `json:"messageOfficeGRPCAddr"`
-	}
+	} `json:"helm-values"`
 }
 
 func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClusterConfig, error) {
@@ -131,13 +131,15 @@ func createCluster(clusterName string) (*Cluster, error) {
 		return nil, fn.NewE(err)
 	}
 
+	fmt.Println(string(respData))
+
 	instruction, err := GetFromResp[InstallCommand](respData)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
+	fmt.Println(instruction)
 
-	d.InstallCommand = *instruction
-
+	d.InstallCommand = instruction
 	return d, nil
 }
 

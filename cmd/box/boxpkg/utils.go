@@ -2,6 +2,7 @@ package boxpkg
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/md5"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"path"
 	"runtime"
 	"strconv"
+	"text/template"
 	"time"
 
 	"github.com/adrg/xdg"
@@ -603,12 +605,105 @@ func (c *client) SyncVpn(wg string) error {
 	return nil
 }
 
-func (c *client) EnsureK3SCluster(clusterConfig *fileclient.AccountClusterConfig) error {
+func generateConnectionScript(clusterConfig *fileclient.AccountClusterConfig) (string, error) {
+	t := template.New("connectionScript")
+	p, err := t.Parse(`
+echo "checking whether k3s server is accepting connections"
+while true; do
+  lines=$(kubectl get nodes | wc -l)
+  if [ "$lines" -lt 2 ]; then
+	echo "k3s server is not accepting connections yet, retrying in 1s ..."
+	sleep 1
+	continue
+  fi
+  echo "successful, k3s server is now accepting connections"
+  break
+done
+kubectl apply -f {{.InstallCommand.CRDsURL}} --server-side
+kubectl create ns kloudlite
+cat <<EOF | kubectl apply -f -
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: kloudlite
+  namespace: kube-system
+spec:
+  repo: {{.InstallCommand.ChartRepo}}
+  chart: kloudlite-agent
+  version: {{.InstallCommand.ChartVersion}}
+  targetNamespace: kloudlite
+  valuesContent: |-
+    accountName: {{.InstallCommand.HelmValues.AccountName}}
+    clusterName: {{.InstallCommand.HelmValues.ClusterName}}
+    clusterToken: {{.InstallCommand.HelmValues.ClusterToken}}
+    kloudliteDNSSuffix: {{.InstallCommand.HelmValues.KloudliteDNSSuffix}}
+    messageOfficeGRPCAddr: {{.InstallCommand.HelmValues.MessageOfficeGRPCAddr}}
+EOF
+`)
+	if err != nil {
+		return "", fn.NewE(err)
+	}
+	b := new(bytes.Buffer)
+	err = p.Execute(b, clusterConfig)
+	if err != nil {
+		return "", fn.NewE(err)
+	}
+	return b.String(), nil
+}
+
+func (c *client) ConnectClusterToAccount(cConfig *fileclient.AccountClusterConfig) error {
+	existingContainer, err := c.cli.ContainerList(context.Background(), container.ListOptions{
+		Filters: filters.NewArgs(
+			dockerLabelFilter(CONT_MARK_KEY, "true"),
+			dockerLabelFilter("kl-k3s", "true"),
+			dockerLabelFilter("kl-account", c.klfile.AccountName),
+		),
+	})
+	if err != nil {
+		return fn.Error("k3s container should exist")
+	}
+	if len(existingContainer) == 0 {
+		return fn.Error("no k3s container found")
+	}
+	script, err := generateConnectionScript(cConfig)
+	if err != nil {
+		return fn.Error("failed to generate connection script")
+	}
+	execConfig := container.ExecOptions{
+		Cmd: []string{"sh", "-c", script},
+	}
+	resp, err := c.cli.ContainerExecCreate(context.Background(), existingContainer[0].ID, execConfig)
+	if err != nil {
+		return fn.Error("failed to create exec")
+	}
+
+	err = c.cli.ContainerExecStart(context.Background(), resp.ID, container.ExecStartOptions{})
+	if err != nil {
+		return fn.Error("failed to start exec")
+	}
+
+	for {
+		inspectResp, err := c.cli.ContainerExecInspect(context.Background(), resp.ID)
+		if err != nil {
+			return fn.Error("failed to inspect exec")
+		}
+		if !inspectResp.Running {
+			if inspectResp.ExitCode == 0 {
+				return nil
+			} else {
+				return fn.Error(fmt.Sprintf("command failed with exit code %d", inspectResp.ExitCode))
+			}
+		}
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func (c *client) EnsureK3SCluster() error {
 	err := c.ensureImage(constants.GetK3SImageName())
 	if err != nil {
 		return err
 	}
-	existingContainer, err := c.cli.ContainerList(context.Background(), container.ListOptions{
+	existingContainers, err := c.cli.ContainerList(context.Background(), container.ListOptions{
 		Filters: filters.NewArgs(
 			dockerLabelFilter(CONT_MARK_KEY, "true"),
 			dockerLabelFilter("kl-k3s", "true"),
@@ -618,22 +713,34 @@ func (c *client) EnsureK3SCluster(clusterConfig *fileclient.AccountClusterConfig
 		return fn.Error("failed to list containers")
 	}
 
-	if existingContainer != nil && (len(existingContainer) > 0) {
-		if existingContainer[0].State != "running" {
-			err := c.cli.ContainerStart(context.Background(), existingContainer[0].ID, container.StartOptions{})
+	if existingContainers != nil && (len(existingContainers) > 0) {
+		if existingContainers[0].Labels["kl-account"] != c.klfile.AccountName {
+			err := c.cli.ContainerStop(context.Background(), existingContainers[0].ID, container.StopOptions{})
 			if err != nil {
-				return fn.Error("failed to start container")
+				return fn.Error("failed to stop container")
 			}
+			err = c.cli.ContainerRemove(context.Background(), existingContainers[0].ID, container.RemoveOptions{
+				Force: true,
+			})
+			if err != nil {
+				return fn.Error("failed to remove container")
+			}
+		} else {
+			if existingContainers[0].State != "running" {
+				err := c.cli.ContainerStart(context.Background(), existingContainers[0].ID, container.StartOptions{})
+				if err != nil {
+					return fn.Error("failed to start container")
+				}
+			}
+			return nil
 		}
-		return nil
 	}
-
-	// {Type: mount.TypeVolume, Source: "kl-home-cache", Target: "/home"},
 
 	resp, err := c.cli.ContainerCreate(context.Background(), &container.Config{
 		Labels: map[string]string{
 			CONT_MARK_KEY: "true",
 			"kl-k3s":      "true",
+			"kl-account":  c.klfile.AccountName,
 		},
 		Image: constants.GetK3SImageName(),
 		Cmd:   []string{"server"},
