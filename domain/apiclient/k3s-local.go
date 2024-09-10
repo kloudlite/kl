@@ -131,13 +131,10 @@ func createCluster(clusterName string) (*Cluster, error) {
 		return nil, fn.NewE(err)
 	}
 
-	fmt.Println(string(respData))
-
 	instruction, err := GetFromResp[InstallCommand](respData)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	fmt.Println(instruction)
 
 	d.InstallCommand = instruction
 	return d, nil

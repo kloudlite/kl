@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
+	"github.com/kloudlite/kl/pkg/ui/text"
 	"math/rand"
 	"net"
 	"os"
@@ -344,7 +345,7 @@ func (c *client) stopOtherContainers() error {
 	for _, d := range existingContainers {
 		if d.Labels[CONT_PATH_KEY] != c.cwd {
 			spinner.Client.Stop()
-			fn.Logf("[#] another workspace is active and running at %s. this action will stop that workspace and terminate all the processes running in the that container. do you want to proceed? [Y/n]", d.Labels[CONT_PATH_KEY])
+			fn.Logf(text.Yellow(fmt.Sprintf("[#] another workspace is active and running at %s. this action will stop that workspace and terminate all the processes running in the that container. do you want to proceed? [Y/n]", d.Labels[CONT_PATH_KEY])))
 			if !fn.Confirm("y", "y") {
 				return fn.NewE(fn.NewE(UserCanceled))
 			}
@@ -755,7 +756,6 @@ func (c *client) EnsureK3SCluster() error {
 		},
 	}, &network.NetworkingConfig{}, nil, "")
 	if err != nil {
-		fmt.Println(err)
 		return fn.Error("failed to create container")
 	}
 	err = c.cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{})
