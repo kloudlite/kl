@@ -33,6 +33,15 @@ func (fc *fclient) Logout() error {
 			return fn.NewE(err)
 		}
 	}
+
+	k3sConfigPath := path.Join(configPath, "k3s-local")
+	_, err = os.Stat(k3sConfigPath)
+	if err == nil {
+		if err := os.RemoveAll(k3sConfigPath); err != nil {
+			return fn.NewE(err)
+		}
+	}
+
 	vpnConfigPath := path.Join(configPath, "vpn")
 	_, err = os.Stat(vpnConfigPath)
 	if err == nil {

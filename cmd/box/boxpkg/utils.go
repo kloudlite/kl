@@ -607,7 +607,7 @@ func (c *client) SyncVpn(wg string) error {
 	return nil
 }
 
-func generateConnectionScript(clusterConfig *fileclient.AccountClusterConfig) (string, error) {
+func GenerateConnectionScript(clusterConfig *fileclient.AccountClusterConfig) (string, error) {
 	t := template.New("connectionScript")
 	p, err := t.Parse(`
 echo "checking whether k3s server is accepting connections"
@@ -667,7 +667,7 @@ func (c *client) ConnectClusterToAccount(cConfig *fileclient.AccountClusterConfi
 	if len(existingContainer) == 0 {
 		return fn.Error("no k3s container found")
 	}
-	script, err := generateConnectionScript(cConfig)
+	script, err := GenerateConnectionScript(cConfig)
 	if err != nil {
 		return fn.Error("failed to generate connection script")
 	}
