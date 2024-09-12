@@ -6,7 +6,6 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
-	"github.com/kloudlite/kl/pkg/ui/text"
 	"math/rand"
 	"net"
 	"os"
@@ -16,6 +15,8 @@ import (
 	"strconv"
 	"text/template"
 	"time"
+
+	"github.com/kloudlite/kl/pkg/ui/text"
 
 	"github.com/adrg/xdg"
 	"github.com/docker/docker/api/types"
@@ -744,7 +745,13 @@ func (c *client) EnsureK3SCluster() error {
 			"kl-account":  c.klfile.AccountName,
 		},
 		Image: constants.GetK3SImageName(),
-		Cmd:   []string{"server"},
+		Cmd: []string{
+			"server",
+			"--tls-san",
+			"0.0.0.0",
+			"--tls-san",
+			fmt.Sprintf("%s.kcluster.local.khost.dev", c.klfile.AccountName),
+		},
 	}, &container.HostConfig{
 		Privileged:  true,
 		NetworkMode: "host",
@@ -752,7 +759,8 @@ func (c *client) EnsureK3SCluster() error {
 			Name: "always",
 		},
 		Binds: []string{
-			"kl-k3s-cache:/var/lib/rancher/k3s",
+			//"/Users/karthik/Downloads/k9s/k9s:/bin/k9s",
+			fmt.Sprintf("kl-k3s-%s-cache:/var/lib/rancher/k3s", c.klfile.AccountName),
 		},
 	}, &network.NetworkingConfig{}, nil, "")
 	if err != nil {

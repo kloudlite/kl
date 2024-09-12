@@ -12,6 +12,7 @@ type AccountClusterConfig struct {
 	ClusterToken   string `json:"clusterToken"`
 	ClusterName    string `json:"cluster"`
 	InstallCommand InstallCommand
+	Installed      bool
 }
 
 type InstallHelmValues struct {

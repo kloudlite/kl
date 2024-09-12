@@ -125,7 +125,7 @@ func (c *client) Start() error {
 
 func (c *client) StartClusterContainer() error {
 	defer spinner.Client.UpdateMessage("starting k3s cluster")()
-	clusterConfig, err := c.apic.GetClusterConfig(c.klfile.AccountName)
+	_, err := c.apic.GetClusterConfig(c.klfile.AccountName)
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -133,7 +133,16 @@ func (c *client) StartClusterContainer() error {
 	if err != nil {
 		return fn.NewE(err)
 	}
-	err = c.ConnectClusterToAccount(clusterConfig)
+	config, err := c.fc.GetClusterConfig(c.klfile.AccountName)
+	if config.Installed {
+		return nil
+	}
+	err = c.ConnectClusterToAccount(config)
+	if err != nil {
+		return fn.NewE(err)
+	}
+	config.Installed = true
+	err = c.fc.SetClusterConfig(c.klfile.AccountName, config)
 	if err != nil {
 		return fn.NewE(err)
 	}
