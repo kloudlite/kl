@@ -3,7 +3,6 @@ package fileclient
 import (
 	"errors"
 	"fmt"
-	"net"
 	"os"
 	"path"
 	"runtime"
@@ -21,6 +20,7 @@ const (
 	SessionFileName   string = "kl-session.yaml"
 	ExtraDataFileName string = "kl-extra-data.yaml"
 	CompleteFileName  string = "kl-completion"
+	DeviceFileName    string = "kl-device.yaml"
 )
 
 type Env struct {
@@ -37,13 +37,8 @@ type MainContext struct {
 }
 
 type DeviceContext struct {
-	DeviceName string `json:"deviceName"`
-
-	// PrivateKey []byte `json:"privateKey"`
-	DeviceIp  net.IP   `json:"deviceIp"`
-	DeviceDns []string `json:"deviceDns"`
-
-	SearchDomain string `json:"searchDomain"`
+	DisplayName string `json:"display_name"`
+	DeviceName  string `json:"device_name"`
 }
 
 type InfraContext struct {
@@ -184,6 +179,42 @@ func GetExtraData() (*ExtraData, error) {
 	}
 
 	return &extraData, nil
+}
+
+func SaveDevice(device *DeviceContext) error {
+	file, err := yaml.Marshal(device)
+	if err != nil {
+		return functions.NewE(err)
+	}
+
+	return writeOnUserScope(DeviceFileName, file)
+}
+
+func GetDevice() (*DeviceContext, error) {
+	file, err := ReadFile(DeviceFileName)
+	device := DeviceContext{}
+
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			b, err := yaml.Marshal(device)
+
+			if err != nil {
+				return nil, functions.NewE(err)
+			}
+
+			if err := writeOnUserScope(DeviceFileName, b); err != nil {
+				return nil, functions.NewE(err)
+			}
+		}
+
+		return &device, nil
+	}
+
+	if err = yaml.Unmarshal(file, &device); err != nil {
+		return nil, functions.NewE(err)
+	}
+
+	return &device, nil
 }
 
 func GetCookieString(options ...fn.Option) (string, error) {

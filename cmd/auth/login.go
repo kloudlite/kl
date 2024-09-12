@@ -69,7 +69,7 @@ var loginCmd = &cobra.Command{
 			return
 		}
 
-		if err = createClusters(apic, fc); err != nil {
+		if err = createClustersAccounts(apic, fc); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -78,7 +78,7 @@ var loginCmd = &cobra.Command{
 	},
 }
 
-func createClusters(apic apiclient.ApiClient, fc fileclient.FileClient) error {
+func createClustersAccounts(apic apiclient.ApiClient, fc fileclient.FileClient) error {
 	account, err := apic.ListAccounts()
 	if err != nil {
 		return fn.NewE(err)

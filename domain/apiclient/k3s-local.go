@@ -1,9 +1,11 @@
 package apiclient
 
 import (
+	"crypto/rand"
 	"fmt"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"math/big"
 	"os"
 )
 
@@ -29,6 +31,19 @@ type InstallCommand struct {
 	} `json:"helm-values"`
 }
 
+func generateRandomID(length int) (string, error) {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	result := make([]byte, length)
+	for i := range result {
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return "", err
+		}
+		result[i] = charset[num.Int64()]
+	}
+	return string(result), nil
+}
+
 func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClusterConfig, error) {
 	clusterConfig, err := apic.fc.GetClusterConfig(account)
 	if err != nil {
@@ -37,7 +52,7 @@ func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClus
 		}
 	}
 	if clusterConfig == nil {
-		forAccount, err := createClusterForAccount()
+		forAccount, err := createClusterForAccount(account)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
@@ -66,8 +81,8 @@ func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClus
 	return clusterConfig, nil
 }
 
-func getClusterName(clusterName string) (*CheckName, error) {
-	cookie, err := getCookie()
+func getClusterName(clusterName, account string) (*CheckName, error) {
+	cookie, err := getCookie(fn.MakeOption("accountName", account))
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -87,13 +102,13 @@ func getClusterName(clusterName string) (*CheckName, error) {
 	}
 }
 
-func createCluster(clusterName string) (*Cluster, error) {
-	cn, err := getClusterName(clusterName)
+func createCluster(clusterName, displayName, account string) (*Cluster, error) {
+	cn, err := getClusterName(clusterName, account)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
 
-	cookie, err := getCookie()
+	cookie, err := getCookie(fn.MakeOption("accountName", account))
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -111,7 +126,7 @@ func createCluster(clusterName string) (*Cluster, error) {
 	respData, err := klFetch("cli_createClusterReference", map[string]any{
 		"cluster": map[string]any{
 			"metadata":    map[string]string{"name": dn},
-			"displayName": dn,
+			"displayName": displayName,
 			"visibility":  map[string]string{"mode": "private"},
 		},
 	}, &cookie)
@@ -140,22 +155,49 @@ func createCluster(clusterName string) (*Cluster, error) {
 	return d, nil
 }
 
-func createClusterForAccount() (*Cluster, error) {
-	clusterName, err := os.Hostname()
+func createClusterForAccount(account string) (*Cluster, error) {
+	//clusterName, err := os.Hostname()
+	//if err != nil {
+	//	return nil, fn.NewE(err)
+	//}
+	//checkNames, err := getClusterName(clusterName, account)
+	//if err != nil {
+	//	return nil, fn.NewE(err)
+	//}
+	//if !checkNames.Result {
+	//	if len(checkNames.SuggestedNames) == 0 {
+	//		return nil, fmt.Errorf("no suggested names for device %s", clusterName)
+	//	}
+	//	clusterName = checkNames.SuggestedNames[0]
+	//}
+	device, err := fileclient.GetDevice()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	checkNames, err := getClusterName(clusterName)
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
-	if !checkNames.Result {
-		if len(checkNames.SuggestedNames) == 0 {
-			return nil, fmt.Errorf("no suggested names for device %s", clusterName)
+	if device == nil || device.DeviceName == "" {
+		hostName, err := os.Hostname()
+		if err != nil {
+			return nil, fn.NewE(err)
 		}
-		clusterName = checkNames.SuggestedNames[0]
+		n, err := generateRandomID(8)
+		if err != nil {
+			return nil, fn.NewE(err)
+		}
+		hostName = hostName + "-" + n
+		d, err := createDevice(hostName, account)
+		if err != nil {
+			return nil, fn.NewE(err)
+		}
+		device = &fileclient.DeviceContext{
+			DisplayName: d.DisplayName,
+			DeviceName:  d.Metadata.Name,
+		}
+		err = fileclient.SaveDevice(device)
+		if err != nil {
+			return nil, fn.NewE(err)
+		}
 	}
-	cluster, err := createCluster(clusterName)
+	cluster, err := createCluster(device.DeviceName, device.DisplayName, account)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

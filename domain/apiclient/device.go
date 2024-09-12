@@ -66,13 +66,13 @@ func (apic *apiClient) GetVPNDevice(accountName string, devName string) (*Device
 	return GetFromResp[Device](respData)
 }
 
-func createDevice(devName string) (*Device, error) {
+func createDevice(devName, account string) (*Device, error) {
 	cn, err := getDeviceName(devName)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
 
-	cookie, err := getCookie()
+	cookie, err := getCookie(fn.MakeOption("accountName", account))
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -180,7 +180,7 @@ func getDeviceName(devName string) (*CheckName, error) {
 	}
 }
 
-func createVpnForAccount() (*Device, error) {
+func createVpnForAccount(account string) (*Device, error) {
 	devName, err := os.Hostname()
 	if err != nil {
 		return nil, fn.NewE(err)
@@ -195,7 +195,7 @@ func createVpnForAccount() (*Device, error) {
 		}
 		devName = checkNames.SuggestedNames[0]
 	}
-	device, err := createDevice(devName)
+	device, err := createDevice(devName, account)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -207,7 +207,7 @@ func (apic *apiClient) GetAccVPNConfig(account string) (*fileclient.AccountVpnCo
 	avc, err := apic.fc.GetVpnAccountConfig(account)
 
 	if err != nil && os.IsNotExist(err) {
-		dev, err := createVpnForAccount()
+		dev, err := createVpnForAccount(account)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
