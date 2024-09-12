@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
+	"github.com/kloudlite/kl/domain/apiclient"
 	"math/rand"
 	"net"
 	"os"
@@ -738,11 +739,37 @@ func (c *client) EnsureK3SCluster() error {
 		}
 	}
 
+	device, err := c.fc.GetDevice()
+	if device == nil || device.DeviceName == "" {
+		hostName, err := os.Hostname()
+		if err != nil {
+			return fn.NewE(err)
+		}
+		n, err := apiclient.GenerateRandomID(14)
+		if err != nil {
+			return fn.NewE(err)
+		}
+		hostName = hostName + "-" + n
+		d, err := c.apic.CreateDevice(hostName, c.klfile.AccountName)
+		if err != nil {
+			return fn.NewE(err)
+		}
+		device = &fileclient.DeviceContext{
+			DisplayName: d.DisplayName,
+			DeviceName:  d.Metadata.Name,
+		}
+		err = c.fc.SetDevice(device)
+		if err != nil {
+			return fn.NewE(err)
+		}
+	}
+
 	resp, err := c.cli.ContainerCreate(context.Background(), &container.Config{
 		Labels: map[string]string{
 			CONT_MARK_KEY: "true",
 			"kl-k3s":      "true",
 			"kl-account":  c.klfile.AccountName,
+			"kl-device":   device.DeviceName,
 		},
 		Image: constants.GetK3SImageName(),
 		Cmd: []string{

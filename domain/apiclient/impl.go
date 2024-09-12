@@ -25,6 +25,8 @@ type ApiClient interface {
 	GetVPNDevice(accountName string, devName string) (*Device, error)
 	CheckDeviceStatus() bool
 	GetAccVPNConfig(account string) (*fileclient.AccountVpnConfig, error)
+	CreateVpnForAccount(account string) (*Device, error)
+	CreateDevice(devName, account string) (*Device, error)
 
 	GetClusterConfig(account string) (*fileclient.AccountClusterConfig, error)
 

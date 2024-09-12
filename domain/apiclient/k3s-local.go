@@ -31,7 +31,7 @@ type InstallCommand struct {
 	} `json:"helm-values"`
 }
 
-func generateRandomID(length int) (string, error) {
+func GenerateRandomID(length int) (string, error) {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	result := make([]byte, length)
 	for i := range result {
@@ -156,20 +156,6 @@ func createCluster(clusterName, displayName, account string) (*Cluster, error) {
 }
 
 func (apic *apiClient) createClusterForAccount(account string) (*Cluster, error) {
-	//clusterName, err := os.Hostname()
-	//if err != nil {
-	//	return nil, fn.NewE(err)
-	//}
-	//checkNames, err := getClusterName(clusterName, account)
-	//if err != nil {
-	//	return nil, fn.NewE(err)
-	//}
-	//if !checkNames.Result {
-	//	if len(checkNames.SuggestedNames) == 0 {
-	//		return nil, fmt.Errorf("no suggested names for device %s", clusterName)
-	//	}
-	//	clusterName = checkNames.SuggestedNames[0]
-	//}
 	device, err := apic.fc.GetDevice()
 	if err != nil {
 		return nil, fn.NewE(err)
@@ -179,12 +165,12 @@ func (apic *apiClient) createClusterForAccount(account string) (*Cluster, error)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
-		n, err := generateRandomID(14)
+		n, err := GenerateRandomID(14)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
 		hostName = hostName + "-" + n
-		d, err := createDevice(hostName, account)
+		d, err := apic.CreateDevice(hostName, account)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
