@@ -52,7 +52,7 @@ func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClus
 		}
 	}
 	if clusterConfig == nil {
-		forAccount, err := createClusterForAccount(account)
+		forAccount, err := apic.createClusterForAccount(account)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
@@ -155,7 +155,7 @@ func createCluster(clusterName, displayName, account string) (*Cluster, error) {
 	return d, nil
 }
 
-func createClusterForAccount(account string) (*Cluster, error) {
+func (apic *apiClient) createClusterForAccount(account string) (*Cluster, error) {
 	//clusterName, err := os.Hostname()
 	//if err != nil {
 	//	return nil, fn.NewE(err)
@@ -170,7 +170,7 @@ func createClusterForAccount(account string) (*Cluster, error) {
 	//	}
 	//	clusterName = checkNames.SuggestedNames[0]
 	//}
-	device, err := fileclient.GetDevice()
+	device, err := apic.fc.GetDevice()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -179,7 +179,7 @@ func createClusterForAccount(account string) (*Cluster, error) {
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
-		n, err := generateRandomID(8)
+		n, err := generateRandomID(14)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
@@ -192,7 +192,7 @@ func createClusterForAccount(account string) (*Cluster, error) {
 			DisplayName: d.DisplayName,
 			DeviceName:  d.Metadata.Name,
 		}
-		err = fileclient.SaveDevice(device)
+		err = apic.fc.SetDevice(device)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}

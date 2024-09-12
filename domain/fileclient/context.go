@@ -181,7 +181,7 @@ func GetExtraData() (*ExtraData, error) {
 	return &extraData, nil
 }
 
-func SaveDevice(device *DeviceContext) error {
+func (fc *fclient) SetDevice(device *DeviceContext) error {
 	file, err := yaml.Marshal(device)
 	if err != nil {
 		return functions.NewE(err)
@@ -190,7 +190,7 @@ func SaveDevice(device *DeviceContext) error {
 	return writeOnUserScope(DeviceFileName, file)
 }
 
-func GetDevice() (*DeviceContext, error) {
+func (fc *fclient) GetDevice() (*DeviceContext, error) {
 	file, err := ReadFile(DeviceFileName)
 	device := DeviceContext{}
 

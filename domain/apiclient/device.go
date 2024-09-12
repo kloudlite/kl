@@ -67,10 +67,11 @@ func (apic *apiClient) GetVPNDevice(accountName string, devName string) (*Device
 }
 
 func createDevice(devName, account string) (*Device, error) {
-	cn, err := getDeviceName(devName)
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
+	fmt.Println(devName)
+	//cn, err := getDeviceName(devName)
+	//if err != nil {
+	//	return nil, fn.NewE(err)
+	//}
 
 	cookie, err := getCookie(fn.MakeOption("accountName", account))
 	if err != nil {
@@ -78,14 +79,14 @@ func createDevice(devName, account string) (*Device, error) {
 	}
 
 	dn := devName
-	if !cn.Result {
-		if len(cn.SuggestedNames) == 0 {
-			return nil, fmt.Errorf("no suggested names for device %s", devName)
-		}
-
-		dn = cn.SuggestedNames[0]
-	}
-
+	//if !cn.Result {
+	//	if len(cn.SuggestedNames) == 0 {
+	//		return nil, fmt.Errorf("no suggested names for device %s", devName)
+	//	}
+	//
+	//	dn = cn.SuggestedNames[0]
+	//}
+	fmt.Println(dn)
 	fn.Logf("creating new device %s\n", dn)
 	respData, err := klFetch("cli_createGlobalVPNDevice", map[string]any{
 		"gvpnDevice": map[string]any{

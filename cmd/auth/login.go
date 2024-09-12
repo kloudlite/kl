@@ -101,15 +101,20 @@ func createClustersAccounts(apic apiclient.ApiClient, fc fileclient.FileClient) 
 			}
 		}
 
-		if err := createCluster(a.Metadata.Name, clusterConfig); err != nil {
+		if err := createCluster(a.Metadata.Name, clusterConfig, fc); err != nil {
 			return fn.NewE(err)
 		}
 	}
 	return nil
 }
 
-func createCluster(accountName string, clusterConfig *fileclient.AccountClusterConfig) error {
+func createCluster(accountName string, clusterConfig *fileclient.AccountClusterConfig, fc fileclient.FileClient) error {
 	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
+	if err != nil {
+		return fn.NewE(err)
+	}
+
+	device, err := fc.GetDevice()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -119,6 +124,7 @@ func createCluster(accountName string, clusterConfig *fileclient.AccountClusterC
 			filters.Arg("label", fmt.Sprintf("%s=%s", boxpkg.CONT_MARK_KEY, "true")),
 			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
 			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-account", accountName)),
+			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-device", device.DeviceName)),
 		),
 	})
 	if err != nil {

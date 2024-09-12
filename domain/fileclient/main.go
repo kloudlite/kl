@@ -13,6 +13,8 @@ type FileClient interface {
 	SetVpnAccountConfig(account string, config *AccountVpnConfig) error
 	GetClusterConfig(account string) (*AccountClusterConfig, error)
 	SetClusterConfig(account string, accClusterConfig *AccountClusterConfig) error
+	GetDevice() (*DeviceContext, error)
+	SetDevice(device *DeviceContext) error
 
 	WriteKLFile(fileObj KLFileType) error
 	GetKlFile(filePath string) (*KLFileType, error)
