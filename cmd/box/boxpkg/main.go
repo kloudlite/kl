@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
+	"github.com/kloudlite/kl/cmd/cluster/clusterpkg"
 	"io"
 	"os"
 
@@ -29,9 +30,10 @@ type client struct {
 
 	env *fileclient.Env
 
-	fc     fileclient.FileClient
-	apic   apiclient.ApiClient
-	klfile *fileclient.KLFileType
+	fc          fileclient.FileClient
+	apic        apiclient.ApiClient
+	klfile      *fileclient.KLFileType
+	clusterfile clusterpkg.ClusterClient
 }
 
 type BoxClient interface {
@@ -67,6 +69,11 @@ func NewClient(cmd *cobra.Command, args []string) (BoxClient, error) {
 	}
 
 	apic, err := apiclient.New()
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	clusterClient, err := clusterpkg.New(fc, apic)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -123,5 +130,6 @@ func NewClient(cmd *cobra.Command, args []string) (BoxClient, error) {
 		fc:            fc,
 		apic:          apic,
 		klfile:        klFile,
+		clusterfile:   clusterClient,
 	}, nil
 }

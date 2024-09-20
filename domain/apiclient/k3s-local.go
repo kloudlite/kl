@@ -11,7 +11,7 @@ import (
 
 type Cluster struct {
 	ClusterToken   string          `json:"clusterToken"`
-	Name           string          `json:"name"`
+	DisplayName    string          `json:"displayName"`
 	InstallCommand *InstallCommand `json:"installCommand"`
 	Metadata       struct {
 		Name string `json:"name"`
@@ -102,11 +102,29 @@ func getClusterName(clusterName, account string) (*CheckName, error) {
 	}
 }
 
-func createCluster(clusterName, displayName, account string) (*Cluster, error) {
-	cn, err := getClusterName(clusterName, account)
+func listClusters(account string) ([]Cluster, error) {
+	cookie, err := getCookie(fn.MakeOption("accountName", account))
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
+
+	respData, err := klFetch("cli_listByokClusters", map[string]any{}, &cookie)
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	clusters, err := GetFromRespForEdge[Cluster](respData)
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+	return clusters, nil
+}
+
+func createCluster(clusterName, displayName, account string) (*Cluster, error) {
+	//cn, err := getClusterName(clusterName, account)
+	//if err != nil {
+	//	return nil, fn.NewE(err)
+	//}
 
 	cookie, err := getCookie(fn.MakeOption("accountName", account))
 	if err != nil {
@@ -114,15 +132,26 @@ func createCluster(clusterName, displayName, account string) (*Cluster, error) {
 	}
 
 	dn := clusterName
-	if !cn.Result {
-		if len(cn.SuggestedNames) == 0 {
-			return nil, fmt.Errorf("no suggested names for cluster %s", clusterName)
-		}
+	//if !cn.Result {
+	//	if len(cn.SuggestedNames) == 0 {
+	//		return nil, fmt.Errorf("no suggested names for cluster %s", clusterName)
+	//	}
+	//
+	//	dn = cn.SuggestedNames[0]
+	//}
 
-		dn = cn.SuggestedNames[0]
+	clusters, err := listClusters(account)
+	if err != nil {
+		return nil, fn.NewE(err)
 	}
 
-	fn.Logf("creating new cluster %s\n", dn)
+	for _, c := range clusters {
+		if c.Metadata.Name == dn {
+			return &c, nil
+		}
+	}
+
+	fn.Logf("creating new cluster %s for account %s\n", dn, account)
 	respData, err := klFetch("cli_createClusterReference", map[string]any{
 		"cluster": map[string]any{
 			"metadata":    map[string]string{"name": dn},
@@ -137,9 +166,18 @@ func createCluster(clusterName, displayName, account string) (*Cluster, error) {
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
+	return d, nil
 
-	respData, err = klFetch("cli_clusterReferenceInstructions", map[string]any{
-		"name": d.Metadata.Name,
+}
+
+func getClusterInstructions(clusterName, account string) (*InstallCommand, error) {
+	cookie, err := getCookie(fn.MakeOption("accountName", account))
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	respData, err := klFetch("cli_clusterReferenceInstructions", map[string]any{
+		"name": clusterName,
 	}, &cookie)
 
 	if err != nil {
@@ -150,9 +188,7 @@ func createCluster(clusterName, displayName, account string) (*Cluster, error) {
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-
-	d.InstallCommand = instruction
-	return d, nil
+	return instruction, nil
 }
 
 func (apic *apiClient) createClusterForAccount(account string) (*Cluster, error) {
@@ -169,8 +205,7 @@ func (apic *apiClient) createClusterForAccount(account string) (*Cluster, error)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
-		hostName = hostName + "-" + n
-		d, err := apic.CreateDevice(hostName, account)
+		d, err := apic.CreateDevice(hostName+"-"+n, hostName, account)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
@@ -186,6 +221,15 @@ func (apic *apiClient) createClusterForAccount(account string) (*Cluster, error)
 	cluster, err := createCluster(device.DeviceName, device.DisplayName, account)
 	if err != nil {
 		return nil, fn.NewE(err)
+	}
+	clusterInstructions, err := getClusterInstructions(cluster.Metadata.Name, account)
+	if err != nil {
+		fn.Logf("failed to get cluster instructions: %s\n", err.Error())
+		return nil, err
+	}
+	cluster.InstallCommand = clusterInstructions
+	if cluster.ClusterToken == "" {
+		cluster.ClusterToken = clusterInstructions.HelmValues.ClusterToken
 	}
 	return cluster, nil
 }

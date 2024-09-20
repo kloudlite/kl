@@ -378,10 +378,6 @@ func (c *client) stopContainer(_ string) error {
 		),
 		All: true,
 	})
-	if len(existingContainers) == 0 {
-		return nil
-	}
-
 	if err != nil {
 		return fn.NewE(err, "failed to list containers")
 	}
@@ -393,7 +389,9 @@ func (c *client) stopContainer(_ string) error {
 		}); err != nil {
 			return fn.NewE(err)
 		}
-
+		if c2.Labels["kl-k3s"] == "true" {
+			continue
+		}
 		if err := c.cli.ContainerRemove(context.Background(), c2.ID, container.RemoveOptions{
 			Force: true,
 		}); err != nil {
@@ -749,8 +747,7 @@ func (c *client) EnsureK3SCluster() error {
 		if err != nil {
 			return fn.NewE(err)
 		}
-		hostName = hostName + "-" + n
-		d, err := c.apic.CreateDevice(hostName, c.klfile.AccountName)
+		d, err := c.apic.CreateDevice(hostName+"-"+n, hostName, c.klfile.AccountName)
 		if err != nil {
 			return fn.NewE(err)
 		}

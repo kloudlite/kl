@@ -60,8 +60,12 @@ func (c *client) Start() error {
 		}
 	}
 
-	err = c.StartClusterContainer()
-	if err != nil {
+	//err = c.StartClusterContainer()
+	//if err != nil {
+	//	return fn.NewE(err)
+	//}
+
+	if err := c.clusterfile.StartClusterForAccount(); err != nil {
 		return fn.NewE(err)
 	}
 

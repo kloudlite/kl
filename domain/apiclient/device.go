@@ -66,8 +66,7 @@ func (apic *apiClient) GetVPNDevice(accountName string, devName string) (*Device
 	return GetFromResp[Device](respData)
 }
 
-func (apic *apiClient) CreateDevice(devName, account string) (*Device, error) {
-	fmt.Println(devName)
+func (apic *apiClient) CreateDevice(devName, displayName, account string) (*Device, error) {
 	//cn, err := getDeviceName(devName)
 	//if err != nil {
 	//	return nil, fn.NewE(err)
@@ -86,13 +85,12 @@ func (apic *apiClient) CreateDevice(devName, account string) (*Device, error) {
 	//
 	//	dn = cn.SuggestedNames[0]
 	//}
-	fmt.Println(dn)
 	fn.Logf("creating new device %s\n", dn)
 	respData, err := klFetch("cli_createGlobalVPNDevice", map[string]any{
 		"gvpnDevice": map[string]any{
 			"metadata":       map[string]string{"name": dn},
 			"globalVPNName":  Default_GVPN,
-			"displayName":    dn,
+			"displayName":    displayName,
 			"creationMethod": "kl",
 		},
 	}, &cookie)
@@ -196,7 +194,7 @@ func (apic *apiClient) CreateVpnForAccount(account string) (*Device, error) {
 		}
 		devName = checkNames.SuggestedNames[0]
 	}
-	device, err := apic.CreateDevice(devName, account)
+	device, err := apic.CreateDevice(devName, devName, account)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
