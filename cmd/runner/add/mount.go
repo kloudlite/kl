@@ -50,7 +50,7 @@ var mountCommand = &cobra.Command{
 		if len(args) > 0 {
 			path = args[0]
 		} else {
-			fn.PrintError(fmt.Errorf("please specify the path of the config you want to add, example: kl add config-mount /tmp/sample"))
+			fn.PrintError(fmt.Errorf("please specify the path of the config/secret you want to add, example: kl add config-mount /tmp/sample"))
 			return
 		}
 
