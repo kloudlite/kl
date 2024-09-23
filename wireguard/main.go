@@ -9,18 +9,17 @@ import (
 )
 
 func main() {
-	gatewayPublicKey := os.Getenv("GATEWAY_PUBLIC_KEY")
-	gatewayEndpoint := os.Getenv("GATEWAY_ENDPOINT")
+
 	hostPublicKey := os.Getenv("HOST_PUBLIC_KEY")
 	workspacePublicKey := os.Getenv("WORKSPACE_PUBLIC_KEY")
 	privateKey := os.Getenv("PRIVATE_KEY")
 
-	if gatewayPublicKey == "" || hostPublicKey == "" || workspacePublicKey == "" || privateKey == "" || gatewayEndpoint == "" {
+	if hostPublicKey == "" || workspacePublicKey == "" || privateKey == "" {
 		panic("missing env vars")
 		return
 	}
 
-	wgConfig, err := GenerateWireguardConfig(gatewayPublicKey, hostPublicKey, workspacePublicKey, privateKey, gatewayEndpoint)
+	wgConfig, err := GenerateWireguardConfig(hostPublicKey, workspacePublicKey, privateKey)
 	if err != nil {
 		panic(err)
 		return
@@ -63,17 +62,12 @@ func main() {
 	<-sigChan
 }
 
-func GenerateWireguardConfig(gatewayPublicKey, hostPublicKey, workspacePublicKey, privateKey, gatewayEndpoint string) (string, error) {
+func GenerateWireguardConfig(hostPublicKey, workspacePublicKey, privateKey string) (string, error) {
 	config := fmt.Sprintf(`[Interface]
 PrivateKey = %s
 Address = 198.18.0.1/32
 ListenPort = 31820
-
-[Peer]
-PublicKey = %s
-AllowedIPs = 100.64.0.0/10
-Endpoint = %s
-PersistentKeepalive = 25
+PostUp = iptables -t nat -I POSTROUTING -o kloudlite-wg -j MASQUERADE
 
 [Peer]
 PublicKey = %s
@@ -82,7 +76,6 @@ AllowedIPs = 198.18.0.2/32
 [Peer]
 PublicKey = %s
 AllowedIPs = 198.18.0.3/32
-`, privateKey, gatewayPublicKey, gatewayEndpoint, hostPublicKey, workspacePublicKey)
-
+`, privateKey, hostPublicKey, workspacePublicKey)
 	return config, nil
 }

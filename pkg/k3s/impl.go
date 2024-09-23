@@ -161,13 +161,21 @@ while true; do
   break
 done
 
-kubectl create ns kl-gateway
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wg-proxy
+  labels:
+    kloudlite.io/gateway.enabled: "true"
+EOF
+
 cat <<EOF | kubectl apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wg-proxy
-  namespace: kl-gateway
+  name: default
+  namespace: wg-proxy
 spec:
   selector:
     matchLabels:
@@ -185,15 +193,8 @@ spec:
             capabilities:
               add: ["NET_ADMIN"]
           env:
-            - name: GATEWAY_ENDPOINT
-              value: default-wg:31820
             - name: PRIVATE_KEY
-              value: {{.WGConfig.Proxy.PrivateKey}}
-            - name: GATEWAY_PUBLIC_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: kl-gateway
-                  key: public_key 
+              value: {{.WGConfig.Proxy.PrivateKey}} 
             - name: WORKSPACE_PUBLIC_KEY
               value: {{.WGConfig.Workspace.PublicKey}}
             - name: HOST_PUBLIC_KEY
@@ -203,7 +204,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: wg-proxy
-  namespace: kl-gateway
+  namespace: wg-proxy
 spec:
   type: LoadBalancer
   selector:
