@@ -62,8 +62,13 @@ func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClus
 		}
 		var selectedCluster *Cluster
 
+		wgconfig, err := apic.fc.GetUUID()
+		if err != nil {
+			return nil, err
+		}
+
 		for _, c := range existingClusters {
-			if c.Metadata.Labels["kloudlite.io/local-uuid"] == apic.fc.GetUUID() {
+			if c.Metadata.Labels["kloudlite.io/local-uuid"] == wgconfig.UUID {
 				selectedCluster = &c
 				err := apic.enrichClusterWithInstructions(account, selectedCluster)
 				if err != nil {
@@ -167,6 +172,11 @@ func (apic *apiClient) createCluster(userName, account string) (*Cluster, error)
 		dn = cn.SuggestedNames[0]
 	}
 
+	wgconfig, err := apic.fc.GetUUID()
+	if err != nil {
+		return nil, err
+	}
+
 	fn.Logf("creating new cluster %s\n", dn)
 	respData, err := klFetch("cli_createClusterReference", map[string]any{
 		"cluster": map[string]any{
@@ -174,7 +184,7 @@ func (apic *apiClient) createCluster(userName, account string) (*Cluster, error)
 				"name": dn,
 				"labels": map[string]string{
 					"kloudlite.io/k3scluster": "true",
-					"kloudlite.io/local-uuid": apic.fc.GetUUID(),
+					"kloudlite.io/local-uuid": wgconfig.UUID,
 				},
 			},
 			"displayName": userName,

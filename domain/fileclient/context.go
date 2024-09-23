@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	uuid "github.com/nu7hatch/gouuid"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"os"
 	"path"
 	"runtime"
@@ -22,8 +23,19 @@ const (
 	ExtraDataFileName string = "kl-extra-data.yaml"
 	CompleteFileName  string = "kl-completion"
 	DeviceFileName    string = "kl-device.yaml"
-	UUIDFileName      string = "kl-uuid"
+	UUIDFileName      string = "kl-uuid.yaml"
 )
+
+type keys struct {
+	PrivateKey string `json:"privateKey"`
+	PublicKey  string `json:"publicKey"`
+}
+
+type WGConfig struct {
+	UUID      string `json:"uuid"`
+	Host      keys   `json:"host"`
+	WorkSpace keys   `json:"workspace"`
+}
 
 type Env struct {
 	Name    string `json:"name"`
@@ -219,26 +231,59 @@ func (fc *fclient) GetDevice() (*DeviceContext, error) {
 	return &device, nil
 }
 
-func (fc *fclient) GetUUID() string {
+func GenerateWireGuardKeys() (wgtypes.Key, wgtypes.Key, error) {
+	privateKey, err := wgtypes.GeneratePrivateKey()
+	if err != nil {
+		return wgtypes.Key{}, wgtypes.Key{}, fmt.Errorf("failed to generate private key: %w", err)
+	}
+	publicKey := privateKey.PublicKey()
+
+	return privateKey, publicKey, nil
+}
+
+func (fc *fclient) GetUUID() (*WGConfig, error) {
 	file, err := ReadFile(UUIDFileName)
 	if err != nil {
-		fmt.Println(err)
 		u, err := uuid.NewV4()
 		if err != nil {
-			fmt.Println(err)
-			return ""
+			return nil, fn.NewE(err)
 		}
-		if err := writeOnUserScope(UUIDFileName, []byte(u.String())); err != nil {
-			fmt.Println(err)
-			return ""
-		}
+		hostPrivateKey, hostPublicKey, err := GenerateWireGuardKeys()
 		if err != nil {
-			fmt.Println(err)
-			return ""
+			return nil, fn.NewE(err)
 		}
-		return u.String()
+		workSpacePrivateKey, workSpacePublicKey, err := GenerateWireGuardKeys()
+		if err != nil {
+			return nil, fn.NewE(err)
+		}
+		wgConfig := WGConfig{
+			UUID: u.String(),
+			Host: keys{
+				PrivateKey: hostPrivateKey.String(),
+				PublicKey:  hostPublicKey.String(),
+			},
+			WorkSpace: keys{
+				PrivateKey: workSpacePrivateKey.String(),
+				PublicKey:  workSpacePublicKey.String(),
+			},
+		}
+		file, err := yaml.Marshal(wgConfig)
+		if err != nil {
+			return nil, fn.NewE(err)
+		}
+		if err := writeOnUserScope(UUIDFileName, file); err != nil {
+			return nil, fn.NewE(err)
+		}
 	}
-	return string(file)
+
+	wgConfig := WGConfig{}
+
+	if err = yaml.Unmarshal(file, &wgConfig); err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	return &wgConfig, nil
+
 }
 
 func GetCookieString(options ...fn.Option) (string, error) {
