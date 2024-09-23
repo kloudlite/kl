@@ -7,6 +7,7 @@ type fclient struct {
 }
 
 type FileClient interface {
+	GetUUID() string
 	CurrentAccountName() (string, error)
 	Logout() error
 	GetVpnAccountConfig(account string) (*AccountVpnConfig, error)

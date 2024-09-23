@@ -138,23 +138,6 @@ func (c *client) ensureKloudliteNetwork() error {
 	return nil
 }
 
-func (c *client) ensureImage(i string) error {
-	defer spinner.Client.UpdateMessage(fmt.Sprintf("checking image %s", i))()
-
-	if imageExists, err := c.imageExists(i); err == nil && imageExists {
-		return nil
-	}
-
-	out, err := c.cli.ImagePull(context.Background(), i, image.PullOptions{})
-	if err != nil {
-		return fn.NewE(err, fmt.Sprintf("failed to pull image %s", i))
-	}
-	defer out.Close()
-
-	jsonmessage.DisplayJSONMessagesStream(out, os.Stdout, os.Stdout.Fd(), true, nil)
-	return nil
-}
-
 func (c *client) imageExists(imageName string) (bool, error) {
 	filterArgs := filters.NewArgs()
 	filterArgs.Add("reference", imageName)
@@ -173,6 +156,23 @@ func (c *client) imageExists(imageName string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func (c *client) ensureImage(i string) error {
+	defer spinner.Client.UpdateMessage(fmt.Sprintf("checking image %s", i))()
+
+	if imageExists, err := c.imageExists(i); err == nil && imageExists {
+		return nil
+	}
+
+	out, err := c.cli.ImagePull(context.Background(), i, image.PullOptions{})
+	if err != nil {
+		return fn.NewE(err, fmt.Sprintf("failed to pull image %s", i))
+	}
+	defer out.Close()
+
+	jsonmessage.DisplayJSONMessagesStream(out, os.Stdout, os.Stdout.Fd(), true, nil)
+	return nil
 }
 
 func (c *client) restartContainer(path string) error {

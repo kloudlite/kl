@@ -3,6 +3,7 @@ package fileclient
 import (
 	"errors"
 	"fmt"
+	uuid "github.com/nu7hatch/gouuid"
 	"os"
 	"path"
 	"runtime"
@@ -21,6 +22,7 @@ const (
 	ExtraDataFileName string = "kl-extra-data.yaml"
 	CompleteFileName  string = "kl-completion"
 	DeviceFileName    string = "kl-device.yaml"
+	UUIDFileName      string = "kl-uuid"
 )
 
 type Env struct {
@@ -215,6 +217,28 @@ func (fc *fclient) GetDevice() (*DeviceContext, error) {
 	}
 
 	return &device, nil
+}
+
+func (fc *fclient) GetUUID() string {
+	file, err := ReadFile(UUIDFileName)
+	if err != nil {
+		fmt.Println(err)
+		u, err := uuid.NewV4()
+		if err != nil {
+			fmt.Println(err)
+			return ""
+		}
+		if err := writeOnUserScope(UUIDFileName, []byte(u.String())); err != nil {
+			fmt.Println(err)
+			return ""
+		}
+		if err != nil {
+			fmt.Println(err)
+			return ""
+		}
+		return u.String()
+	}
+	return string(file)
 }
 
 func GetCookieString(options ...fn.Option) (string, error) {
