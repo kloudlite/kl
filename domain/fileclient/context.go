@@ -23,18 +23,19 @@ const (
 	ExtraDataFileName string = "kl-extra-data.yaml"
 	CompleteFileName  string = "kl-completion"
 	DeviceFileName    string = "kl-device.yaml"
-	UUIDFileName      string = "kl-uuid.yaml"
+	WGConfigFileName  string = "kl-wg.yaml"
 )
 
-type keys struct {
+type Keys struct {
 	PrivateKey string `json:"privateKey"`
 	PublicKey  string `json:"publicKey"`
 }
 
 type WGConfig struct {
 	UUID      string `json:"uuid"`
-	Host      keys   `json:"host"`
-	WorkSpace keys   `json:"workspace"`
+	Host      Keys   `json:"host"`
+	WorkSpace Keys   `json:"workspace"`
+	Proxy     Keys   `json:"wg-proxy"`
 }
 
 type Env struct {
@@ -241,10 +242,14 @@ func GenerateWireGuardKeys() (wgtypes.Key, wgtypes.Key, error) {
 	return privateKey, publicKey, nil
 }
 
-func (fc *fclient) GetUUID() (*WGConfig, error) {
-	file, err := ReadFile(UUIDFileName)
+func (fc *fclient) GetWGConfig() (*WGConfig, error) {
+	file, err := ReadFile(WGConfigFileName)
 	if err != nil {
 		u, err := uuid.NewV4()
+		if err != nil {
+			return nil, fn.NewE(err)
+		}
+		wgProxyPrivateKey, wgProxyPublicKey, err := GenerateWireGuardKeys()
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
@@ -258,11 +263,15 @@ func (fc *fclient) GetUUID() (*WGConfig, error) {
 		}
 		wgConfig := WGConfig{
 			UUID: u.String(),
-			Host: keys{
+			Proxy: Keys{
+				PrivateKey: wgProxyPrivateKey.String(),
+				PublicKey:  wgProxyPublicKey.String(),
+			},
+			Host: Keys{
 				PrivateKey: hostPrivateKey.String(),
 				PublicKey:  hostPublicKey.String(),
 			},
-			WorkSpace: keys{
+			WorkSpace: Keys{
 				PrivateKey: workSpacePrivateKey.String(),
 				PublicKey:  workSpacePublicKey.String(),
 			},
@@ -271,7 +280,7 @@ func (fc *fclient) GetUUID() (*WGConfig, error) {
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
-		if err := writeOnUserScope(UUIDFileName, file); err != nil {
+		if err := writeOnUserScope(WGConfigFileName, file); err != nil {
 			return nil, fn.NewE(err)
 		}
 	}
@@ -281,9 +290,8 @@ func (fc *fclient) GetUUID() (*WGConfig, error) {
 	if err = yaml.Unmarshal(file, &wgConfig); err != nil {
 		return nil, fn.NewE(err)
 	}
-
+	fmt.Println(wgConfig, "HERE")
 	return &wgConfig, nil
-
 }
 
 func GetCookieString(options ...fn.Option) (string, error) {

@@ -150,6 +150,26 @@ done
 
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
+kind: Deployment
+metadata:
+  name: wg-proxy
+  namespace: kl-gateway-default
+spec:
+  selector:
+    app: wg-proxy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wg-proxy
+    spec:
+      containers:
+        - name: wg-proxy
+          image: ghcr.io/kloudlite/kl/box/wireguard:v1.0.0-nightly
+EOF
+
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: gateway-local-overrides
@@ -158,10 +178,7 @@ data:
   peers: |+
     - allowedIPs:
       - 192.18.0.1/32
-      publicKey: {{.HostPubKey}}
-    - allowedIPs:
-      - 192.18.0.2/32
-      publicKey: {{.WorkspacePubKey}}
+      publicKey: {{.WGConfig.Proxy.PublicKey}}
 EOF
 
 kubectl apply -f {{.InstallCommand.CRDsURL}} --server-side
@@ -186,6 +203,7 @@ spec:
     messageOfficeGRPCAddr: {{.InstallCommand.HelmValues.MessageOfficeGRPCAddr}}
     agentOperator:
       image:
+        repository:
         tag: v1.0.8-alpha
 EOF
 `)

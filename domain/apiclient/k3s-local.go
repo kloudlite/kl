@@ -62,7 +62,7 @@ func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClus
 		}
 		var selectedCluster *Cluster
 
-		wgconfig, err := apic.fc.GetUUID()
+		wgconfig, err := apic.fc.GetWGConfig()
 		if err != nil {
 			return nil, err
 		}
@@ -172,7 +172,7 @@ func (apic *apiClient) createCluster(userName, account string) (*Cluster, error)
 		dn = cn.SuggestedNames[0]
 	}
 
-	wgconfig, err := apic.fc.GetUUID()
+	wgconfig, err := apic.fc.GetWGConfig()
 	if err != nil {
 		return nil, err
 	}
