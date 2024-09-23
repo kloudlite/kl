@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/go-connections/nat"
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -78,7 +79,7 @@ func (c *client) CreateClustersAccounts(accountName string) error {
 	if err != nil {
 		return fn.NewE(err)
 	}
-
+	// Expose UDP 31820 port
 	createdConatiner, err := c.c.ContainerCreate(context.Background(), &container.Config{
 		Labels: map[string]string{
 			CONT_MARK_KEY: "true",
@@ -91,6 +92,9 @@ func (c *client) CreateClustersAccounts(accountName string) error {
 			"--disable", "traefik",
 			"--node-name", clusterConfig.ClusterName,
 			//fmt.Sprintf("%s.kcluster.local.khost.dev", account.Metadata.Name),
+		},
+		ExposedPorts: nat.PortSet{
+			"31820/udp": struct{}{},
 		},
 	}, &container.HostConfig{
 		Privileged: true,
@@ -143,8 +147,26 @@ while true; do
   echo "successful, k3s server is now accepting connections"
   break
 done
+
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-local-overrides
+  namespace: kloudlite
+data:
+  peers: |+
+    - allowedIPs:
+      - 192.18.0.1/32
+      publicKey: {{.HostPubKey}}
+    - allowedIPs:
+      - 192.18.0.2/32
+      publicKey: {{.WorkspacePubKey}}
+EOF
+
 kubectl apply -f {{.InstallCommand.CRDsURL}} --server-side
 kubectl create ns kloudlite
+
 cat <<EOF | kubectl apply -f -
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
@@ -162,6 +184,9 @@ spec:
     clusterToken: {{.InstallCommand.HelmValues.ClusterToken}}
     kloudliteDNSSuffix: {{.InstallCommand.HelmValues.KloudliteDNSSuffix}}
     messageOfficeGRPCAddr: {{.InstallCommand.HelmValues.MessageOfficeGRPCAddr}}
+    agentOperator:
+      image:
+        tag: v1.0.8-alpha
 EOF
 `)
 	if err != nil {

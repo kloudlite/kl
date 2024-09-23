@@ -9,10 +9,12 @@ import (
 )
 
 type AccountClusterConfig struct {
-	ClusterToken   string `json:"clusterToken"`
-	ClusterName    string `json:"cluster"`
-	InstallCommand InstallCommand
-	Installed      bool
+	ClusterToken    string `json:"clusterToken"`
+	ClusterName     string `json:"cluster"`
+	InstallCommand  InstallCommand
+	Installed       bool
+	HostPubKey      string
+	WorkspacePubKey string
 }
 
 type InstallHelmValues struct {
@@ -65,6 +67,9 @@ func (c *fclient) GetClusterConfig(account string) (*AccountClusterConfig, error
 		return nil, fn.NewE(err, "failed to parse k3s-local config")
 	}
 
+	uuid, err := c.GetUUID()
+	accClusterConfig.HostPubKey = uuid.Host.PublicKey
+	accClusterConfig.WorkspacePubKey = uuid.WorkSpace.PublicKey
 	return &accClusterConfig, nil
 }
 
