@@ -39,7 +39,7 @@ func (apic *apiClient) getClustersOfAccount(account string) ([]Cluster, error) {
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	fmt.Println(string(fetch))
+
 	clusters, err := GetFromRespForEdge[Cluster](fetch)
 	if err != nil {
 		return nil, fn.NewE(err)

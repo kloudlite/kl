@@ -140,9 +140,9 @@ echo "checking whether k3s server is accepting connections"
 while true; do
   lines=$(kubectl get nodes | wc -l)
   if [ "$lines" -lt 2 ]; then
-	echo "k3s server is not accepting connections yet, retrying in 1s ..."
-	sleep 1
-	continue
+    echo "k3s server is not accepting connections yet, retrying in 1s ..."
+    sleep 1
+    continue
   fi
   echo "successful, k3s server is now accepting connections"
   break
@@ -156,7 +156,8 @@ metadata:
   namespace: kl-gateway-default
 spec:
   selector:
-    app: wg-proxy
+    matchLabels:
+      app: wg-proxy
   replicas: 1
   template:
     metadata:
@@ -166,6 +167,14 @@ spec:
       containers:
         - name: wg-proxy
           image: ghcr.io/kloudlite/kl/box/wireguard:v1.0.0-nightly
+          env:
+            - name: WG_PRIVATE_KEY
+              value: {{.WGConfig.Proxy.PrivateKey}}
+          command: ["/bin/sh", "-c"]
+          args:
+          - |
+            WG_PUBLIC_KEY=$(echo {{.WGConfig.Proxy.PrivateKey}} | wg pubkey)
+            echo "Public Key: \$WG_PUBLIC_KEY"
 EOF
 
 cat <<EOF | kubectl apply -f -

@@ -290,7 +290,7 @@ func (fc *fclient) GetWGConfig() (*WGConfig, error) {
 	if err = yaml.Unmarshal(file, &wgConfig); err != nil {
 		return nil, fn.NewE(err)
 	}
-	fmt.Println(wgConfig, "HERE")
+
 	return &wgConfig, nil
 }
 
