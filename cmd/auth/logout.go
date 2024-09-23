@@ -56,9 +56,6 @@ func stopAllContainers(cmd *cobra.Command, args []string) error {
 		if err := cli.ContainerStop(cmd.Context(), c.ID, container.StopOptions{}); err != nil {
 			return err
 		}
-		if c.Labels["kl-k3s"] == "true" {
-			continue
-		}
 		if err := cli.ContainerRemove(cmd.Context(), c.ID, container.RemoveOptions{
 			Force: true,
 		}); err != nil {

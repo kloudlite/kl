@@ -62,10 +62,6 @@ func stopAllContainers() error {
 			return fn.NewE(err)
 		}
 
-		if d.Labels["kl-k3s"] == "true" {
-			continue
-		}
-
 		if err := c.ContainerRemove(context.Background(), d.ID, container.RemoveOptions{
 			Force: true,
 		}); err != nil {

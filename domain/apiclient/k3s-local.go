@@ -1,17 +1,15 @@
 package apiclient
 
 import (
-	"crypto/rand"
 	"fmt"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"math/big"
 	"os"
 )
 
 type Cluster struct {
 	ClusterToken   string          `json:"clusterToken"`
-	DisplayName    string          `json:"displayName"`
+	Name           string          `json:"name"`
 	InstallCommand *InstallCommand `json:"installCommand"`
 	Metadata       struct {
 		Name string `json:"name"`
@@ -31,19 +29,6 @@ type InstallCommand struct {
 	} `json:"helm-values"`
 }
 
-func GenerateRandomID(length int) (string, error) {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	result := make([]byte, length)
-	for i := range result {
-		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
-		if err != nil {
-			return "", err
-		}
-		result[i] = charset[num.Int64()]
-	}
-	return string(result), nil
-}
-
 func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClusterConfig, error) {
 	clusterConfig, err := apic.fc.GetClusterConfig(account)
 	if err != nil {
@@ -52,7 +37,7 @@ func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClus
 		}
 	}
 	if clusterConfig == nil {
-		forAccount, err := apic.createClusterForAccount(account)
+		forAccount, err := createClusterForAccount(account)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
@@ -102,60 +87,31 @@ func getClusterName(clusterName, account string) (*CheckName, error) {
 	}
 }
 
-func listClusters(account string) ([]Cluster, error) {
-	cookie, err := getCookie(fn.MakeOption("accountName", account))
+func createCluster(userName, account string) (*Cluster, error) {
+	cn, err := getClusterName(userName, account)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-
-	respData, err := klFetch("cli_listByokClusters", map[string]any{}, &cookie)
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
-
-	clusters, err := GetFromRespForEdge[Cluster](respData)
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
-	return clusters, nil
-}
-
-func createCluster(clusterName, displayName, account string) (*Cluster, error) {
-	//cn, err := getClusterName(clusterName, account)
-	//if err != nil {
-	//	return nil, fn.NewE(err)
-	//}
 
 	cookie, err := getCookie(fn.MakeOption("accountName", account))
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
 
-	dn := clusterName
-	//if !cn.Result {
-	//	if len(cn.SuggestedNames) == 0 {
-	//		return nil, fmt.Errorf("no suggested names for cluster %s", clusterName)
-	//	}
-	//
-	//	dn = cn.SuggestedNames[0]
-	//}
-
-	clusters, err := listClusters(account)
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
-
-	for _, c := range clusters {
-		if c.Metadata.Name == dn {
-			return &c, nil
+	dn := userName
+	if !cn.Result {
+		if len(cn.SuggestedNames) == 0 {
+			return nil, fmt.Errorf("no suggested names for cluster %s", userName)
 		}
+
+		dn = cn.SuggestedNames[0]
 	}
 
-	fn.Logf("creating new cluster %s for account %s\n", dn, account)
+	fn.Logf("creating new cluster %s\n", dn)
 	respData, err := klFetch("cli_createClusterReference", map[string]any{
 		"cluster": map[string]any{
 			"metadata":    map[string]string{"name": dn},
-			"displayName": displayName,
+			"displayName": userName,
 			"visibility":  map[string]string{"mode": "private"},
 		},
 	}, &cookie)
@@ -166,18 +122,9 @@ func createCluster(clusterName, displayName, account string) (*Cluster, error) {
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	return d, nil
 
-}
-
-func getClusterInstructions(clusterName, account string) (*InstallCommand, error) {
-	cookie, err := getCookie(fn.MakeOption("accountName", account))
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
-
-	respData, err := klFetch("cli_clusterReferenceInstructions", map[string]any{
-		"name": clusterName,
+	respData, err = klFetch("cli_clusterReferenceInstructions", map[string]any{
+		"name": d.Metadata.Name,
 	}, &cookie)
 
 	if err != nil {
@@ -188,48 +135,24 @@ func getClusterInstructions(clusterName, account string) (*InstallCommand, error
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	return instruction, nil
+
+	d.InstallCommand = instruction
+	return d, nil
 }
 
-func (apic *apiClient) createClusterForAccount(account string) (*Cluster, error) {
-	device, err := apic.fc.GetDevice()
+func createClusterForAccount(account string) (*Cluster, error) {
+	userName := os.Getenv("USER")
+	hostName, err := os.Hostname()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	if device == nil || device.DeviceName == "" {
-		hostName, err := os.Hostname()
-		if err != nil {
-			return nil, fn.NewE(err)
-		}
-		n, err := GenerateRandomID(14)
-		if err != nil {
-			return nil, fn.NewE(err)
-		}
-		d, err := apic.CreateDevice(hostName+"-"+n, hostName, account)
-		if err != nil {
-			return nil, fn.NewE(err)
-		}
-		device = &fileclient.DeviceContext{
-			DisplayName: d.DisplayName,
-			DeviceName:  d.Metadata.Name,
-		}
-		err = apic.fc.SetDevice(device)
-		if err != nil {
-			return nil, fn.NewE(err)
-		}
+	if userName == "" {
+		userName = hostName
 	}
-	cluster, err := createCluster(device.DeviceName, device.DisplayName, account)
+	userName = userName + "-" + hostName
+	cluster, err := createCluster(userName, account)
 	if err != nil {
 		return nil, fn.NewE(err)
-	}
-	clusterInstructions, err := getClusterInstructions(cluster.Metadata.Name, account)
-	if err != nil {
-		fn.Logf("failed to get cluster instructions: %s\n", err.Error())
-		return nil, err
-	}
-	cluster.InstallCommand = clusterInstructions
-	if cluster.ClusterToken == "" {
-		cluster.ClusterToken = clusterInstructions.HelmValues.ClusterToken
 	}
 	return cluster, nil
 }

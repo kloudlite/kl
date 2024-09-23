@@ -23,7 +23,7 @@ var loginCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		fc, err := fileclient.New()
+		_, err = fileclient.New()
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -63,42 +63,6 @@ var loginCmd = &cobra.Command{
 			return
 		}
 
-		if err = createClustersAccounts(apic, fc); err != nil {
-			fn.PrintError(err)
-			return
-		}
-
 		fn.Log("successfully logged in\n")
 	},
-}
-
-func createClustersAccounts(apic apiclient.ApiClient, fc fileclient.FileClient) error {
-	account, err := apic.ListAccounts()
-	if err != nil {
-		return fn.NewE(err)
-	}
-	if len(account) == 0 {
-		return nil
-	}
-	for _, a := range account {
-		// TODO(nxtCoder36): remove below condition, was only for testing
-		if a.Metadata.Name != "development-team" {
-			continue
-		}
-		clusterConfig, err := apic.GetClusterConfig(a.Metadata.Name)
-		if err != nil {
-			return fn.NewE(err)
-		}
-		savedClusterConfig, err := fc.GetClusterConfig(a.Metadata.Name)
-
-		if err != nil {
-			return fn.NewE(err)
-		}
-		if savedClusterConfig.ClusterToken != clusterConfig.ClusterToken {
-			if err = fc.SetClusterConfig(a.Metadata.Name, clusterConfig); err != nil {
-				return fn.NewE(err)
-			}
-		}
-	}
-	return nil
 }

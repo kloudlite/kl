@@ -133,7 +133,7 @@ func (c *client) StartClusterContainer() error {
 	if err != nil {
 		return fn.NewE(err)
 	}
-	err = c.EnsureK3SCluster()
+	err = c.EnsureK3SCluster(c.klfile.AccountName)
 	if err != nil {
 		return fn.NewE(err)
 	}
