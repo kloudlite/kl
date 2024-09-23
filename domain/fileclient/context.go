@@ -34,7 +34,7 @@ type Keys struct {
 type WGConfig struct {
 	UUID      string `json:"uuid"`
 	Host      Keys   `json:"host"`
-	WorkSpace Keys   `json:"workspace"`
+	Workspace Keys   `json:"workspace"`
 	Proxy     Keys   `json:"wg-proxy"`
 }
 
@@ -271,7 +271,7 @@ func (fc *fclient) GetWGConfig() (*WGConfig, error) {
 				PrivateKey: hostPrivateKey.String(),
 				PublicKey:  hostPublicKey.String(),
 			},
-			WorkSpace: Keys{
+			Workspace: Keys{
 				PrivateKey: workSpacePrivateKey.String(),
 				PublicKey:  workSpacePublicKey.String(),
 			},

@@ -94,7 +94,8 @@ func (c *client) CreateClustersAccounts(accountName string) error {
 			//fmt.Sprintf("%s.kcluster.local.khost.dev", account.Metadata.Name),
 		},
 		ExposedPorts: nat.PortSet{
-			"31820/udp": struct{}{},
+			"51820/udp": struct{}{},
+			"6443/tcp":  struct{}{},
 		},
 	}, &container.HostConfig{
 		Privileged: true,
@@ -103,6 +104,18 @@ func (c *client) CreateClustersAccounts(accountName string) error {
 		},
 		Binds: []string{
 			fmt.Sprintf("kl-k3s-%s-cache:/var/lib/rancher/k3s", clusterConfig.ClusterName),
+		},
+		PortBindings: map[nat.Port][]nat.PortBinding{
+			"6443/tcp": {
+				{
+					HostPort: "6443",
+				},
+			},
+			"51820/udp": {
+				{
+					HostPort: "51820",
+				},
+			},
 		},
 	}, &network.NetworkingConfig{}, nil, "")
 	if err != nil {
@@ -148,12 +161,13 @@ while true; do
   break
 done
 
+kubectl create ns kl-gateway
 cat <<EOF | kubectl apply -f -
-apiVersion: v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wg-proxy
-  namespace: kl-gateway-default
+  namespace: kl-gateway
 spec:
   selector:
     matchLabels:
@@ -167,14 +181,37 @@ spec:
       containers:
         - name: wg-proxy
           image: ghcr.io/kloudlite/kl/box/wireguard:v1.0.0-nightly
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
           env:
-            - name: WG_PRIVATE_KEY
+            - name: GATEWAY_ENDPOINT
+              value: default-wg:31820
+            - name: PRIVATE_KEY
               value: {{.WGConfig.Proxy.PrivateKey}}
-          command: ["/bin/sh", "-c"]
-          args:
-          - |
-            WG_PUBLIC_KEY=$(echo {{.WGConfig.Proxy.PrivateKey}} | wg pubkey)
-            echo "Public Key: \$WG_PUBLIC_KEY"
+            - name: GATEWAY_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kl-gateway
+                  key: public_key 
+            - name: WORKSPACE_PUBLIC_KEY
+              value: {{.WGConfig.Workspace.PublicKey}}
+            - name: HOST_PUBLIC_KEY
+              value: {{.WGConfig.Host.PublicKey}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wg-proxy
+  namespace: kl-gateway
+spec:
+  type: LoadBalancer
+  selector:
+    app: wg-proxy
+  ports:
+    - protocol: UDP
+      port: 51820
+      targetPort: 31820 
 EOF
 
 cat <<EOF | kubectl apply -f -
@@ -212,7 +249,7 @@ spec:
     messageOfficeGRPCAddr: {{.InstallCommand.HelmValues.MessageOfficeGRPCAddr}}
     agentOperator:
       image:
-        repository:
+        repository: ghcr.io/kloudlite/operator/agent
         tag: v1.0.8-alpha
 EOF
 `)
