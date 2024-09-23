@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 )
 
 func main() {
@@ -40,7 +41,15 @@ func main() {
 		panic(err)
 		return
 	}
-	return
+
+	cmd := exec.Command("wg-quick", "up", "wg0")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		panic(err)
+		return
+	}
 }
 
 func GenerateWireguardConfig(gatewayPublicKey, hostPublicKey, workspacePublicKey, privateKey string) (string, error) {
