@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
@@ -57,9 +56,26 @@ func main() {
 		panic(err)
 		return
 	}
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	<-sigChan
+
+	err = http.ListenAndServe("0.0.0.0:8080", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := exec.Command("sh", "-c", "/usr/local/bin/healthcheck.sh").Output()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			// delete pod using k8s client
+
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	}))
+	if err != nil {
+		panic(err)
+		return
+	}
+
+	//sigChan := make(chan os.Signal, 1)
+	//signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	//<-sigChan
 }
 
 func GenerateWireguardConfig(hostPublicKey, workspacePublicKey, privateKey string) (string, error) {

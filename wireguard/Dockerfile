@@ -9,5 +9,7 @@ RUN chmod +x ./wireguard
 
 FROM --platform=$TARGETPLATFORM ghcr.io/kloudlite/hub/wireguard
 COPY --from=builder ./wireguard/wireguard /wireguard
+COPY healthcheck.sh /usr/local/bin/healthcheck.sh
+RUN chmod +x /usr/local/bin/healthcheck.sh
 CMD ["/wireguard"]
 

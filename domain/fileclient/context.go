@@ -242,6 +242,31 @@ func GenerateWireGuardKeys() (wgtypes.Key, wgtypes.Key, error) {
 	return privateKey, publicKey, nil
 }
 
+func (fc *fclient) SetWGConfig(config string) error {
+
+	err := os.MkdirAll("/etc/wireguard", os.ModePerm)
+	if err != nil {
+		return fn.NewE(err)
+	}
+
+	_, err = os.Stat("/etc/wireguard/kl.conf")
+	if err != nil {
+		if os.IsNotExist(err) {
+			_, err := os.Create("/etc/wireguard/kl.conf")
+			if err != nil {
+				return fn.NewE(err)
+			}
+		}
+	}
+
+	err = os.WriteFile("/etc/wireguard/kl.conf", []byte(config), 0644)
+	if err != nil {
+		return fn.NewE(err)
+	}
+
+	return nil
+}
+
 func (fc *fclient) GetWGConfig() (*WGConfig, error) {
 	file, err := ReadFile(WGConfigFileName)
 	if err != nil {

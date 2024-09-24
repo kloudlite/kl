@@ -3,6 +3,7 @@ package k3s
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"fmt"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -22,6 +23,9 @@ import (
 const (
 	CONT_MARK_KEY = "kl.container"
 )
+
+//go:embed scripts/startup-script.sh.tmpl
+var startupScript string
 
 func (c *client) CreateClustersAccounts(accountName string) error {
 	if err := c.ensureImage(constants.GetK3SImageName()); err != nil {
@@ -148,112 +152,8 @@ func (c *client) CreateClustersAccounts(accountName string) error {
 
 func generateConnectionScript(clusterConfig *fileclient.AccountClusterConfig) (string, error) {
 	t := template.New("connectionScript")
-	p, err := t.Parse(`
-echo "checking whether k3s server is accepting connections"
-while true; do
-  lines=$(kubectl get nodes | wc -l)
-  if [ "$lines" -lt 2 ]; then
-    echo "k3s server is not accepting connections yet, retrying in 1s ..."
-    sleep 1
-    continue
-  fi
-  echo "successful, k3s server is now accepting connections"
-  break
-done
 
-cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: wg-proxy
-  labels:
-    kloudlite.io/gateway.enabled: "true"
-EOF
-
-cat <<EOF | kubectl apply -f -
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: default
-  namespace: wg-proxy
-spec:
-  selector:
-    matchLabels:
-      app: wg-proxy
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: wg-proxy
-    spec:
-      containers:
-        - name: wg-proxy
-          image: ghcr.io/kloudlite/kl/box/wireguard:v1.0.0-nightly
-          securityContext:
-            capabilities:
-              add: ["NET_ADMIN"]
-          env:
-            - name: PRIVATE_KEY
-              value: {{.WGConfig.Proxy.PrivateKey}} 
-            - name: WORKSPACE_PUBLIC_KEY
-              value: {{.WGConfig.Workspace.PublicKey}}
-            - name: HOST_PUBLIC_KEY
-              value: {{.WGConfig.Host.PublicKey}}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: wg-proxy
-  namespace: wg-proxy
-spec:
-  type: LoadBalancer
-  selector:
-    app: wg-proxy
-  ports:
-    - protocol: UDP
-      port: 51820
-      targetPort: 31820 
-EOF
-
-cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: gateway-local-overrides
-  namespace: kloudlite
-data:
-  peers: |+
-    - allowedIPs:
-      - 192.18.0.1/32
-      publicKey: {{.WGConfig.Proxy.PublicKey}}
-EOF
-
-kubectl apply -f {{.InstallCommand.CRDsURL}} --server-side
-kubectl create ns kloudlite
-
-cat <<EOF | kubectl apply -f -
-apiVersion: helm.cattle.io/v1
-kind: HelmChart
-metadata:
-  name: kloudlite
-  namespace: kube-system
-spec:
-  repo: {{.InstallCommand.ChartRepo}}
-  chart: kloudlite-agent
-  version: {{.InstallCommand.ChartVersion}}
-  targetNamespace: kloudlite
-  valuesContent: |-
-    accountName: {{.InstallCommand.HelmValues.AccountName}}
-    clusterName: {{.InstallCommand.HelmValues.ClusterName}}
-    clusterToken: {{.InstallCommand.HelmValues.ClusterToken}}
-    kloudliteDNSSuffix: {{.InstallCommand.HelmValues.KloudliteDNSSuffix}}
-    messageOfficeGRPCAddr: {{.InstallCommand.HelmValues.MessageOfficeGRPCAddr}}
-    agentOperator:
-      image:
-        repository: ghcr.io/kloudlite/operator/agent
-        tag: v1.0.8-alpha
-EOF
-`)
+	p, err := t.Parse(startupScript)
 	if err != nil {
 		return "", fn.NewE(err)
 	}

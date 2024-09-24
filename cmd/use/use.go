@@ -11,4 +11,5 @@ func init() {
 	Cmd.Aliases = append(Cmd.Aliases, "select")
 	Cmd.AddCommand(switchCmd)
 	Cmd.AddCommand(accountCmd)
+	accountCmd.Aliases = append(accountCmd.Aliases, "acc")
 }
