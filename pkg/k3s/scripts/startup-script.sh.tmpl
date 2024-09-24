@@ -37,8 +37,6 @@ spec:
   replicas: 1
   template:
     metadata:
-      annotations:
-        kloudlite.io/networking.webhook.debug: "true"
       labels:
         app: wg-proxy
     spec:
@@ -47,16 +45,18 @@ spec:
         - name: wg-proxy
           image: ghcr.io/kloudlite/kl/box/wireguard:v1.0.0-nightly
           imagePullPolicy: Always
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 5
-            failureThreshold: 1
           securityContext:
             capabilities:
               add: ["NET_ADMIN"]
+          livenessProbe:
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - |+
+                  ping -c "1" 100.64.0.1 || exit 0
           env:
             - name: PRIVATE_KEY
               value: {{.WGConfig.Proxy.PrivateKey}}
@@ -110,10 +110,18 @@ spec:
       image:
         repository: ghcr.io/kloudlite/operator/agent
         tag: v1.0.8-alpha
+      configuration:
+        gateway:
+          imageIPBindingController:
+            repository: ghcr.io/kloudlite/kloudlite/operator/networking/cmd/ip-binding-controller
+            tag: v1.0.7-nightly
+          imageIPManager:
+            repository: ghcr.io/kloudlite/operator/networking/cmd/ip-manager
+            tag: v1.0.7-nightly
 EOF
 
 kubectl apply -f /tmp/helm-chart.yml
 
 kubectl label namespace/wg-proxy kloudlite.io/gateway.enabled="true" --overwrite
 
-kubectl rollout restart deploy/default -n kl-gateway
+#kubectl rollout restart deploy/default -n kl-gateway

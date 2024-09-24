@@ -19,11 +19,12 @@ import (
 )
 
 const (
-	SessionFileName   string = "kl-session.yaml"
-	ExtraDataFileName string = "kl-extra-data.yaml"
-	CompleteFileName  string = "kl-completion"
-	DeviceFileName    string = "kl-device.yaml"
-	WGConfigFileName  string = "kl-wg.yaml"
+	SessionFileName                  string = "kl-session.yaml"
+	ExtraDataFileName                string = "kl-extra-data.yaml"
+	CompleteFileName                 string = "kl-completion"
+	DeviceFileName                   string = "kl-device.yaml"
+	WGConfigFileName                 string = "kl-wg.yaml"
+	WorkspaceWireguardConfigFileName string = "kl-workspace-wg.conf"
 )
 
 type Keys struct {
@@ -267,6 +268,18 @@ func (fc *fclient) SetWGConfig(config string) error {
 	return nil
 }
 
+func (fc *fclient) generateWGConfig(config *WGConfig) string {
+	return fmt.Sprintf(`[Interface]
+Address = 10.0.0.1/24
+PrivateKey = %s
+
+[Peer]
+PublicKey = %s
+AllowedIPs = 198.18.0.1/32, 100.64.0.0/10
+Endpoint = k3s-cluster.local:51820
+`, config.Workspace.PrivateKey, config.Proxy.PublicKey)
+}
+
 func (fc *fclient) GetWGConfig() (*WGConfig, error) {
 	file, err := ReadFile(WGConfigFileName)
 	if err != nil {
@@ -306,6 +319,10 @@ func (fc *fclient) GetWGConfig() (*WGConfig, error) {
 			return nil, fn.NewE(err)
 		}
 		if err := writeOnUserScope(WGConfigFileName, file); err != nil {
+			return nil, fn.NewE(err)
+		}
+		config := fc.generateWGConfig(&wgConfig)
+		if err := writeOnUserScope(WorkspaceWireguardConfigFileName, []byte(config)); err != nil {
 			return nil, fn.NewE(err)
 		}
 	}

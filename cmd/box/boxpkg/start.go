@@ -60,7 +60,16 @@ func (c *client) Start() error {
 		}
 	}
 
-	_, err = c.startContainer(boxHash.KLConfHash)
+	if err = c.k3s.CreateClustersAccounts(c.klfile.AccountName); err != nil {
+		return fn.NewE(err)
+	}
+
+	k3sIpAddress, err := c.getK3sIpAddress()
+	if err != nil {
+		return fn.NewE(err)
+	}
+
+	_, err = c.startContainer(boxHash.KLConfHash, k3sIpAddress)
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -155,4 +164,23 @@ func (c *client) StartWgContainer() error {
 		return fn.NewE(err)
 	}
 	return nil
+}
+
+func (c *client) getK3sIpAddress() (string, error) {
+	if err := c.k3s.CreateClustersAccounts(c.klfile.AccountName); err != nil {
+		return "", fn.NewE(err)
+	}
+
+	existingContainers, err := c.cli.ContainerList(context.Background(), container.ListOptions{
+		All: true,
+		Filters: filters.NewArgs(
+			filters.Arg("label", fmt.Sprintf("%s=%s", CONT_MARK_KEY, "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
+		),
+	})
+	if err != nil {
+		return "", fn.Error("failed to list containers")
+	}
+
+	return existingContainers[0].NetworkSettings.Networks["kloudlite"].IPAddress, nil
 }

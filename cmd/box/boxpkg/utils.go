@@ -205,7 +205,7 @@ func (c *client) restartContainer(path string) error {
 	return nil
 }
 
-func (c *client) startContainer(klconfHash string) (string, error) {
+func (c *client) startContainer(klconfHash string, k3sIpAddress string) (string, error) {
 
 	err := c.stopOtherContainers()
 	if err != nil {
@@ -292,6 +292,9 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 		Hostname:     "box",
 		ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%d/tcp", sshPort)): {}},
 	}, &container.HostConfig{
+		ExtraHosts: []string{
+			fmt.Sprintf("k3s-cluster.local:%s", k3sIpAddress),
+		},
 		Privileged:  true,
 		NetworkMode: "kloudlite",
 		PortBindings: nat.PortMap{

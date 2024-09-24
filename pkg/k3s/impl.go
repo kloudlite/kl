@@ -102,7 +102,8 @@ func (c *client) CreateClustersAccounts(accountName string) error {
 			"6443/tcp":  struct{}{},
 		},
 	}, &container.HostConfig{
-		Privileged: true,
+		Privileged:  true,
+		NetworkMode: "kloudlite",
 		RestartPolicy: container.RestartPolicy{
 			Name: "always",
 		},
