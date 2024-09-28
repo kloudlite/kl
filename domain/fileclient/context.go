@@ -30,6 +30,7 @@ const (
 	KLHostIp      = "198.18.0.2"
 	KLWorkspaceIp = "198.18.0.3"
 	KLWGAllowedIp = "100.64.0.0/10"
+	HostIp        = "172.18.0.2"
 )
 
 type Keys struct {
@@ -258,14 +259,14 @@ func (c *fclient) GetHostWgConfig() (string, error) {
 
 	wgConfig := fmt.Sprintf(`[Interface]
 PrivateKey = %s
-Address = %s/32
+Address = %s/24
 
 [Peer]
 PublicKey = %s
 AllowedIPs = %s/32, %s
 PersistentKeepalive = 25
 Endpoint = %s:51820
-`, config.Host.PrivateKey, KLHostIp, config.Proxy.PublicKey, KLWGProxyIp, KLWGAllowedIp, KLWGProxyIp)
+`, config.Host.PrivateKey, KLHostIp, config.Proxy.PublicKey, KLWGProxyIp, KLWGAllowedIp, HostIp)
 	return wgConfig, nil
 }
 
