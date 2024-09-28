@@ -25,6 +25,11 @@ const (
 	DeviceFileName                   string = "kl-device.yaml"
 	WGConfigFileName                 string = "kl-wg.yaml"
 	WorkspaceWireguardConfigFileName string = "kl-workspace-wg.conf"
+
+	KLWGProxyIp   = "198.18.0.1"
+	KLHostIp      = "198.18.0.2"
+	KLWorkspaceIp = "198.18.0.3"
+	KLWGAllowedIp = "100.64.0.0/10"
 )
 
 type Keys struct {
@@ -70,8 +75,9 @@ type InfraContexts struct {
 }
 
 type ExtraData struct {
-	BaseUrl      string          `json:"baseUrl"`
-	SelectedEnvs map[string]*Env `json:"selectedEnvs"`
+	BaseUrl       string          `json:"baseUrl"`
+	DnsHostSuffix string          `json:"dnsHostSuffix"`
+	SelectedEnvs  map[string]*Env `json:"selectedEnvs"`
 }
 
 func GetUserHomeDir() (string, error) {
@@ -243,25 +249,29 @@ func GenerateWireGuardKeys() (wgtypes.Key, wgtypes.Key, error) {
 	return privateKey, publicKey, nil
 }
 
+func (c *fclient) GetHostWgConfig() (string, error) {
+
+	config, err := c.GetWGConfig()
+	if err != nil {
+		return "", fn.NewE(err)
+	}
+
+	wgConfig := fmt.Sprintf(`[Interface]
+PrivateKey = %s
+Address = %s/32
+
+[Peer]
+PublicKey = %s
+AllowedIPs = %s/32, %s
+PersistentKeepalive = 25
+Endpoint = %s:51820
+`, config.Host.PrivateKey, KLHostIp, config.Proxy.PublicKey, KLWGProxyIp, KLWGAllowedIp, KLWGProxyIp)
+	return wgConfig, nil
+}
+
 func (fc *fclient) SetWGConfig(config string) error {
 
-	err := os.MkdirAll("/etc/wireguard", os.ModePerm)
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	_, err = os.Stat("/etc/wireguard/kl.conf")
-	if err != nil {
-		if os.IsNotExist(err) {
-			_, err := os.Create("/etc/wireguard/kl.conf")
-			if err != nil {
-				return fn.NewE(err)
-			}
-		}
-	}
-
-	err = os.WriteFile("/etc/wireguard/kl.conf", []byte(config), 0644)
-	if err != nil {
+	if err := writeOnUserScope("kl-host-wg.conf", []byte(config)); err != nil {
 		return fn.NewE(err)
 	}
 
@@ -270,14 +280,14 @@ func (fc *fclient) SetWGConfig(config string) error {
 
 func (fc *fclient) generateWGConfig(config *WGConfig) string {
 	return fmt.Sprintf(`[Interface]
-Address = 10.0.0.1/24
+Address = %s/24
 PrivateKey = %s
 
 [Peer]
 PublicKey = %s
-AllowedIPs = 198.18.0.1/32, 100.64.0.0/10
+AllowedIPs = %s/32, %s
 Endpoint = k3s-cluster.local:51820
-`, config.Workspace.PrivateKey, config.Proxy.PublicKey)
+`, KLWorkspaceIp, config.Workspace.PrivateKey, config.Proxy.PublicKey, KLWGProxyIp, KLWGAllowedIp)
 }
 
 func (fc *fclient) GetWGConfig() (*WGConfig, error) {
@@ -325,6 +335,7 @@ func (fc *fclient) GetWGConfig() (*WGConfig, error) {
 		if err := writeOnUserScope(WorkspaceWireguardConfigFileName, []byte(config)); err != nil {
 			return nil, fn.NewE(err)
 		}
+		return &wgConfig, nil
 	}
 
 	wgConfig := WGConfig{}
@@ -440,3 +451,37 @@ func ReadFile(name string) ([]byte, error) {
 
 	return file, nil
 }
+
+//func writeInTmpDir(name string, data []byte) error {
+//	dir := ""
+//	s := strings.Split(name, "/")
+//
+//	for i := range s {
+//		if i == len(s)-1 {
+//			continue
+//		}
+//		dir = path.Join(dir, s[i])
+//	}
+//	if _, er := os.Stat(dir); errors.Is(er, os.ErrNotExist) {
+//		er := os.MkdirAll(dir, os.ModePerm)
+//		if er != nil {
+//			return er
+//		}
+//	}
+//
+//	filePath := path.Join(dir, s[len(s)-1])
+//
+//	if err := os.WriteFile(filePath, data, 0644); err != nil {
+//		return functions.NewE(err)
+//	}
+//
+//	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
+//		if err := fn.ExecCmd(
+//			fmt.Sprintf("chown %s %s", usr, filePath), nil, false,
+//		); err != nil {
+//			return functions.NewE(err)
+//		}
+//	}
+//
+//	return nil
+//}

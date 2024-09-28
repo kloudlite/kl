@@ -35,6 +35,7 @@ func (fc *fclient) Logout() error {
 	}
 
 	k3sConfigPath := path.Join(configPath, "k3s-local")
+
 	_, err = os.Stat(k3sConfigPath)
 	if err == nil {
 		if err := os.RemoveAll(k3sConfigPath); err != nil {

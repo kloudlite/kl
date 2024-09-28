@@ -11,6 +11,7 @@ type apiClient struct {
 
 type ApiClient interface {
 	ListAccounts() ([]Account, error)
+	GetHostDNSSuffix() (string, error)
 
 	ListApps(accountName string, envName string) ([]App, error)
 	InterceptApp(app *App, status bool, ports []AppPort, envName string, options ...fn.Option) (err error)

@@ -7,6 +7,7 @@ type fclient struct {
 }
 
 type FileClient interface {
+	GetHostWgConfig() (string, error)
 	GetWGConfig() (*WGConfig, error)
 	SetWGConfig(config string) error
 	CurrentAccountName() (string, error)

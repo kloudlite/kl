@@ -3,6 +3,7 @@ package auth
 import (
 	"bufio"
 	"fmt"
+	"github.com/kloudlite/kl/cmd/use"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"os"
 	"strings"
@@ -59,6 +60,29 @@ var loginCmd = &cobra.Command{
 		}()
 
 		if err = apic.Login(loginId); err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		extraData, err := fileclient.GetExtraData()
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		HostDNSSuffix, err := apic.GetHostDNSSuffix()
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+		extraData.DnsHostSuffix = HostDNSSuffix
+		err = fileclient.SaveExtraData(extraData)
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		if err = use.UseAccount(); err != nil {
 			fn.PrintError(err)
 			return
 		}

@@ -1,12 +1,9 @@
 package vpn
 
 import (
-	"fmt"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
-	"os/exec"
-	"os/user"
 	"runtime"
 )
 
@@ -29,18 +26,26 @@ func stopVPN() error {
 		return nil
 	}
 
-	current, err := user.Current()
-	if err != nil {
-		return fn.NewE(err)
-	}
+	//current, err := user.Current()
+	//if err != nil {
+	//	return fn.NewE(err)
+	//}
+	//
+	//if current.Uid != "0" {
+	//	return fmt.Errorf("root permission required")
+	//}
+	//
+	//var errBuf strings.Builder
+	//cmd := exec.Command("wg-quick", "down", "kl")
+	//cmd.Stderr = &errBuf
+	//
+	//err = cmd.Run()
+	//if err != nil {
+	//	return fmt.Errorf(errBuf.String())
+	//}
 
-	if current.Uid != "0" {
-		return fmt.Errorf("root permission required")
-	}
-
-	err = exec.Command("wg-quick", "down", "kl").Run()
-	if err != nil {
-		return fn.NewE(err)
+	if err := startWireguard("", true); err != nil {
+		return err
 	}
 
 	fn.Log(text.Green("kloudlite vpn has been stopped"))

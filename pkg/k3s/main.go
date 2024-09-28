@@ -8,6 +8,9 @@ import (
 
 type K3sClient interface {
 	CreateClustersAccounts(name string) error
+	EnsureKloudliteNetwork() error
+	StartAppInterceptService(ports []apiclient.AppPort) error
+	EnsureImage(i string) error
 }
 
 type client struct {

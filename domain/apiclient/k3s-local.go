@@ -49,64 +49,54 @@ func (apic *apiClient) getClustersOfAccount(account string) ([]Cluster, error) {
 
 func (apic *apiClient) GetClusterConfig(account string) (*fileclient.AccountClusterConfig, error) {
 
-	clusterConfig, err := apic.fc.GetClusterConfig(account)
+	existingClusters, err := apic.getClustersOfAccount(account)
 	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil, err
+		return nil, err
+	}
+	var selectedCluster *Cluster
+	wgconfig, err := apic.fc.GetWGConfig()
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range existingClusters {
+		if c.Metadata.Labels["kloudlite.io/local-uuid"] == wgconfig.UUID {
+			selectedCluster = &c
+			err := apic.enrichClusterWithInstructions(account, selectedCluster)
+			if err != nil {
+				return nil, err
+			}
+			break
 		}
 	}
-	if clusterConfig == nil {
-		existingClusters, err := apic.getClustersOfAccount(account)
-		if err != nil {
-			return nil, err
-		}
-		var selectedCluster *Cluster
-
-		wgconfig, err := apic.fc.GetWGConfig()
-		if err != nil {
-			return nil, err
-		}
-
-		for _, c := range existingClusters {
-			if c.Metadata.Labels["kloudlite.io/local-uuid"] == wgconfig.UUID {
-				selectedCluster = &c
-				err := apic.enrichClusterWithInstructions(account, selectedCluster)
-				if err != nil {
-					return nil, err
-				}
-				break
-			}
-		}
-		if selectedCluster == nil {
-			selectedCluster, err = apic.createClusterForAccount(account)
-			if err != nil {
-				return nil, fn.NewE(err)
-			}
-		}
-
-		config := fileclient.AccountClusterConfig{
-			ClusterToken: selectedCluster.ClusterToken,
-			ClusterName:  selectedCluster.Metadata.Name,
-			InstallCommand: fileclient.InstallCommand{
-				ChartRepo:    selectedCluster.InstallCommand.ChartRepo,
-				ChartVersion: selectedCluster.InstallCommand.ChartVersion,
-				CRDsURL:      selectedCluster.InstallCommand.CRDsURL,
-				HelmValues: fileclient.InstallHelmValues{
-					AccountName:           selectedCluster.InstallCommand.HelmValues.AccountName,
-					ClusterName:           selectedCluster.InstallCommand.HelmValues.ClusterName,
-					ClusterToken:          selectedCluster.InstallCommand.HelmValues.ClusterToken,
-					KloudliteDNSSuffix:    selectedCluster.InstallCommand.HelmValues.KloudliteDNSSuffix,
-					MessageOfficeGRPCAddr: selectedCluster.InstallCommand.HelmValues.MessageOfficeGRPCAddr,
-				},
-			},
-		}
-		err = apic.fc.SetClusterConfig(account, &config)
+	if selectedCluster == nil {
+		selectedCluster, err = apic.createClusterForAccount(account)
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
-		clusterConfig = &config
 	}
-	return clusterConfig, nil
+
+	config := fileclient.AccountClusterConfig{
+		ClusterToken: selectedCluster.ClusterToken,
+		ClusterName:  selectedCluster.Metadata.Name,
+		InstallCommand: fileclient.InstallCommand{
+			ChartRepo:    selectedCluster.InstallCommand.ChartRepo,
+			ChartVersion: selectedCluster.InstallCommand.ChartVersion,
+			CRDsURL:      selectedCluster.InstallCommand.CRDsURL,
+			HelmValues: fileclient.InstallHelmValues{
+				AccountName:           selectedCluster.InstallCommand.HelmValues.AccountName,
+				ClusterName:           selectedCluster.InstallCommand.HelmValues.ClusterName,
+				ClusterToken:          selectedCluster.InstallCommand.HelmValues.ClusterToken,
+				KloudliteDNSSuffix:    selectedCluster.InstallCommand.HelmValues.KloudliteDNSSuffix,
+				MessageOfficeGRPCAddr: selectedCluster.InstallCommand.HelmValues.MessageOfficeGRPCAddr,
+			},
+		},
+	}
+	config.WGConfig = *wgconfig
+	err = apic.fc.SetClusterConfig(account, &config)
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+	return &config, nil
 }
 
 func getClusterName(clusterName, account string) (*CheckName, error) {
@@ -153,7 +143,12 @@ func (apic *apiClient) enrichClusterWithInstructions(account string, d *Cluster)
 	return nil
 }
 
-func (apic *apiClient) createCluster(userName, account string) (*Cluster, error) {
+func (apic *apiClient) createCluster(hostName, account string) (*Cluster, error) {
+	user, err := apic.GetCurrentUser()
+	if err != nil {
+		return nil, err
+	}
+	userName := user.Name + "-" + hostName
 	cn, err := getClusterName(userName, account)
 	if err != nil {
 		return nil, fn.NewE(err)
@@ -185,6 +180,7 @@ func (apic *apiClient) createCluster(userName, account string) (*Cluster, error)
 				"labels": map[string]string{
 					"kloudlite.io/k3scluster": "true",
 					"kloudlite.io/local-uuid": wgconfig.UUID,
+					"kloudlite.io/owned-by":   user.UserId,
 				},
 			},
 			"displayName": userName,
@@ -208,16 +204,11 @@ func (apic *apiClient) createCluster(userName, account string) (*Cluster, error)
 }
 
 func (apic *apiClient) createClusterForAccount(account string) (*Cluster, error) {
-	userName := os.Getenv("USER")
 	hostName, err := os.Hostname()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	if userName == "" {
-		userName = hostName
-	}
-	userName = userName + "-" + hostName
-	cluster, err := apic.createCluster(userName, account)
+	cluster, err := apic.createCluster(hostName, account)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

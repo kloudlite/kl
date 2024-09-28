@@ -111,32 +111,6 @@ func GetDockerHostIp() (string, error) {
 
 	return localAddress.IP.To4().String(), nil
 }
-func (c *client) ensureKloudliteNetwork() error {
-	defer spinner.Client.UpdateMessage("ensuring kloudlite network")()
-
-	networks, err := c.cli.NetworkList(context.Background(), network.ListOptions{
-		Filters: filters.NewArgs(
-			dockerLabelFilter("kloudlite", "true"),
-		),
-	})
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if len(networks) == 0 {
-		_, err := c.cli.NetworkCreate(context.Background(), "kloudlite", network.CreateOptions{
-			Driver: "bridge",
-			Labels: map[string]string{
-				"kloudlite": "true",
-			},
-		})
-		if err != nil {
-			return fn.NewE(err)
-		}
-	}
-
-	return nil
-}
 
 func (c *client) imageExists(imageName string) (bool, error) {
 	filterArgs := filters.NewArgs()
@@ -205,7 +179,7 @@ func (c *client) restartContainer(path string) error {
 	return nil
 }
 
-func (c *client) startContainer(klconfHash string, k3sIpAddress string) (string, error) {
+func (c *client) startContainer(klconfHash string) (string, error) {
 
 	err := c.stopOtherContainers()
 	if err != nil {
@@ -293,7 +267,7 @@ func (c *client) startContainer(klconfHash string, k3sIpAddress string) (string,
 		ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%d/tcp", sshPort)): {}},
 	}, &container.HostConfig{
 		ExtraHosts: []string{
-			fmt.Sprintf("k3s-cluster.local:%s", k3sIpAddress),
+			fmt.Sprintf("k3s-cluster.local:%s", constants.HostIp),
 		},
 		Privileged:  true,
 		NetworkMode: "kloudlite",
@@ -314,7 +288,11 @@ func (c *client) startContainer(klconfHash string, k3sIpAddress string) (string,
 		}(),
 	}, &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
-			"kloudlite": {},
+			"kloudlite": {
+				IPAMConfig: &network.EndpointIPAMConfig{
+					IPv4Address: constants.InterceptWorkspaceServiceIp,
+				},
+			},
 		},
 	}, nil, fmt.Sprintf("kl-%s", boxhashFileName[len(boxhashFileName)-8:]))
 	if err != nil {

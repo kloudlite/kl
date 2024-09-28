@@ -2,9 +2,17 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
+)
+
+const (
+	KLWGProxyIp   = "198.18.0.1"
+	KLHostIp      = "198.18.0.2"
+	KLWorkspaceIp = "198.18.0.3"
+	KLWGAllowedIp = "100.64.0.0/10"
 )
 
 func main() {
@@ -57,41 +65,25 @@ func main() {
 		return
 	}
 
-	err = http.ListenAndServe("0.0.0.0:8080", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := exec.Command("sh", "-c", "/usr/local/bin/healthcheck.sh").Output()
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			// delete pod using k8s client
-
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	}))
-	if err != nil {
-		panic(err)
-		return
-	}
-
-	//sigChan := make(chan os.Signal, 1)
-	//signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	//<-sigChan
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
 }
 
 func GenerateWireguardConfig(hostPublicKey, workspacePublicKey, privateKey string) (string, error) {
 	config := fmt.Sprintf(`[Interface]
 PrivateKey = %s
-Address = 198.18.0.1/32
+Address = %s/32
 ListenPort = 31820
 PostUp = iptables -t nat -I POSTROUTING -o kloudlite-wg -j MASQUERADE
 
 [Peer]
 PublicKey = %s
-AllowedIPs = 198.18.0.2/32
+AllowedIPs = %s/32
 
 [Peer]
 PublicKey = %s
-AllowedIPs = 198.18.0.3/32
-`, privateKey, hostPublicKey, workspacePublicKey)
+AllowedIPs = %s/32
+`, privateKey, KLWGProxyIp, hostPublicKey, KLHostIp, workspacePublicKey, KLWorkspaceIp)
 	return config, nil
 }
