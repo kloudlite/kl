@@ -114,7 +114,7 @@ func startWireguard(wgConfig string, stopWg bool) error {
 			return err
 		}
 
-		if err = dockerClient.ContainerExecStart(context.Background(), execID.ID, container.ExecStartOptionss{}); err != nil {
+		if err = dockerClient.ContainerExecStart(context.Background(), execID.ID, container.ExecStartOptions{}); err != nil {
 			return err
 		}
 
