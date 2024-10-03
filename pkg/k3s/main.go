@@ -12,7 +12,6 @@ type K3sClient interface {
 	StartAppInterceptService(ports []apiclient.AppPort) error
 	EnsureImage(i string) error
 	RestartWgProxyContainer() error
-	CheckK3sServerIsReady() error
 }
 
 type client struct {

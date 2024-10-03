@@ -274,17 +274,6 @@ chmod +x /tmp/ping.sh
 	return nil
 }
 
-func (c *client) CheckK3sServerIsReady() error {
-	return c.runScriptInContainer(`
-	if timeout 1 kubectl exec -n kl-gateway deploy/default -c ip-manager -- ping -c 1 100.64.0.1 &> /dev/null; then
-    echo "100.64.0.1 is reachable!"
-  else
-    echo "Cannot reach 100.64.0.1"
-    sleep 2
-  fi
-`)
-}
-
 func (c *client) imageExists(imageName string) (bool, error) {
 	filterArgs := filters.NewArgs()
 	filterArgs.Add("reference", imageName)

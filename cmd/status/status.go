@@ -51,24 +51,5 @@ var Cmd = &cobra.Command{
 			}
 			fn.Log(fmt.Sprint(text.Bold(text.Blue("Environment: ")), klFile.DefaultEnv))
 		}
-
-		//if envclient.InsideBox() {
-		//	k3sClient, err := k3s.NewClient()
-		//	if err != nil {
-		//		fn.PrintError(err)
-		//		return
-		//	}
-		//	start := time.Now()
-		//	if err = k3sClient.CheckK3sServerIsReady(); err != nil {
-		//		fn.PrintError(err)
-		//		return
-		//	}
-		//	elapsed := time.Since(start)
-		//	if elapsed.Seconds() < 2 {
-		//		fn.Log(text.Green("Connected"))
-		//	} else {
-		//		fn.Log(text.Red("Disconnected"))
-		//	}
-		//}
 	},
 }
