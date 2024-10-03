@@ -3,11 +3,7 @@ package status
 import (
 	"errors"
 	"fmt"
-
 	"github.com/kloudlite/kl/domain/apiclient"
-
-	"github.com/kloudlite/kl/domain/envclient"
-
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -56,21 +52,23 @@ var Cmd = &cobra.Command{
 			fn.Log(fmt.Sprint(text.Bold(text.Blue("Environment: ")), klFile.DefaultEnv))
 		}
 
-		if envclient.InsideBox() {
-			b := apic.CheckDeviceStatus()
-			avc, err := fc.GetVpnAccountConfig(acc)
-			if err != nil {
-				return
-			}
-
-			fn.Log(fmt.Sprint(text.Bold(text.Blue("Device: ")), avc.DeviceName, func() string {
-				if b {
-					return text.Bold(text.Green(" (Connected) "))
-				} else {
-					return text.Bold(text.Red(" (Disconnected) "))
-				}
-			}()))
-		}
-
+		//if envclient.InsideBox() {
+		//	k3sClient, err := k3s.NewClient()
+		//	if err != nil {
+		//		fn.PrintError(err)
+		//		return
+		//	}
+		//	start := time.Now()
+		//	if err = k3sClient.CheckK3sServerIsReady(); err != nil {
+		//		fn.PrintError(err)
+		//		return
+		//	}
+		//	elapsed := time.Since(start)
+		//	if elapsed.Seconds() < 2 {
+		//		fn.Log(text.Green("Connected"))
+		//	} else {
+		//		fn.Log(text.Red("Disconnected"))
+		//	}
+		//}
 	},
 }
