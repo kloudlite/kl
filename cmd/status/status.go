@@ -125,6 +125,11 @@ func getK3sStatus() error {
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
+
+	if err := json.Unmarshal(body, &data); err != nil {
+		return err
+	}
+
 	isReady = false
 
 	for _, c := range data.Status.Conditions {
@@ -154,6 +159,11 @@ func getK3sStatus() error {
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
+
+	if err := json.Unmarshal(body, &data); err != nil {
+		return err
+	}
+
 	isReady = false
 
 	for _, c := range data.Status.Conditions {
