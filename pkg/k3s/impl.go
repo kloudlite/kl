@@ -264,7 +264,7 @@ func (c *client) EnsureK3sServerIsReady() error {
 	done
 EOF
 chmod +x /tmp/ping.sh
-/tmp/ping.sh > /tmp/pinger.log
+/tmp/ping.sh
 	`
 
 	err := c.runScriptInContainer(pingScript)
