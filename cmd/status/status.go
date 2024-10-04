@@ -10,7 +10,6 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
-	"io"
 	"net/http"
 )
 
@@ -69,19 +68,40 @@ var Cmd = &cobra.Command{
 }
 
 func getK3sStatus() error {
-	resp, err := http.Get(fmt.Sprintf("http://%s:8080/apis/apps/v1/namespaces/kl-gateway/deployments/default", constants.K3sServerIp))
+	deployments := []struct {
+		name      string
+		namespace string
+	}{
+		{"default", "kl-gateway"},
+		{"kl-agent", "kloudlite"},
+		{"kl-agent-operator", "kloudlite"},
+	}
+
+	for _, d := range deployments {
+		isReady, err := checkDeploymentStatus(d.name, d.namespace)
+		if err != nil {
+			return err
+		}
+		status := text.Green("ready")
+		if !isReady {
+			status = text.Yellow("not ready")
+		}
+		fn.Log(fmt.Sprintf("%s: %s", d.name, status))
+	}
+
+	return nil
+}
+
+func checkDeploymentStatus(name, namespace string) (bool, error) {
+	url := fmt.Sprintf("http://%s:8080/apis/apps/v1/namespaces/%s/deployments/%s", constants.K3sServerIp, namespace, name)
+	resp, err := http.Get(url)
 	if err != nil {
-		return fn.NewE(err, StatusFailed)
+		return false, fn.NewE(err, StatusFailed)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fn.NewE(err, StatusFailed)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
+		return false, fn.NewE(fmt.Errorf("unexpected status code: %d", resp.StatusCode), StatusFailed)
 	}
 
 	var data struct {
@@ -92,92 +112,16 @@ func getK3sStatus() error {
 			} `json:"conditions"`
 		} `json:"status"`
 	}
-	if err := json.Unmarshal(body, &data); err != nil {
-		return err
-	}
 
-	isReady := false
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return false, fmt.Errorf("failed to decode response: %w", err)
+	}
 
 	for _, c := range data.Status.Conditions {
 		if c.Type == "Available" && c.Status == "True" {
-			isReady = true
-			break
+			return true, nil
 		}
 	}
 
-	if isReady {
-		fn.Log(fmt.Sprint("kloudlite gateway: ", text.Green("ready")))
-	} else {
-		fn.Log(fmt.Sprint("kloudlite gateway: ", text.Yellow("not ready")))
-	}
-
-	resp, err = http.Get(fmt.Sprintf("http://%s:8080/apis/apps/v1/namespaces/kloudlite/deployments/kl-agent", constants.K3sServerIp))
-	if err != nil {
-		return fn.NewE(err, StatusFailed)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fn.NewE(err, StatusFailed)
-	}
-
-	body, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	if err := json.Unmarshal(body, &data); err != nil {
-		return err
-	}
-
-	isReady = false
-
-	for _, c := range data.Status.Conditions {
-		if c.Type == "Available" && c.Status == "True" {
-			isReady = true
-			break
-		}
-	}
-
-	if isReady {
-		fn.Log(fmt.Sprint("kloudlite agent: ", text.Green("ready")))
-	} else {
-		fn.Log(fmt.Sprint("kloudlite agent: ", text.Yellow("not ready")))
-	}
-
-	resp, err = http.Get(fmt.Sprintf("http://%s:8080/apis/apps/v1/namespaces/kloudlite/deployments/kl-agent-operator", constants.K3sServerIp))
-	if err != nil {
-		return fn.NewE(err, StatusFailed)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fn.NewE(err, StatusFailed)
-	}
-
-	body, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	if err := json.Unmarshal(body, &data); err != nil {
-		return err
-	}
-
-	isReady = false
-
-	for _, c := range data.Status.Conditions {
-		if c.Type == "Available" && c.Status == "True" {
-			isReady = true
-			break
-		}
-	}
-
-	if isReady {
-		fn.Log(fmt.Sprint("kloudlite agent operator: ", text.Green("ready")))
-	} else {
-		fn.Log(fmt.Sprint("kloudlite agent operator: ", text.Yellow("not ready")))
-	}
-
-	return nil
+	return false, nil
 }
