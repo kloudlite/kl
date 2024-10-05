@@ -14,4 +14,4 @@ tasks:
           value: localhost:8080
     cmd:
       - run: build
-      - ./deployment-tracker --output ./status.json
+      - ./deployment-tracker --output /tmp/status.json

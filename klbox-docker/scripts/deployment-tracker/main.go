@@ -47,6 +47,15 @@ func checkDeploymentReady(ctx context.Context, k *kubernetes.Clientset, namespac
 	return false, nil
 }
 
+func grabServiceIP(ctx context.Context, k *kubernetes.Clientset, namespace, name string) (string, error) {
+	s, err := k.CoreV1().Services(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	return s.GetAnnotations()["kloudlite.io/servicebinding.ip"], nil
+}
+
 func main() {
 	var output string
 	flag.StringVar(&output, "output", "/tmp/kl/deployment-tracker/status.json", "--output")
@@ -59,6 +68,9 @@ func main() {
 
 		GatewayNamespace  string = "kl-gateway"
 		GatewayDeployment string = "default"
+
+		DeviceRouterNamespace string = "kloudlite"
+		DeviceRouterService   string = "kl-device-router"
 	)
 
 	if err := os.MkdirAll(filepath.Dir(output), 0o777); err != nil {
@@ -79,23 +91,29 @@ func main() {
 		start := time.Now()
 		agent, err := checkDeploymentReady(context.TODO(), k, AgentNamespace, AgentDeployment)
 		if err != nil {
-			slog.Error("failed to check deployment status", slog.Group("deployment", "namespace", AgentNamespace, "name", AgentDeployment))
+			slog.Error("failed to check deployment status", slog.Group("deployment", "namespace", AgentNamespace, "name", AgentDeployment), "err", err)
 		}
 
 		agentOp, err := checkDeploymentReady(context.TODO(), k, AgentNamespace, AgentOperatorDeployment)
 		if err != nil {
-			slog.Error("failed to check deployment status", slog.Group("deployment", "namespace", AgentNamespace, "name", AgentOperatorDeployment))
+			slog.Error("failed to check deployment status", slog.Group("deployment", "namespace", AgentNamespace, "name", AgentOperatorDeployment), "err", err)
 		}
 
 		gateway, err := checkDeploymentReady(context.TODO(), k, GatewayNamespace, GatewayDeployment)
 		if err != nil {
-			slog.Error("failed to check deployment status", slog.Group("deployment", "namespace", GatewayNamespace, "name", GatewayDeployment))
+			slog.Error("failed to check deployment status", slog.Group("deployment", "namespace", GatewayNamespace, "name", GatewayDeployment), "err", err)
+		}
+
+		deviceRouterIP, err := grabServiceIP(context.TODO(), k, DeviceRouterNamespace, DeviceRouterService)
+		if err != nil {
+			slog.Error("failed to check deployment status", slog.Group("deployment", "namespace", GatewayNamespace, "name", GatewayDeployment), "err", err)
 		}
 
 		b, err := json.Marshal(map[string]any{
-			"lastCheckedAt": start.Format(time.RFC3339),
-			"compute":       agent && agentOp,
-			"gateway":       gateway,
+			"lastCheckedAt":  start.Format(time.RFC3339),
+			"compute":        agent && agentOp,
+			"gateway":        gateway,
+			"deviceRouterIP": deviceRouterIP,
 		})
 		if err != nil {
 			slog.Error("failed to marshal status data, got", "err", err)
