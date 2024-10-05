@@ -6,6 +6,10 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"os"
+	"text/template"
+	"time"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
@@ -19,8 +23,6 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/text"
-	"os"
-	"text/template"
 )
 
 const (
@@ -151,7 +153,6 @@ func (c *client) CreateClustersAccounts(accountName string) error {
 				},
 			},
 		}, nil, "")
-
 		if err != nil {
 			return fn.NewE(err, "failed to create container")
 		}
@@ -197,7 +198,6 @@ func (c *client) CreateClustersAccounts(accountName string) error {
 				},
 			},
 		}, nil, "")
-
 		if err != nil {
 			return fn.NewE(err, "failed to create container")
 		}
@@ -343,42 +343,123 @@ func (c *client) EnsureKloudliteNetwork() error {
 	return nil
 }
 
-func (c *client) StartAppInterceptService(ports []apiclient.AppPort) error {
+func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart bool) error {
 	defer spinner.Client.UpdateMessage("starting intercept service")()
 	if err := c.EnsureKloudliteNetwork(); err != nil {
 		return fn.NewE(err)
 	}
+
+	k3sTracker, err := c.fc.GetK3sTracker()
+	if err != nil {
+		return fn.Error("k3s server is not ready, please wait")
+	}
+
+	lastCheckedAt, err := time.Parse(time.RFC3339, k3sTracker.LastCheckedAt)
+	if err != nil {
+		return fn.Error("k3s server is not ready, please wait")
+	}
+
+	if time.Since(lastCheckedAt) > 3*time.Second {
+		return fn.Error("k3s server is not ready, please wait")
+	}
+
+	spm := make(map[int]struct{}, len(k3sTracker.DeviceRouter.Service.Spec.Ports))
+	for _, v := range k3sTracker.DeviceRouter.Service.Spec.Ports {
+		spm[v.Port] = struct{}{}
+	}
+
+	newPorts := make([]fileclient.Port, 0, len(ports)+len(k3sTracker.DeviceRouter.Service.Spec.Ports))
+
+	processed := make(map[int]struct{})
+
+	for _, p := range ports {
+		processed[p.DevicePort] = struct{}{}
+		if _, ok := spm[p.DevicePort]; ok {
+
+			if toStart {
+				return fmt.Errorf("port, already occupied by another intercept")
+			}
+			continue
+		}
+
+		newPorts = append(newPorts,
+			fileclient.Port{
+				Name:       fmt.Sprintf("udp-%d", p.AppPort),
+				Port:       p.DevicePort,
+				Protocol:   "UDP",
+				TargetPort: p.DevicePort,
+			},
+			fileclient.Port{
+				Name:       fmt.Sprintf("tcp-%d", p.AppPort),
+				Port:       p.DevicePort,
+				Protocol:   "TCP",
+				TargetPort: p.DevicePort,
+			},
+		)
+	}
+
+	for _, p := range k3sTracker.DeviceRouter.Service.Spec.Ports {
+		if _, ok := processed[p.Port]; !ok {
+			newPorts = append(newPorts, fileclient.Port{
+				Name:       p.Name,
+				Port:       p.Port,
+				Protocol:   p.Protocol,
+				TargetPort: p.TargetPort,
+			})
+		}
+	}
+
+	// if toStart {
+	// 	for _, p := range ports {
+	// 		isFound := false
+	// 		for _, sp := range servicePorts {
+	// 			if p.DevicePort == sp.Port {
+	// 				isFound = true
+	// 				break
+	// 			}
+	// 		}
 	//
-	//	if len(ports) == 0 {
-	//		script := `
-	//kubectl get svc/device-router -n kl-gateway
-	//exit_code=$?
-	//
-	//if [ $exit_code -eq 0 ]; then
-	//  kubectl delete svc device-router -n kl-gateway
-	//fi
-	//`
-	//		return c.runScriptInContainer(script)
-	//	}
+	// 		if !isFound {
+	// 			servicePorts = append(servicePorts, fileclient.Port{
+	// 				Name:       fmt.Sprintf("udp-%d", p.AppPort),
+	// 				Port:       p.DevicePort,
+	// 				Protocol:   "UDP",
+	// 				TargetPort: p.DevicePort,
+	// 			})
+	// 			servicePorts = append(servicePorts, fileclient.Port{
+	// 				Name:       fmt.Sprintf("tcp-%d", p.AppPort),
+	// 				Port:       p.DevicePort,
+	// 				Protocol:   "TCP",
+	// 				TargetPort: p.DevicePort,
+	// 			})
+	// 		}
+	// 	}
+	// } else {
+	// 	for _, p := range ports {
+	// 		for _, sp := range servicePorts {
+	// 			if p.DevicePort == sp.Port {
+	// 				servicePorts = append(servicePorts[:len(servicePorts)-1], servicePorts[len(servicePorts)-1:]...)
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	tmpl := `
 cat > /tmp/service-device-router.yml <<EOF
 apiVersion: v1
 kind: Service
 metadata:
-  name: device-router
-  namespace: kl-gateway
+  name: kl-device-router
+  namespace: kl-local
   annotations:
     kloudlite.io/networking.proxy.to: "172.18.0.3"
 spec:
   ports:
   {{range .Ports}}
-    - protocol: UDP
-      name: udp-{{.AppPort}}
-      port: {{if eq .DevicePort 0}}{{.AppPort}}{{else}}{{.DevicePort}}{{end}}
-    - protocol: TCP
-      name: tcp-{{.AppPort}}
-      port: {{if eq .DevicePort 0}}{{.AppPort}}{{else}}{{.DevicePort}}{{end}}
+    - protocol: {{.Protocol}}
+      name: {{.Name}}
+      port: {{.Port}}
+      targetPort: {{.TargetPort}}
   {{end}}
 EOF
 
@@ -391,9 +472,9 @@ kubectl apply -f /tmp/service-device-router.yml
 	}
 
 	data := struct {
-		Ports []apiclient.AppPort
+		Ports []fileclient.Port
 	}{
-		Ports: ports,
+		Ports: newPorts,
 	}
 
 	var script bytes.Buffer
@@ -407,7 +488,7 @@ kubectl apply -f /tmp/service-device-router.yml
 func (c *client) RestartWgProxyContainer() error {
 	defer spinner.Client.UpdateMessage("restarting kloudlite-gateway")()
 	script := `
-kubectl delete pod/$(kubectl get pods -n kl-gateway | tail -n +2 | awk '{print $1}') -n kl-gateway --grace-period 1
+kubectl delete pod/$(kubectl get pods -n kl-gateway | tail -n +2 | awk '{print $1}') -n kl-gateway --grace-period 0
 `
 	if err := c.runScriptInContainer(script); err != nil {
 		return err
@@ -444,7 +525,6 @@ func (c *client) runScriptInContainer(script string) error {
 		AttachStdout: true,
 		AttachStderr: true,
 	})
-
 	if err != nil {
 		return fn.NewE(err, "failed to create exec instance for container")
 	}

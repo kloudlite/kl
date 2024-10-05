@@ -81,7 +81,7 @@ Examples:
 			return
 		}
 
-		if err = k3sClient.StartAppInterceptService(nil); err != nil {
+		if err = k3sClient.StartAppInterceptService(appToStop.Spec.Intercept.PortMappings, false); err != nil {
 			return
 		}
 
