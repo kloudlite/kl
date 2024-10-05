@@ -3,6 +3,8 @@ package connect
 import (
 	"bufio"
 	"errors"
+	"github.com/go-ping/ping"
+	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/envclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/k3s"
@@ -39,6 +41,22 @@ func startWg() error {
 
 	if envclient.InsideBox() {
 
+		pinger, err := ping.NewPinger(constants.KLDNS)
+		if err != nil {
+			return err
+		}
+		pinger.Count = 1
+		pinger.Timeout = 2 * time.Second
+		if err := pinger.Run(); err != nil {
+			fn.Log("Workspace status:", text.Yellow("offline"))
+			return nil
+		}
+		stats := pinger.Statistics()
+		if stats.PacketsRecv == 0 {
+			fn.Log("Workspace status:", text.Yellow("offline"))
+			return nil
+		}
+
 		if err = fn.ExecNoOutput("wg-quick down kl-workspace-wg"); err != nil {
 			return fn.NewE(err)
 		}
@@ -46,6 +64,8 @@ func startWg() error {
 		if err = fn.ExecNoOutput("wg-quick up kl-workspace-wg"); err != nil {
 			return fn.NewE(err)
 		}
+
+		time.Sleep(time.Second * 1)
 
 		open, err := os.Open("/tmp/kl/online.status")
 		if err != nil {

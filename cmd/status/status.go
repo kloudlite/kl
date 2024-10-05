@@ -101,12 +101,12 @@ func getK3sStatus() error {
 		fn.Log("Gateway attached: ", text.Yellow("not ready"))
 	}
 
-	if !k3sTracker.Gateway {
-		fn.Log("Workspace status:", text.Yellow("offline"))
-		return nil
-	}
-
 	if envclient.InsideBox() {
+		if !k3sTracker.Gateway {
+			fn.Log("Workspace status:", text.Yellow("offline"))
+			return nil
+		}
+
 		pinger, err := ping.NewPinger(constants.KLDNS)
 		if err != nil {
 			return err

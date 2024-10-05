@@ -21,6 +21,7 @@ import (
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"os"
 	"text/template"
+	"time"
 )
 
 const (
@@ -343,42 +344,88 @@ func (c *client) EnsureKloudliteNetwork() error {
 	return nil
 }
 
-func (c *client) StartAppInterceptService(ports []apiclient.AppPort) error {
+func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart bool) error {
 	defer spinner.Client.UpdateMessage("starting intercept service")()
 	if err := c.EnsureKloudliteNetwork(); err != nil {
 		return fn.NewE(err)
 	}
-	//
-	//	if len(ports) == 0 {
-	//		script := `
-	//kubectl get svc/device-router -n kl-gateway
-	//exit_code=$?
-	//
-	//if [ $exit_code -eq 0 ]; then
-	//  kubectl delete svc device-router -n kl-gateway
-	//fi
-	//`
-	//		return c.runScriptInContainer(script)
-	//	}
+
+	k3sTracker, err := c.fc.GetK3sTracker()
+	if err != nil {
+		return fn.Error("k3s server is not ready, please wait")
+	}
+
+	lastCheckedAt, err := time.Parse(time.RFC3339, k3sTracker.LastCheckedAt)
+	if err != nil {
+		return fn.Error("k3s server is not ready, please wait")
+	}
+
+	if time.Since(lastCheckedAt) > 3*time.Second {
+		return fn.Error("k3s server is not ready, please wait")
+	}
+
+	servicePorts := make([]fileclient.Port, 0)
+
+	for _, p := range k3sTracker.DeviceRouter.Service.Spec.Ports {
+		servicePorts = append(servicePorts, fileclient.Port{
+			Name:       p.Name,
+			Port:       p.Port,
+			Protocol:   p.Protocol,
+			TargetPort: p.TargetPort,
+		})
+	}
+
+	if toStart {
+		for _, p := range ports {
+			isFound := false
+			for _, sp := range servicePorts {
+				if p.DevicePort == sp.Port {
+					isFound = true
+					break
+				}
+			}
+
+			if !isFound {
+				servicePorts = append(servicePorts, fileclient.Port{
+					Name:       fmt.Sprintf("udp-%d", p.AppPort),
+					Port:       p.DevicePort,
+					Protocol:   "UDP",
+					TargetPort: p.DevicePort,
+				})
+				servicePorts = append(servicePorts, fileclient.Port{
+					Name:       fmt.Sprintf("tcp-%d", p.AppPort),
+					Port:       p.DevicePort,
+					Protocol:   "TCP",
+					TargetPort: p.DevicePort,
+				})
+			}
+		}
+	} else {
+		for _, p := range ports {
+			for _, sp := range servicePorts {
+				if p.DevicePort == sp.Port {
+					servicePorts = append(servicePorts[:len(servicePorts)-1], servicePorts[len(servicePorts)-1:]...)
+				}
+			}
+		}
+	}
 
 	tmpl := `
 cat > /tmp/service-device-router.yml <<EOF
 apiVersion: v1
 kind: Service
 metadata:
-  name: device-router
-  namespace: kl-gateway
+  name: kl-device-router
+  namespace: kl-local
   annotations:
     kloudlite.io/networking.proxy.to: "172.18.0.3"
 spec:
   ports:
   {{range .Ports}}
-    - protocol: UDP
-      name: udp-{{.AppPort}}
-      port: {{if eq .DevicePort 0}}{{.AppPort}}{{else}}{{.DevicePort}}{{end}}
-    - protocol: TCP
-      name: tcp-{{.AppPort}}
-      port: {{if eq .DevicePort 0}}{{.AppPort}}{{else}}{{.DevicePort}}{{end}}
+    - protocol: {{.Protocol}}
+      name: {{.Name}}
+      port: {{.Port}}
+      targetPort: {{.TargetPort}}
   {{end}}
 EOF
 
@@ -391,9 +438,9 @@ kubectl apply -f /tmp/service-device-router.yml
 	}
 
 	data := struct {
-		Ports []apiclient.AppPort
+		Ports []fileclient.Port
 	}{
-		Ports: ports,
+		Ports: servicePorts,
 	}
 
 	var script bytes.Buffer
@@ -407,7 +454,7 @@ kubectl apply -f /tmp/service-device-router.yml
 func (c *client) RestartWgProxyContainer() error {
 	defer spinner.Client.UpdateMessage("restarting kloudlite-gateway")()
 	script := `
-kubectl delete pod/$(kubectl get pods -n kl-gateway | tail -n +2 | awk '{print $1}') -n kl-gateway --grace-period 1
+kubectl delete pod/$(kubectl get pods -n kl-gateway | tail -n +2 | awk '{print $1}') -n kl-gateway --grace-period 0
 `
 	if err := c.runScriptInContainer(script); err != nil {
 		return err

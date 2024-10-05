@@ -116,7 +116,7 @@ func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cob
 	if err != nil {
 		return err
 	}
-	if err = k3sClient.StartAppInterceptService(ports); err != nil {
+	if err = k3sClient.StartAppInterceptService(ports, true); err != nil {
 		return err
 	}
 
