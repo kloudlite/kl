@@ -2,12 +2,13 @@ package apiclient
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
-	"os"
 )
 
 var PaginationDefault = map[string]any{
@@ -107,7 +108,6 @@ func (apic *apiClient) ListApps(accountName string, envName string) ([]App, erro
 // }
 
 func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envName string, options ...fn.Option) error {
-
 	accountName := fn.GetOption(options, "accountName")
 
 	fc, err := fileclient.New()
@@ -166,14 +166,14 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 	}
 
 	respData, err := klFetch(query, map[string]any{
-		"appName":      app.Metadata.Name,
-		"envName":      envName,
+		"appName": app.Metadata.Name,
+		"envName": envName,
+		// FIXME: this IP will not work with intercepts, other than local cluster
 		"ipAddr":       constants.InterceptWorkspaceServiceIp,
 		"clusterName":  fmt.Sprintf("%s-%s", user.Name, hostName),
 		"intercept":    status,
 		"portMappings": ports,
 	}, &cookie)
-
 	if err != nil {
 		return functions.NewE(err)
 	}
@@ -240,7 +240,6 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 		"envName":    currentEnv.Name,
 		"deviceName": devName,
 	}, &cookie)
-
 	if err != nil {
 		return functions.NewE(err)
 	}

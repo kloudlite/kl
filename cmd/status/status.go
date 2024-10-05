@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
-	"net/http"
 )
 
 const (
@@ -21,7 +22,6 @@ var Cmd = &cobra.Command{
 	Use:   "status",
 	Short: "get status of your current context (user, account, environment, vpn status)",
 	Run: func(cmd *cobra.Command, _ []string) {
-
 		apic, err := apiclient.New()
 		if err != nil {
 			fn.PrintError(err)
@@ -63,7 +63,6 @@ var Cmd = &cobra.Command{
 		if err != nil {
 			return
 		}
-
 	},
 }
 

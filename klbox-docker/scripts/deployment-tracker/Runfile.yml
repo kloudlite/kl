@@ -1,0 +1,17 @@
+tasks:
+  build:
+    env:
+      CGO_ENABLED:
+        default:
+          value: "0"
+    cmd:
+      - go build -v -o ./deployment-tracker .
+
+  dev:
+    env:
+      KUBERNETES_HOST:
+        default:
+          value: localhost:8080
+    cmd:
+      - run: build
+      - ./deployment-tracker --output ./status.json
