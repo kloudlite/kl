@@ -3,8 +3,8 @@ package apiclient
 import (
 	"fmt"
 	"os"
+	"time"
 
-	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -165,11 +165,24 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 		query = "cli_interceptExternalApp"
 	}
 
+	k3sTracker, err := apic.fc.GetK3sTracker()
+	if err != nil {
+		return err
+	}
+
+	lastCheckedAt, err := time.Parse(time.RFC3339, k3sTracker.LastCheckedAt)
+	if err != nil {
+		return err
+	}
+
+	if time.Since(lastCheckedAt) > 3*time.Second {
+		return fn.Error("k3s server is not ready, please wait")
+	}
+
 	respData, err := klFetch(query, map[string]any{
-		"appName": app.Metadata.Name,
-		"envName": envName,
-		// FIXME: this IP will not work with intercepts, other than local cluster
-		"ipAddr":       constants.InterceptWorkspaceServiceIp,
+		"appName":      app.Metadata.Name,
+		"envName":      envName,
+		"ipAddr":       k3sTracker.DeviceRouterIP,
 		"clusterName":  fmt.Sprintf("%s-%s", user.Name, hostName),
 		"intercept":    status,
 		"portMappings": ports,

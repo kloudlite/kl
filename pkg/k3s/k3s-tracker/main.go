@@ -58,7 +58,7 @@ func grabServiceIP(ctx context.Context, k *kubernetes.Clientset, namespace, name
 
 func main() {
 	var output string
-	flag.StringVar(&output, "output", "/tmp/kl/deployment-tracker/status.json", "--output")
+	flag.StringVar(&output, "output", "/tmp/kl/k3s-tracker/status.json", "--output")
 	flag.Parse()
 
 	const (
@@ -69,7 +69,7 @@ func main() {
 		GatewayNamespace  string = "kl-gateway"
 		GatewayDeployment string = "default"
 
-		DeviceRouterNamespace string = "kloudlite"
+		DeviceRouterNamespace string = "kl-gateway"
 		DeviceRouterService   string = "kl-device-router"
 	)
 
@@ -119,7 +119,11 @@ func main() {
 			slog.Error("failed to marshal status data, got", "err", err)
 		}
 
-		if _, err := f.WriteAt(b, 0); err != nil {
+		if err := f.Truncate(0); err != nil {
+			slog.Error("failed to truncate file, got", "err", err)
+		}
+
+		if _, err := f.Write(b); err != nil {
 			slog.Error("failed to persist status, got", "err", err)
 		}
 
