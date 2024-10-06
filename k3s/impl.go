@@ -7,7 +7,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"os"
 	"text/template"
 	"time"
@@ -411,7 +410,7 @@ func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart boo
 		}
 	}
 
-	slog.Info("ports", "new", newPorts, "old", k3sTracker.DeviceRouter.Service.Spec.Ports)
+	//slog.Info("ports", "new", newPorts, "old", k3sTracker.DeviceRouter.Service.Spec.Ports)
 
 	// if toStart {
 	// 	for _, p := range ports {
