@@ -179,6 +179,8 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 		return fn.Error("k3s server is not ready, please wait")
 	}
 
+	fmt.Println(k3sTracker.DeviceRouter.IP)
+
 	respData, err := klFetch(query, map[string]any{
 		"appName":      app.Metadata.Name,
 		"envName":      envName,
@@ -200,7 +202,7 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 
 func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 	defer spinner.Client.UpdateMessage("Cleaning up intercepts...")()
-	//devName := fn.GetOption(options, "deviceName")
+	// devName := fn.GetOption(options, "deviceName")
 	accountName := fn.GetOption(options, "accountName")
 	currentEnv, err := apic.EnsureEnv()
 	if err != nil {
@@ -253,7 +255,7 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 		return functions.NewE(err)
 	}
 	query := "cli_removeDeviceIntercepts"
-
+	fmt.Println(config.ClusterName)
 	respData, err := klFetch(query, map[string]any{
 		"envName": currentEnv.Name,
 		//"deviceName": devName,

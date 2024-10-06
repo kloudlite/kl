@@ -5,7 +5,13 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
+	"log/slog"
+	"os"
+	"text/template"
+	"time"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
@@ -19,9 +25,6 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/text"
-	"os"
-	"text/template"
-	"time"
 )
 
 const (
@@ -152,7 +155,6 @@ func (c *client) CreateClustersAccounts(accountName string) error {
 				},
 			},
 		}, nil, "")
-
 		if err != nil {
 			return fn.NewE(err, "failed to create container")
 		}
@@ -198,7 +200,6 @@ func (c *client) CreateClustersAccounts(accountName string) error {
 				},
 			},
 		}, nil, "")
-
 		if err != nil {
 			return fn.NewE(err, "failed to create container")
 		}
@@ -364,53 +365,123 @@ func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart boo
 		return fn.Error("k3s server is not ready, please wait")
 	}
 
-	servicePorts := make([]fileclient.Port, 0)
+	spm := make(map[int]struct{}, len(k3sTracker.DeviceRouter.Service.Spec.Ports))
+	for _, v := range k3sTracker.DeviceRouter.Service.Spec.Ports {
+		spm[v.Port] = struct{}{}
+	}
+
+	newPorts := make([]fileclient.Port, 0, len(ports)+len(k3sTracker.DeviceRouter.Service.Spec.Ports))
+
+	processed := make(map[int]struct{})
+
+	for _, p := range ports {
+		processed[p.DevicePort] = struct{}{}
+		if _, ok := spm[p.DevicePort]; ok {
+
+			if toStart {
+				return fmt.Errorf("port, already occupied by another intercept")
+			}
+			continue
+		}
+
+		newPorts = append(newPorts,
+			fileclient.Port{
+				Name:       fmt.Sprintf("udp-%d", p.AppPort),
+				Port:       p.DevicePort,
+				Protocol:   "UDP",
+				TargetPort: p.DevicePort,
+			},
+			fileclient.Port{
+				Name:       fmt.Sprintf("tcp-%d", p.AppPort),
+				Port:       p.DevicePort,
+				Protocol:   "TCP",
+				TargetPort: p.DevicePort,
+			},
+		)
+	}
 
 	for _, p := range k3sTracker.DeviceRouter.Service.Spec.Ports {
-		servicePorts = append(servicePorts, fileclient.Port{
-			Name:       p.Name,
-			Port:       p.Port,
-			Protocol:   p.Protocol,
-			TargetPort: p.TargetPort,
+		if _, ok := processed[p.Port]; !ok && p.Name != "not-in-use" {
+			newPorts = append(newPorts, fileclient.Port{
+				Name:       p.Name,
+				Port:       p.Port,
+				Protocol:   p.Protocol,
+				TargetPort: p.TargetPort,
+			})
+		}
+	}
+
+	slog.Info("ports", "new", newPorts, "old", k3sTracker.DeviceRouter.Service.Spec.Ports)
+
+	// if toStart {
+	// 	for _, p := range ports {
+	// 		isFound := false
+	// 		for _, sp := range servicePorts {
+	// 			if p.DevicePort == sp.Port {
+	// 				isFound = true
+	// 				break
+	// 			}
+	// 		}
+	//
+	// 		if !isFound {
+	// 			servicePorts = append(servicePorts, fileclient.Port{
+	// 				Name:       fmt.Sprintf("udp-%d", p.AppPort),
+	// 				Port:       p.DevicePort,
+	// 				Protocol:   "UDP",
+	// 				TargetPort: p.DevicePort,
+	// 			})
+	// 			servicePorts = append(servicePorts, fileclient.Port{
+	// 				Name:       fmt.Sprintf("tcp-%d", p.AppPort),
+	// 				Port:       p.DevicePort,
+	// 				Protocol:   "TCP",
+	// 				TargetPort: p.DevicePort,
+	// 			})
+	// 		}
+	// 	}
+	// } else {
+	// 	for _, p := range ports {
+	// 		for _, sp := range servicePorts {
+	// 			if p.DevicePort == sp.Port {
+	// 				servicePorts = append(servicePorts[:len(servicePorts)-1], servicePorts[len(servicePorts)-1:]...)
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	if newPorts == nil || len(newPorts) == 0 {
+		newPorts = append(newPorts, fileclient.Port{
+			Name:       "not-in-use",
+			Port:       59595,
+			Protocol:   "TCP",
+			TargetPort: 59595,
 		})
 	}
 
-	if toStart {
-		for _, p := range ports {
-			isFound := false
-			for _, sp := range servicePorts {
-				if p.DevicePort == sp.Port {
-					isFound = true
-					break
-				}
-			}
-
-			if !isFound {
-				servicePorts = append(servicePorts, fileclient.Port{
-					Name:       fmt.Sprintf("udp-%d", p.AppPort),
-					Port:       p.DevicePort,
-					Protocol:   "UDP",
-					TargetPort: p.DevicePort,
-				})
-				servicePorts = append(servicePorts, fileclient.Port{
-					Name:       fmt.Sprintf("tcp-%d", p.AppPort),
-					Port:       p.DevicePort,
-					Protocol:   "TCP",
-					TargetPort: p.DevicePort,
-				})
-			}
-		}
-	} else {
-		for _, p := range ports {
-			for _, sp := range servicePorts {
-				if p.DevicePort == sp.Port {
-					servicePorts = append(servicePorts[:len(servicePorts)-1], servicePorts[len(servicePorts)-1:]...)
-				}
-			}
-		}
+	portsJson, err := json.Marshal(newPorts)
+	if err != nil {
+		return err
 	}
 
 	tmpl := `
+cat > /tmp/service-device-router.patch.json <<EOF
+[
+  {
+		"op": "replace",
+		"path": "/spec/ports",
+		"value": %s
+  }
+]
+EOF
+
+kubectl patch svc/kl-device-router -n kl-local --type=json --patch-file /tmp/service-device-router.patch.json
+`
+
+	return c.runScriptInContainer(fmt.Sprintf(tmpl, portsJson))
+}
+
+func (c *client) RemoveAllIntercepts() error {
+	defer spinner.Client.UpdateMessage("Cleaning up intercepts...")()
+	script := `
 cat > /tmp/service-device-router.yml <<EOF
 apiVersion: v1
 kind: Service
@@ -421,34 +492,15 @@ metadata:
     kloudlite.io/networking.proxy.to: "172.18.0.3"
 spec:
   ports:
-  {{range .Ports}}
-    - protocol: {{.Protocol}}
-      name: {{.Name}}
-      port: {{.Port}}
-      targetPort: {{.TargetPort}}
-  {{end}}
+  - protocol: TCP
+    name: not-in-use
+    port: 59595
+    targetPort: 59595
 EOF
 
 kubectl apply -f /tmp/service-device-router.yml
 `
-
-	t, err := template.New("script").Parse(tmpl)
-	if err != nil {
-		return fn.Errorf("failed to parse template: %w", err)
-	}
-
-	data := struct {
-		Ports []fileclient.Port
-	}{
-		Ports: servicePorts,
-	}
-
-	var script bytes.Buffer
-	if err := t.Execute(&script, data); err != nil {
-		return fn.Errorf("failed to execute template: %w", err)
-	}
-
-	return c.runScriptInContainer(script.String())
+	return c.runScriptInContainer(script)
 }
 
 func (c *client) RestartWgProxyContainer() error {
@@ -491,7 +543,6 @@ func (c *client) runScriptInContainer(script string) error {
 		AttachStdout: true,
 		AttachStderr: true,
 	})
-
 	if err != nil {
 		return fn.NewE(err, "failed to create exec instance for container")
 	}
