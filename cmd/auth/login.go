@@ -33,7 +33,7 @@ var loginCmd = &cobra.Command{
 
 		link := fmt.Sprintf("%s/%s%s", constants.LoginUrl, "?loginId=", loginId)
 
-		fn.Log(text.Colored("Opening browser for login in the browser to authenticate your account\n", 2))
+		fn.Log(text.Colored("Opening browser for login in the browser to authenticate your team\n", 2))
 		fn.Println(text.Colored(text.Blue(link), 21))
 		fn.Log("\n")
 
@@ -78,7 +78,7 @@ var loginCmd = &cobra.Command{
 			return
 		}
 
-		if err = use.UseAccount(); err != nil {
+		if err = use.UseTeam(); err != nil {
 			fn.PrintError(err)
 			return
 		}

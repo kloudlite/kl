@@ -39,7 +39,7 @@ var Cmd = &cobra.Command{
 }
 
 func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Command, args []string) error {
-	accName, err := fc.CurrentAccountName()
+	accName, err := fc.CurrentTeamName()
 	if err != nil {
 		return err
 	}

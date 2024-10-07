@@ -86,7 +86,7 @@ func init() {
 	switchCmd.Aliases = append(switchCmd.Aliases, "switch")
 
 	switchCmd.Flags().StringP("envname", "e", "", "environment name")
-	switchCmd.Flags().StringP("account", "a", "", "account name")
+	switchCmd.Flags().StringP("team", "a", "", "team name")
 }
 
 func selectEnv(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclient.Env, error) {
@@ -112,12 +112,12 @@ func selectEnv(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclient.E
 		return nil
 	}
 
-	currentAccount, err := fc.CurrentAccountName()
+	currentTeam, err := fc.CurrentTeamName()
 	if err != nil {
 		return nil, functions.NewE(err)
 	}
 
-	envs, err := apic.ListEnvs(currentAccount)
+	envs, err := apic.ListEnvs(currentTeam)
 	if err != nil {
 		return nil, functions.NewE(err)
 	}
