@@ -625,7 +625,7 @@ spec:
   version: {{.InstallCommand.ChartVersion}}
   targetNamespace: kloudlite
   valuesContent: |-
-    teamName: {{.InstallCommand.HelmValues.TeamName}}
+    accountName: {{.InstallCommand.HelmValues.TeamName}}
     clusterName: {{.InstallCommand.HelmValues.ClusterName}}
     clusterToken: {{.InstallCommand.HelmValues.ClusterToken}}
     kloudliteDNSSuffix: {{.InstallCommand.HelmValues.KloudliteDNSSuffix}}
