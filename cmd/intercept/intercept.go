@@ -85,7 +85,7 @@ func startIntercept(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cob
 	}
 
 	spinner.Client.Pause()
-	fn.Printf("local port to forward %s:%d -> localhost: ", selectedApp.Name, selectedApp.Port)
+	fn.Printf("local port to forward %s: %d -> localhost: ", selectedApp.Name, selectedApp.Port)
 	devicePortInput, err := bufio.NewReader(os.Stdin).ReadString('\n')
 	if err != nil {
 		fn.PrintError(err)

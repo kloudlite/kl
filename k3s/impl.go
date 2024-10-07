@@ -410,43 +410,6 @@ func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart boo
 		}
 	}
 
-	//slog.Info("ports", "new", newPorts, "old", k3sTracker.DeviceRouter.Service.Spec.Ports)
-
-	// if toStart {
-	// 	for _, p := range ports {
-	// 		isFound := false
-	// 		for _, sp := range servicePorts {
-	// 			if p.DevicePort == sp.Port {
-	// 				isFound = true
-	// 				break
-	// 			}
-	// 		}
-	//
-	// 		if !isFound {
-	// 			servicePorts = append(servicePorts, fileclient.Port{
-	// 				Name:       fmt.Sprintf("udp-%d", p.AppPort),
-	// 				Port:       p.DevicePort,
-	// 				Protocol:   "UDP",
-	// 				TargetPort: p.DevicePort,
-	// 			})
-	// 			servicePorts = append(servicePorts, fileclient.Port{
-	// 				Name:       fmt.Sprintf("tcp-%d", p.AppPort),
-	// 				Port:       p.DevicePort,
-	// 				Protocol:   "TCP",
-	// 				TargetPort: p.DevicePort,
-	// 			})
-	// 		}
-	// 	}
-	// } else {
-	// 	for _, p := range ports {
-	// 		for _, sp := range servicePorts {
-	// 			if p.DevicePort == sp.Port {
-	// 				servicePorts = append(servicePorts[:len(servicePorts)-1], servicePorts[len(servicePorts)-1:]...)
-	// 			}
-	// 		}
-	// 	}
-	// }
-
 	if newPorts == nil || len(newPorts) == 0 {
 		newPorts = append(newPorts, fileclient.Port{
 			Name:       "not-in-use",
