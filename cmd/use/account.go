@@ -1,6 +1,7 @@
 package use
 
 import (
+	"github.com/kloudlite/kl/cmd/cluster"
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -11,16 +12,21 @@ import (
 var teamCmd = &cobra.Command{
 	Use:   "team",
 	Short: "use team",
-	Run: func(_ *cobra.Command, _ []string) {
-		if err := UseTeam(); err != nil {
+	Run: func(cmd *cobra.Command, _ []string) {
+		if err := UseTeam(cmd); err != nil {
 			fn.PrintError(err)
 			return
 		}
 	},
 }
 
-func UseTeam() error {
+func UseTeam(cmd *cobra.Command) error {
 	apic, err := apiclient.New()
+
+	fc, err := fileclient.New()
+	if err != nil {
+		return fn.NewE(err)
+	}
 
 	if err != nil {
 		return fn.NewE(err)
@@ -50,6 +56,17 @@ func UseTeam() error {
 		return fn.NewE(err)
 	}
 
+	currentTeam, err := fc.CurrentTeamName()
+	if err != nil {
+		return fn.NewE(err)
+	}
+
+	if selectedTeam.Metadata.Name != currentTeam && currentTeam != "" {
+		if err := cluster.StopK3sServer(cmd); err != nil {
+			return fn.NewE(err)
+		}
+	}
+
 	data.SelectedTeam = selectedTeam.Metadata.Name
 
 	err = fileclient.SaveExtraData(data)
@@ -67,7 +84,7 @@ func UseTeam() error {
 		return err
 	}
 
-	//k, err := k3s.NewClient()
+	//k, err := cluster.NewClient()
 	//if err != nil {
 	//	return err
 	//}

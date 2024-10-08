@@ -214,6 +214,7 @@ func (apic *apiClient) GetAccVPNConfig(team string) (*fileclient.TeamVpnConfig, 
 		teamVpnConfig := fileclient.TeamVpnConfig{
 			WGconf:     dev.WireguardConfig.Value,
 			DeviceName: dev.Metadata.Name,
+			IpAddress:  dev.IPAddress,
 		}
 
 		if err := apic.fc.SetVpnTeamConfig(team, &teamVpnConfig); err != nil {

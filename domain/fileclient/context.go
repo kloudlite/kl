@@ -152,7 +152,7 @@ func GetConfigFolder() (configFolder string, err error) {
 		return "", functions.NewE(err)
 	}
 
-	configPath := path.Join(homePath, ".cache", ".kl")
+	configPath := path.Join(homePath, ".kl")
 
 	// ensuring the dir is present
 	if err := os.MkdirAll(configPath, os.ModePerm); err != nil {

@@ -94,6 +94,15 @@ jobs:
 
           docker build --build-arg VERSION=$KL_VERSION_TAG -t ghcr.io/kloudlite/kl/box:$IMAGE_TAG-${{ matrix.arch }} --build-context project=. --output=type=image,compression=zstd,force-compression=true,compression-level=12,push=true ./klbox-docker 
 
+      - name: Build & Push k3s-tracker Image
+        env:
+          IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
+          K3S_TRACKER_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
+        run: |
+          set -e
+          image_name="ghcr.io/kloudlite/kl/k3s-tracker"
+          docker build --build-arg VERSION=$K3S_TRACKER_TAG -t ${image_name}:${IMAGE_TAG}-${{ matrix.arch }} --push .
+
   klbox-docker-multiarch-manifest:
     needs: klbox-docker-build
     runs-on: ubuntu-latest
@@ -139,7 +148,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: multiarch manifest build
+      - name: kl/box multiarch manifest build
         env:
           IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
           KL_VERSION_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
@@ -153,6 +162,14 @@ jobs:
           docker manifest annotate ${image_name}:${IMAGE_TAG} ${image_name}:${IMAGE_TAG}-arm64 --os linux --arch arm64
 
           docker manifest push ${image_name}:${IMAGE_TAG}
+
+      - name: kl/k3s-tracker multiarch manifest build
+        run: |
+          image_name="ghcr.io/kloudlite/kl/k3s-tracker"
+          docker manifest create ${image_name}:${{ steps.tag_name.outputs.TAG_NAME }} \
+            ${image_name}:${{ steps.tag_name.outputs.TAG_NAME }}-amd64 \
+            ${image_name}:${{ steps.tag_name.outputs.TAG_NAME }}-arm64
+          docker manifest push ${image_name}:${{ steps.tag_name.outputs.TAG_NAME }}
 
   build:
     name: Build ${{ matrix.app }}-${{ matrix.platform }}-${{ matrix.arch }}

@@ -598,15 +598,15 @@ func (c *client) SyncVpn(wg string) error {
 func GenerateConnectionScript(clusterConfig *fileclient.TeamClusterConfig) (string, error) {
 	t := template.New("connectionScript")
 	p, err := t.Parse(`
-echo "checking whether k3s server is accepting connections"
+echo "checking whether cluster server is accepting connections"
 while true; do
   lines=$(kubectl get nodes | wc -l)
   if [ "$lines" -lt 2 ]; then
-	echo "k3s server is not accepting connections yet, retrying in 1s ..."
+	echo "cluster server is not accepting connections yet, retrying in 1s ..."
 	sleep 1
 	continue
   fi
-  echo "successful, k3s server is now accepting connections"
+  echo "successful, cluster server is now accepting connections"
   break
 done
 kubectl apply -f {{.InstallCommand.CRDsURL}} --server-side
@@ -645,15 +645,15 @@ func (c *client) ConnectClusterToTeam(cConfig *fileclient.TeamClusterConfig) err
 	existingContainer, err := c.cli.ContainerList(context.Background(), container.ListOptions{
 		Filters: filters.NewArgs(
 			dockerLabelFilter(CONT_MARK_KEY, "true"),
-			dockerLabelFilter("kl-k3s", "true"),
+			dockerLabelFilter("kl-cluster", "true"),
 			dockerLabelFilter("kl-team", c.klfile.TeamName),
 		),
 	})
 	if err != nil {
-		return fn.Error("k3s container should exist")
+		return fn.Error("cluster container should exist")
 	}
 	if len(existingContainer) == 0 {
-		return fn.Error("no k3s container running locally")
+		return fn.Error("no cluster container running locally")
 	}
 	script, err := GenerateConnectionScript(cConfig)
 	if err != nil {
@@ -696,7 +696,7 @@ func (c *client) EnsureK3SCluster(team string) error {
 	existingContainers, err := c.cli.ContainerList(context.Background(), container.ListOptions{
 		Filters: filters.NewArgs(
 			dockerLabelFilter(CONT_MARK_KEY, "true"),
-			dockerLabelFilter("kl-k3s", "true"),
+			dockerLabelFilter("kl-cluster", "true"),
 		),
 	})
 	if err != nil {
@@ -729,7 +729,7 @@ func (c *client) EnsureK3SCluster(team string) error {
 	resp, err := c.cli.ContainerCreate(context.Background(), &container.Config{
 		Labels: map[string]string{
 			CONT_MARK_KEY: "true",
-			"kl-k3s":      "true",
+			"kl-cluster":  "true",
 			"kl-team":     c.klfile.TeamName,
 		},
 		Image: constants.GetK3SImageName(),
@@ -748,7 +748,7 @@ func (c *client) EnsureK3SCluster(team string) error {
 		},
 		Binds: []string{
 			//"/Users/karthik/Downloads/k9s/k9s:/bin/k9s",
-			fmt.Sprintf("kl-k3s-%s-cache:/var/lib/rancher/k3s", c.klfile.TeamName),
+			fmt.Sprintf("kl-cluster-%s-cache:/var/lib/rancher/cluster", c.klfile.TeamName),
 		},
 	}, &network.NetworkingConfig{}, nil, "")
 	if err != nil {
