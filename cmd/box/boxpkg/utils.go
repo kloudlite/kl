@@ -748,7 +748,7 @@ func (c *client) EnsureK3SCluster(team string) error {
 		},
 		Binds: []string{
 			//"/Users/karthik/Downloads/k9s/k9s:/bin/k9s",
-			fmt.Sprintf("kl-k3s-%s-cache:/var/lib/rancher/cluster", c.klfile.TeamName),
+			fmt.Sprintf("kl-k3s-%s-cache:/var/lib/rancher/k3s", c.klfile.TeamName),
 		},
 	}, &network.NetworkingConfig{}, nil, "")
 	if err != nil {
