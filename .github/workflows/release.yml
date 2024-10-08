@@ -139,7 +139,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: kl/box multiarch manifest build
+      - name: multiarch manifest build
         env:
           IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
           KL_VERSION_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
