@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	uuid "github.com/nu7hatch/gouuid"
-	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"os"
 	"path"
 	"runtime"
 	"strings"
+
+	uuid "github.com/nu7hatch/gouuid"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"github.com/adrg/xdg"
 	"github.com/kloudlite/kl/domain/envclient"
@@ -284,7 +285,7 @@ func (c *fclient) GetHostWgConfig() (string, error) {
 
 	wgConfig := fmt.Sprintf(`[Interface]
 PrivateKey = %s
-Address = %s/24
+Address = %s/32
 
 [Peer]
 PublicKey = %s
@@ -311,9 +312,9 @@ PrivateKey = %s
 
 [Peer]
 PublicKey = %s
-AllowedIPs = %s/32, %s
+AllowedIPs = #CLUSTER_GATEWAY_IP/32, #CLUSTER_IP_RANGE
 Endpoint = k3s-cluster.local:33820
-`, KLWorkspaceIp, config.Workspace.PrivateKey, config.Proxy.PublicKey, KLWGProxyIp, KLWGAllowedIp)
+`, KLWorkspaceIp, config.Workspace.PrivateKey, config.Proxy.PublicKey)
 }
 
 func (fc *fclient) GetWGConfig() (*WGConfig, error) {

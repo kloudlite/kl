@@ -3,7 +3,6 @@ package use
 import (
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/k3s"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/spf13/cobra"
@@ -58,13 +57,23 @@ func UseTeam() error {
 		return fn.NewE(err)
 	}
 
-	k, err := k3s.NewClient()
+	_, err = apic.GetClusterConfig(selectedTeam.Metadata.Name)
 	if err != nil {
 		return err
 	}
-	if err = k.CreateClustersTeams(selectedTeam.Metadata.Name); err != nil {
-		return fn.NewE(err)
+
+	_, err = apic.GetAccVPNConfig(selectedTeam.Metadata.Name)
+	if err != nil {
+		return err
 	}
+
+	//k, err := k3s.NewClient()
+	//if err != nil {
+	//	return err
+	//}
+	//if err = k.CreateClustersTeams(selectedTeam.Metadata.Name); err != nil {
+	//	return fn.NewE(err)
+	//}
 	fn.Log("Selected team is ", selectedTeam.Metadata.Name)
 	return nil
 }

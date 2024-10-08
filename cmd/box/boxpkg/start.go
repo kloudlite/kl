@@ -60,9 +60,9 @@ func (c *client) Start() error {
 		}
 	}
 
-	if err = c.k3s.CreateClustersTeams(c.klfile.TeamName); err != nil {
-		return fn.NewE(err)
-	}
+	// if err = c.k3s.CreateClustersTeams(c.klfile.TeamName); err != nil {
+	// 	return fn.NewE(err)
+	// }
 
 	_, err = c.startContainer(boxHash.KLConfHash)
 	if err != nil {

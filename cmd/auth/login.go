@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"github.com/kloudlite/kl/cmd/use"
+
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
