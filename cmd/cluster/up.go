@@ -21,7 +21,7 @@ var UpCmd = &cobra.Command{
 }
 
 func startK3sServer() error {
-	defer spinner.Client.UpdateMessage("starting cluster server")()
+	defer spinner.Client.UpdateMessage("starting k3s server")()
 	fc, err := fileclient.New()
 	if err != nil {
 		return err
@@ -37,6 +37,6 @@ func startK3sServer() error {
 	if err = k.CreateClustersTeams(currentTeam); err != nil {
 		return functions.NewE(err)
 	}
-	functions.Log("cluster server started")
+	functions.Log("k3s server started")
 	return nil
 }
