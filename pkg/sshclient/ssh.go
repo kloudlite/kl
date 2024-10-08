@@ -28,7 +28,7 @@ func HostKeyCallback(hostname string, remote net.Addr, key ssh.PublicKey) error 
 	matches := re.FindStringSubmatch(hostname)
 
 	if len(matches) != 3 {
-		return fn.Errorf("hostname does not allowed to be used: %s", hostname)
+		return fn.Errorf("hostname not allowed: %s", hostname)
 	}
 
 	return nil
