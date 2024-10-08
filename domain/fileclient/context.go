@@ -307,13 +307,15 @@ func (fc *fclient) SetWGConfig(config string) error {
 
 func (fc *fclient) generateWGConfig(config *WGConfig) string {
 	return fmt.Sprintf(`[Interface]
-Address = %s/24
+Address = %s/32
+ListenPort = 31820
 PrivateKey = %s
 
 [Peer]
 PublicKey = %s
 AllowedIPs = #CLUSTER_GATEWAY_IP/32, #CLUSTER_IP_RANGE
 Endpoint = k3s-cluster.local:33820
+PersistentKeepalive = 25
 `, KLWorkspaceIp, config.Workspace.PrivateKey, config.Proxy.PublicKey)
 }
 
