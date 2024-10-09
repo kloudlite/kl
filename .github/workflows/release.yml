@@ -78,6 +78,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
           KL_VERSION_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
+          K3S_VERSION: "v1.31.1+k3s1"
           OVERRIDE_PUSHED_IMAGE: "false"
         run: |
           set +e
@@ -98,8 +99,8 @@ jobs:
           docker image save ghcr.io/kloudlite/api/tenant-agent:$IMAGE_TAG -o ./images/kl-agent.tar.gz
           docker pull ghcr.io/kloudlite/operator/agent:$IMAGE_TAG
           docker image save ghcr.io/kloudlite/operator/agent:$IMAGE_TAG -o ./images/kl-agent-operator.tar.gz
-          wget "https://github.com/k3s-io/k3s/releases/download/v1.31.1%2Bk3s1/k3s-airgap-images-${{ matrix.arch }}.tar" -O ./images/k3s-airgap-images-${{ matrix.arch }}.tars
-          docker buildx build --platform linux/${{ matrix.arch }} --build-arg VERSION=$KL_VERSION_TAG -t ghcr.io/kloudlite/kl/k3s:$IMAGE_TAG . --push
+          curl -L "https://github.com/k3s-io/k3s/releases/download/$K3S_VERSION/k3s-airgap-images-${{ matrix.arch }}.tar" -o ./images/k3s-airgap-images-${{ matrix.arch }}.tar
+          docker build --build-arg VERSION=$KL_VERSION_TAG -t ghcr.io/kloudlite/kl/k3s:$IMAGE_TAG-{{matrix.arch}} . --push
 
   klbox-docker-multiarch-manifest:
     needs: kl-k3s-base-docker-build
