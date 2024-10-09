@@ -98,4 +98,64 @@ jobs:
           docker pull ghcr.io/kloudlite/operator/agent:{{IMAGE_TAG}}
           docker image save ghcr.io/kloudlite/operator/agent:{{IMAGE_TAG}} -o ./images/kl-agent-operator.tar.gz
           wget "https://github.com/k3s-io/k3s/releases/download/v1.31.1%2Bk3s1/k3s-airgap-images-${{ matrix.arch }}.tar" -O ./images/k3s-airgap-images-${{ matrix.arch }}.tars
-          docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION=$KL_VERSION_TAG -t ghcr.io/kloudlite/kl/k3s:$IMAGE_TAG . --push
+          docker buildx build --platform linux/${{ matrix.arch }} --build-arg VERSION=$KL_VERSION_TAG -t ghcr.io/kloudlite/kl/k3s:$IMAGE_TAG . --push
+
+  klbox-docker-multiarch-manifest:
+    needs: kl-k3s-base-docker-build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Create and Set Image Tag
+        id: tag_name
+        run: |
+          import re
+          import os
+
+          ref = os.getenv('GITHUB_REF')
+          if ref.startswith('refs/heads/release-'):
+              tag = ref.replace('refs/heads/release-', '')
+              if not re.search('-nightly$', tag):
+                  tag += "-nightly"
+          elif ref.startswith('refs/tags/'):
+              tag = ref.replace('refs/tags/', '')
+          else:
+              tag = 'default-tag'  # Adjust this fallback tag as necessary
+
+          with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
+              env_file.write(f"TAG={tag}\n")
+
+          with open(os.getenv('GITHUB_OUTPUT'), 'a') as env_out:
+              env_out.write(f"TAG_NAME={tag}\n")
+        shell: python
+
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: multiarch manifest build
+        env:
+          IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
+          KL_VERSION_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
+          OVERRIDE_PUSHED_IMAGE: "false"
+        shell: bash
+        run: |
+          image_name="ghcr.io/kloudlite/kl/k3s"
+          docker manifest create ${image_name}:${IMAGE_TAG} ${image_name}:${IMAGE_TAG}-amd64 ${image_name}:${IMAGE_TAG}-arm64
+
+          docker manifest annotate ${image_name}:${IMAGE_TAG} ${image_name}:${IMAGE_TAG}-amd64 --os linux --arch amd64
+          docker manifest annotate ${image_name}:${IMAGE_TAG} ${image_name}:${IMAGE_TAG}-arm64 --os linux --arch arm64
+
+          docker manifest push ${image_name}:${IMAGE_TAG}
