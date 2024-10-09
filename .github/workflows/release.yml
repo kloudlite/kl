@@ -49,7 +49,7 @@ jobs:
           elif ref.startswith('refs/tags/'):
               tag = ref.replace('refs/tags/', '')
           else:
-              tag = 'default-tag'  # Adjust this fallback tag as necessary
+              tag = 'v1.0.8-nightly'  # Adjust this fallback tag as necessary
           
           with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
               env_file.write(f"TAG={tag}\n")
