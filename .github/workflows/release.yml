@@ -63,7 +63,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build & Push Image
-        # if: startsWith(github.ref, 'refs/heads/release-') || startsWith(github.ref, 'refs/tags/')
         working-directory: ./k3s/k3s-tracker
         env:
           IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
@@ -72,14 +71,5 @@ jobs:
         run: |
           set +e
           image_name="ghcr.io/kloudlite/kl/k3s-tacker"
-
-          # docker manifest inspect $image_name:$IMAGE_TAG
-          # exit_status=$?
-          # if [ $exit_status -eq 0 ]; then
-          #   [ "$OVERRIDE_PUSHED_IMAGE" = "false" ] && echo "image ($image_name:$IMAGE_TAG) already exists, and override image is disable, exiting" && exit 0
-          #   echo "image exists, but override pushed image is set to true. proceeding with building image"
-          # fi
-
           set -e
-
           docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION=$KL_VERSION_TAG -t ghcr.io/kloudlite/kl/k3s-tracker:$IMAGE_TAG . --push
