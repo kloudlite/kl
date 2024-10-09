@@ -16,7 +16,7 @@ jobs:
       contents: read
       packages: write
 
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Setup Python
@@ -81,4 +81,4 @@ jobs:
 
           set -e
 
-          docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION=$KL_VERSION_TAG -t ghcr.io/kloudlite/kl/k3s-tracker:$IMAGE_TAG-${{ matrix.arch }} . --push
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION=$KL_VERSION_TAG -t ghcr.io/kloudlite/kl/k3s-tracker:$IMAGE_TAG . --push
