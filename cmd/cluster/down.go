@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var DownCmd = &cobra.Command{
+var downCmd = &cobra.Command{
 	Use:   "down",
 	Short: "Stops the k3s server",
 	Long:  `Stops the k3s server`,

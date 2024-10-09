@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var UpCmd = &cobra.Command{
+var upCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Starts the k3s server",
 	Long:  `Starts the k3s server`,
