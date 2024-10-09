@@ -83,6 +83,7 @@ jobs:
           set +e
           image_name="ghcr.io/kloudlite/kl/k3s-tacker"
           set -e
+          mkdir -p ./images
           docker pull ghcr.io/kloudlite/operator/networking/cmd/dns:$IMAGE_TAG
           docker image save ghcr.io/kloudlite/operator/networking/cmd/dns:$IMAGE_TAG -o ./images/dns.tar.gz
           docker pull ghcr.io/kloudlite/operator/networking/cmd/ip-manager:$IMAGE_TAG
