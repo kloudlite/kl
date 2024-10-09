@@ -64,6 +64,7 @@ jobs:
 
       - name: Build & Push Image
         # if: startsWith(github.ref, 'refs/heads/release-') || startsWith(github.ref, 'refs/tags/')
+        working-directory: ./k3s/k3s-tracker
         env:
           IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
           KL_VERSION_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
