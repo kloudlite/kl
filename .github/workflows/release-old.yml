@@ -11,6 +11,69 @@ on:
       - 'release-*'
 
 jobs:
+  kl-k3s-tracker-docker-build:
+    permissions:
+      contents: read
+      packages: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Create and Set Image Tag
+        id: tag_name
+        run: |
+          import re
+          import os
+
+          ref = os.getenv('GITHUB_REF')
+          if ref.startswith('refs/heads/release-'):
+              tag = ref.replace('refs/heads/release-', '')
+              if not re.search('-nightly$', tag):
+                  tag += "-nightly"
+          elif ref.startswith('refs/tags/'):
+              tag = ref.replace('refs/tags/', '')
+          else:
+              tag = 'default-tag'  # Adjust this fallback tag as necessary
+
+          with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
+              env_file.write(f"TAG={tag}\n")
+
+          with open(os.getenv('GITHUB_OUTPUT'), 'a') as env_out:
+              env_out.write(f"TAG_NAME={tag}\n")
+        shell: python
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v4
+
+      - name: Build & Push Image
+        working-directory: ./k3s/k3s-tracker
+        env:
+          IMAGE_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
+          KL_VERSION_TAG: ${{ steps.tag_name.outputs.TAG_NAME }}
+          OVERRIDE_PUSHED_IMAGE: "false"
+        run: |
+          set +e
+          image_name="ghcr.io/kloudlite/kl/k3s-tacker"
+          set -e
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION=$KL_VERSION_TAG -t ghcr.io/kloudlite/kl/k3s-tracker:$IMAGE_TAG . --push
+
   klbox-docker-build:
     strategy:
       fail-fast: false
