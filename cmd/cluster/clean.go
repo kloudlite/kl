@@ -54,7 +54,9 @@ func cleanCluster(cmd *cobra.Command) error {
 
 	// TODO: delete cluster api call
 
-	// TODO: remove data from k3s-local
+	if err = fc.DeleteClusterData(currentTeam); err != nil {
+		return fn.NewE(err)
+	}
 
 	// TODO: remove docker volumes
 
