@@ -223,7 +223,8 @@ func (c *client) CreateClustersTeams(teamName string) error {
 			fn.Log(text.Yellow(fmt.Sprintf("Time taken to create cluster: %.2fs", time.Since(start).Seconds())))
 		}
 	}()
-	return c.EnsureK3sServerIsReady()
+	// return c.EnsureK3sServerIsReady()
+	return nil
 
 }
 
@@ -252,29 +253,29 @@ func (c *client) generateConnectionScript(clusterConfig *fileclient.TeamClusterC
 	}
 
 	cc := struct {
-		ClusterToken   string `json:"clusterToken"`
-		ClusterName    string `json:"cluster"`
-		InstallCommand fileclient.InstallCommand
-		Installed      bool
-		WGConfig       fileclient.WGConfig
-		Version        string
-		GatewayIP      string
-		ClusterCIDR    string
-		IpAddress      string
-		ImageTag       string
-		ImageBase      string
+		ClusterToken        string `json:"clusterToken"`
+		ClusterName         string `json:"cluster"`
+		InstallCommand      fileclient.InstallCommand
+		Installed           bool
+		WGConfig            fileclient.WGConfig
+		Version             string
+		GatewayIP           string
+		ClusterCIDR         string
+		IpAddress           string
+		K3sTrackerImageName string
+		BaseURL             string
 	}{
-		ClusterToken:   clusterConfig.ClusterToken,
-		ClusterName:    clusterConfig.ClusterName,
-		InstallCommand: clusterConfig.InstallCommand,
-		Installed:      clusterConfig.Installed,
-		WGConfig:       clusterConfig.WGConfig,
-		Version:        clusterConfig.Version,
-		GatewayIP:      clusterConfig.GatewayIP,
-		ClusterCIDR:    clusterConfig.ClusterCIDR,
-		IpAddress:      vpnTeamConfig.IpAddress,
-		ImageTag:       clusterConfig.Version,
-		ImageBase:      flags.ImageBase,
+		ClusterToken:        clusterConfig.ClusterToken,
+		ClusterName:         clusterConfig.ClusterName,
+		InstallCommand:      clusterConfig.InstallCommand,
+		Installed:           clusterConfig.Installed,
+		WGConfig:            clusterConfig.WGConfig,
+		Version:             clusterConfig.Version,
+		GatewayIP:           clusterConfig.GatewayIP,
+		ClusterCIDR:         clusterConfig.ClusterCIDR,
+		IpAddress:           vpnTeamConfig.IpAddress,
+		K3sTrackerImageName: constants.GetK3sTrackerImageName(),
+		BaseURL:             constants.BaseURL,
 	}
 
 	b := new(bytes.Buffer)
