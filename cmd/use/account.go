@@ -20,7 +20,7 @@ var teamCmd = &cobra.Command{
 	},
 }
 
-func UseTeam(cmd *cobra.Command) error {
+func UseTeam(cmd *cobra.Command, options ...fn.Option) error {
 	apic, err := apiclient.New()
 
 	fc, err := fileclient.New()
@@ -91,6 +91,6 @@ func UseTeam(cmd *cobra.Command) error {
 	//if err = k.CreateClustersTeams(selectedTeam.Metadata.Name); err != nil {
 	//	return fn.NewE(err)
 	//}
-	fn.Log("Selected team is ", selectedTeam.Metadata.Name)
+	fn.Log("Selected team is", selectedTeam.Metadata.Name)
 	return nil
 }
