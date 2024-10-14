@@ -20,7 +20,7 @@ var teamCmd = &cobra.Command{
 	},
 }
 
-func UseTeam(cmd *cobra.Command, options ...fn.Option) error {
+func UseTeam(cmd *cobra.Command) error {
 	apic, err := apiclient.New()
 	if err != nil {
 		return fn.NewE(err)
