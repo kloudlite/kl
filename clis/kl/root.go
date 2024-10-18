@@ -1,9 +1,12 @@
 package kl
 
 import (
+	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/pkg/ui/text"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/pkg/functions"
@@ -56,9 +59,25 @@ func Execute() {
 	}
 }
 
+func versionCheck() {
+	data, err := fileclient.GetExtraData()
+	if err == nil {
+		if time.Since(data.LastUpdateCheck).Hours() > 24 {
+			// Todo(nxtCoder36): Add update version check with flags.Version
+			functions.Log(text.Yellow("It seems that kl is not updated recently. Please run \"kl update\" command."))
+			data.LastUpdateCheck = time.Now()
+			if err := fileclient.SaveExtraData(data); err != nil {
+				functions.Log(text.Yellow("Failed to save extra data"))
+			}
+		}
+	}
+}
+
 func init() {
 	rootCmd.Version = flags.Version
-
+	if !flags.IsDev() {
+		versionCheck()
+	}
 	for _, c := range rootCmd.Commands() {
 		c.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 		c.PersistentFlags().BoolP("quiet", "q", false, "quiet output")

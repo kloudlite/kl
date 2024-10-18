@@ -24,13 +24,15 @@ Example:
 kl update
 `,
 	Run: func(cmd *cobra.Command, _ []string) {
-		version := fn.ParseStringFlag(cmd, "version")
+		//version := fn.ParseStringFlag(cmd, "version")
+		//
+		//if version != "" {
+		//	version = fmt.Sprintf("@%s", version)
+		//}
 
-		if version != "" {
-			version = fmt.Sprintf("@%s", version)
-		}
-
-		err := ExecUpdateCmd(version)
+		//err := ExecUpdateCmd(version)
+		// Todo(nxtCoder36): Add update version with flags.Version
+		err := ExecUpdateCmd("")
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -57,6 +59,7 @@ func ExecUpdateCmd(version string) error {
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	fmt.Println(cmd)
 
 	err := cmd.Run()
 	if err != nil {
@@ -72,5 +75,5 @@ func isCommandAvailable(command string) bool {
 }
 
 func init() {
-	UpdateCmd.Flags().StringP("version", "v", "", fmt.Sprintf("%s cli version", flags.CliName))
+	//UpdateCmd.Flags().StringP("version", "v", "", fmt.Sprintf("%s cli version", flags.CliName))
 }
