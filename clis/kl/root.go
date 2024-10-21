@@ -80,7 +80,7 @@ func Execute() {
 func versionCheck() {
 	data, err := fileclient.GetExtraData()
 	if err == nil {
-		if time.Since(data.LastUpdateCheck).Seconds() > 2 {
+		if time.Since(data.LastUpdateCheck).Hours() > 12 {
 			u := updater.NewUpdater()
 			available, err := u.CheckForUpdates()
 			if err != nil {

@@ -41,7 +41,7 @@ kl update
 func ExecUpdateCmd(version string) error {
 	uurl, err := updater.NewUpdater().GetUpdateUrl()
 	if err != nil {
-		return err
+		uurl = &constants.UpdateURL
 	}
 
 	if runtime.GOOS == constants.RuntimeWindows {
