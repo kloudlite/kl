@@ -208,7 +208,7 @@ func (c *client) CreateClustersTeams(teamName string) error {
 		return fn.NewE(err, "failed to start container")
 	}
 
-	script, err := c.generateConnectionScript(clusterConfig)
+	script, err := c.generateConnectionScript(clusterConfig, teamName)
 	if err != nil {
 		return fn.NewE(err, "failed to generate connection script")
 	}
@@ -228,7 +228,7 @@ func (c *client) CreateClustersTeams(teamName string) error {
 
 }
 
-func (c *client) generateConnectionScript(clusterConfig *fileclient.TeamClusterConfig) (string, error) {
+func (c *client) generateConnectionScript(clusterConfig *fileclient.TeamClusterConfig, teamName string) (string, error) {
 	defer spinner.Client.UpdateMessage("generating connection script")()
 	t := template.New("connectionScript")
 
@@ -240,11 +240,6 @@ func (c *client) generateConnectionScript(clusterConfig *fileclient.TeamClusterC
 	clusterConfig.Version = flags.Version
 	if clusterConfig.Version == "" || clusterConfig.Version == "v1.0.0-nightly" {
 		clusterConfig.Version = "v1.0.8-nightly"
-	}
-
-	teamName, err := c.fc.CurrentTeamName()
-	if err != nil {
-		return "", err
 	}
 
 	vpnTeamConfig, err := c.fc.GetVpnTeamConfig(teamName)
@@ -290,8 +285,7 @@ func (c *client) DeletePods() error {
 	defer spinner.Client.UpdateMessage("deleting pods")()
 	script := `
 kubectl taint nodes --all shutdown=true:NoExecute	
-kubectl delete pods -n kloudlite --all --force --grace-period=0
-kubectl delete pods -n kl-gateway --all --force --grace-period=0
+kubectl delete pods --all -n kl-gateway --force --grace-period=0
 `
 	return c.runScriptInContainer(script)
 }
@@ -516,7 +510,7 @@ kubectl patch svc/kl-device-router -n kl-local --type=json --patch-file /tmp/ser
 func (c *client) RestartWgProxyContainer() error {
 	defer spinner.Client.UpdateMessage("restarting kloudlite-gateway")()
 	script := `
-kubectl delete pod/$(kubectl get pods -n kl-gateway | tail -n +2 | awk '{print $1}') -n kl-gateway --grace-period 0
+kubectl delete pods --all -n kl-gateway --grace-period=0
 `
 	if err := c.runScriptInContainer(script); err != nil {
 		return err
