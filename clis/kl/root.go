@@ -6,8 +6,9 @@ import (
 	"syscall"
 
 	"github.com/kloudlite/kl/flags"
-	"github.com/kloudlite/kl/pkg/functions"
+	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
+	"github.com/kloudlite/kl/pkg/updater"
 	"github.com/spf13/cobra"
 )
 
@@ -15,19 +16,35 @@ import (
 var rootCmd = &cobra.Command{
 	Use: flags.CliName,
 	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
+
+		u := updater.NewUpdater()
+		b, err := u.CheckForUpdates()
+		if err != nil {
+			fn.PrintError(err)
+		}
+
+		if b {
+			s, err := u.GetUpdateMessage()
+			if err != nil {
+				fn.PrintError(err)
+			} else {
+				fn.Log(*s)
+			}
+		}
+
 		if s, ok := os.LookupEnv("KL_DEV"); ok && s == "true" {
 			flags.DevMode = "true"
 		} else if ok && s == "false" {
 			flags.DevMode = "false"
 		}
 
-		verbose := functions.ParseBoolFlag(cmd, "verbose")
+		verbose := fn.ParseBoolFlag(cmd, "verbose")
 		if verbose {
 			spinner.Client.SetVerbose(verbose)
 			flags.IsVerbose = verbose
 		}
 
-		quiet := functions.ParseBoolFlag(cmd, "quiet")
+		quiet := fn.ParseBoolFlag(cmd, "quiet")
 		if quiet {
 			spinner.Client.SetQuiet(quiet)
 			flags.IsQuiet = quiet

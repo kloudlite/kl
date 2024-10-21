@@ -11,20 +11,24 @@ import (
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl/pkg/updater"
 	"github.com/spf13/cobra"
 )
 
 var UpdateCmd = &cobra.Command{
-	Hidden: true,
-	Use:    "update",
-	Short:  "Update the kl to latest version",
+	Use:   "update",
+	Short: "Update the kl to latest version",
 	Long: `Update the kl to latest version
 Example:
 # Update the kl to latest version
 kl update
 `,
-	Run: func(cmd *cobra.Command, _ []string) {
-		version := fn.ParseStringFlag(cmd, "version")
+	Run: func(cmd *cobra.Command, args []string) {
+		version := ""
+		if len(args) > 0 {
+			version = args[0]
+		}
+		// version := fn.ParseStringFlag(cmd, "version")
 
 		if version != "" {
 			version = fmt.Sprintf("@%s", version)
@@ -40,6 +44,12 @@ kl update
 }
 
 func ExecUpdateCmd(version string) error {
+	uurl, err := updater.NewUpdater().GetUpdateUrl()
+	if err != nil {
+		return err
+	}
+
+	fn.Log(*uurl)
 
 	if runtime.GOOS == constants.RuntimeWindows {
 		return fn.Errorf("update is not supported on windows, please update manually using %q", text.Blue("iwr 'https://kl.kloudlite.io/kloudlite!?select=kl' | iex"))
@@ -49,17 +59,16 @@ func ExecUpdateCmd(version string) error {
 	curlAvailable := isCommandAvailable("curl")
 	wgetAvailable := isCommandAvailable("wget")
 	if curlAvailable {
-		cmd = exec.Command("bash", "-c", fmt.Sprintf("curl %s%s!?select=%s | bash", constants.UpdateURL, version, flags.CliName))
+		cmd = exec.Command("bash", "-c", fmt.Sprintf("curl %s%s!?select=%s | bash", *uurl, version, flags.CliName))
 	} else if wgetAvailable {
-		cmd = exec.Command("bash", "-c", fmt.Sprintf("wget -qO - %s%s!?select=%s | bash", constants.UpdateURL, version, flags.CliName))
+		cmd = exec.Command("bash", "-c", fmt.Sprintf("wget -qO - %s%s!?select=%s | bash", *uurl, version, flags.CliName))
 	} else {
 		return fn.Errorf("curl and wget not found")
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err := cmd.Run()
-	if err != nil {
+	if err = cmd.Run(); err != nil {
 		return functions.NewE(err)
 	}
 	return nil
@@ -72,5 +81,5 @@ func isCommandAvailable(command string) bool {
 }
 
 func init() {
-	UpdateCmd.Flags().StringP("version", "v", "", fmt.Sprintf("%s cli version", flags.CliName))
+	// UpdateCmd.Flags().StringP("version", "u", "", fmt.Sprintf("%s cli version", flags.CliName))
 }
