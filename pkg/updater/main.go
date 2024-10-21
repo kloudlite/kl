@@ -95,7 +95,7 @@ func (u *updater) fetchReleaseInfo() (map[string]string, error) {
 		return u.releaseInfo, nil
 	}
 
-	// use rest api for it
+	// TODO: use rest api for it
 	s, err := net.LookupTXT("klversion.kloudlite.io")
 	if err != nil {
 		return nil, fn.NewE(err, "Failed to fetch txt records")
@@ -126,6 +126,8 @@ func (u *updater) CheckForUpdates() (bool, error) {
 	if !ok {
 		return false, fn.Errorf("Failed to fetch release info")
 	}
+
+	fmt.Println(vcode, flags.Version)
 
 	if vcode != flags.Version {
 		return true, nil

@@ -69,10 +69,6 @@ var (
 	ServerURL = func() string {
 		return fmt.Sprintf("%s/api/", BaseURL)
 	}()
-
-	// UpdateURL = func() string {
-	// 	return "https://kl.kloudlite.io/kloudlite/kloudlite"
-	// }()
 )
 
 var (

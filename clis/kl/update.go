@@ -28,11 +28,6 @@ kl update
 		if len(args) > 0 {
 			version = args[0]
 		}
-		// version := fn.ParseStringFlag(cmd, "version")
-
-		if version != "" {
-			version = fmt.Sprintf("@%s", version)
-		}
 
 		err := ExecUpdateCmd(version)
 		if err != nil {
@@ -48,8 +43,6 @@ func ExecUpdateCmd(version string) error {
 	if err != nil {
 		return err
 	}
-
-	fn.Log(*uurl)
 
 	if runtime.GOOS == constants.RuntimeWindows {
 		return fn.Errorf("update is not supported on windows, please update manually using %q", text.Blue("iwr 'https://kl.kloudlite.io/kloudlite!?select=kl' | iex"))
@@ -67,6 +60,7 @@ func ExecUpdateCmd(version string) error {
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	fmt.Println(cmd)
 
 	if err = cmd.Run(); err != nil {
 		return functions.NewE(err)
@@ -78,8 +72,4 @@ func isCommandAvailable(command string) bool {
 	cmd := exec.Command("which", command)
 	err := cmd.Run()
 	return functions.NewE(err) == nil
-}
-
-func init() {
-	// UpdateCmd.Flags().StringP("version", "u", "", fmt.Sprintf("%s cli version", flags.CliName))
 }

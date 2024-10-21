@@ -4,6 +4,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
+
+	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/pkg/ui/text"
 
 	"github.com/kloudlite/kl/flags"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -17,20 +21,20 @@ var rootCmd = &cobra.Command{
 	Use: flags.CliName,
 	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 
-		u := updater.NewUpdater()
-		b, err := u.CheckForUpdates()
-		if err != nil {
-			fn.PrintError(err)
-		}
-
-		if b {
-			s, err := u.GetUpdateMessage()
-			if err != nil {
-				fn.PrintError(err)
-			} else {
-				fn.Log(*s)
-			}
-		}
+		// u := updater.NewUpdater()
+		// b, err := u.CheckForUpdates()
+		// if err != nil {
+		// 	fn.PrintError(err)
+		// }
+		//
+		// if b {
+		// 	s, err := u.GetUpdateMessage()
+		// 	if err != nil {
+		// 		fn.PrintError(err)
+		// 	} else {
+		// 		fn.Log(*s)
+		// 	}
+		// }
 
 		if s, ok := os.LookupEnv("KL_DEV"); ok && s == "true" {
 			flags.DevMode = "true"
@@ -73,8 +77,42 @@ func Execute() {
 	}
 }
 
+func versionCheck() {
+	data, err := fileclient.GetExtraData()
+	if err == nil {
+		if time.Since(data.LastUpdateCheck).Seconds() > 2 {
+			u := updater.NewUpdater()
+			available, err := u.CheckForUpdates()
+			if err != nil {
+				if flags.IsVerbose {
+					fn.PrintError(err)
+				}
+				return
+			}
+
+			if available {
+				s, err := u.GetUpdateMessage()
+				if err != nil {
+					if flags.IsVerbose {
+						fn.PrintError(err)
+					}
+					return
+				}
+
+				fn.Log(*s)
+				data.LastUpdateCheck = time.Now()
+				if err := fileclient.SaveExtraData(data); err != nil {
+					fn.Log(text.Yellow("Failed to save extra data"))
+				}
+			}
+
+		}
+	}
+}
+
 func init() {
 	rootCmd.Version = flags.Version
+	versionCheck()
 
 	for _, c := range rootCmd.Commands() {
 		c.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
