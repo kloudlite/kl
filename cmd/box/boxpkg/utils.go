@@ -250,6 +250,7 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 	clusterConfig, err := c.fc.GetClusterConfig(currentSystemConfig.SelectedTeam)
 
 	resp, err := c.cli.ContainerCreate(context.Background(), &container.Config{
+		User:  fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()),
 		Image: constants.GetBoxImageName(),
 		Labels: map[string]string{
 			CONT_MARK_KEY:           "true",
