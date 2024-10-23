@@ -7,6 +7,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/cobra"
 	"os"
 	"text/template"
 	"time"
@@ -632,4 +633,11 @@ func (c *client) CheckK3sRunningLocally() (bool, error) {
 		return false, fn.Errorf("no k3s container running locally")
 	}
 	return true, nil
+}
+
+func (c *client) RemoveClusterVolume(cmd *cobra.Command, clusterName string) error {
+	if err := c.c.VolumeRemove(cmd.Context(), fmt.Sprintf("kl-k3s-%s-cache", clusterName), true); err != nil {
+		return fn.NewE(err)
+	}
+	return nil
 }

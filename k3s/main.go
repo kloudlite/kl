@@ -4,6 +4,7 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/spf13/cobra"
 )
 
 type K3sClient interface {
@@ -15,6 +16,7 @@ type K3sClient interface {
 	RemoveAllIntercepts() error
 	DeletePods() error
 	CheckK3sRunningLocally() (bool, error)
+	RemoveClusterVolume(cmd *cobra.Command, clusterName string) error
 }
 
 type client struct {
