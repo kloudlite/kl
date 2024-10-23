@@ -263,7 +263,7 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 			fmt.Sprintf("KL_HASH_FILE=/.cache/kl/box-hash/%s", boxhashFileName),
 			fmt.Sprintf("SSH_PORT=%d", sshPort),
 			fmt.Sprintf("KL_WORKSPACE=%s", c.cwd),
-			"KLCONFIG_PATH=/workspace/kl.yml",
+			"KLCONFIG_PATH=/home/kl/workspace/kl.yml",
 			fmt.Sprintf("KL_DNS=%s", constants.KLDNS),
 			fmt.Sprintf("KL_BASE_URL=%s", constants.BaseURL),
 			fmt.Sprintf("KL_HOST_USER=%s", hostName),
@@ -291,7 +291,7 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 			for _, m := range vmounts {
 				binds = append(binds, fmt.Sprintf("%s:%s:z", m.Source, m.Target))
 			}
-			binds = append(binds, fmt.Sprintf("%s:/workspace:z", c.cwd))
+			binds = append(binds, fmt.Sprintf("%s:/home/kl/workspace:z", c.cwd))
 			return binds
 		}(),
 	}, &network.NetworkingConfig{
@@ -450,7 +450,7 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 
 	akTmpPath := path.Join(td, "authorized_keys")
 
-	//gitConfigPath := path.Join(userHomeDir, ".gitconfig")
+	gitConfigPath := path.Join(userHomeDir, ".gitconfig")
 
 	akByte, err = os.ReadFile(path.Join(userHomeDir, ".ssh", "authorized_keys"))
 	if err == nil {
@@ -512,10 +512,10 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 		{Type: mount.TypeVolume, Source: "kl-nix-store", Target: "/nix"},
 		{Type: mount.TypeBind, Source: configFolder, Target: "/.cache/kl"},
 	}
-	//_, err = os.Stat(gitConfigPath)
-	//if err == nil {
-	//	volumes = append(volumes, mount.Mount{Type: mount.TypeBind, Source: gitConfigPath, Target: "/tmp/gitconfig/.gitconfig", ReadOnly: true})
-	//}
+	_, err = os.Stat(gitConfigPath)
+	if err == nil {
+		volumes = append(volumes, mount.Mount{Type: mount.TypeBind, Source: gitConfigPath, Target: "/home/kl/.gitconfig", ReadOnly: true})
+	}
 
 	dockerSock := "/var/run/docker.sock"
 	// if runtime.GOOS == constants.RuntimeWindows {
