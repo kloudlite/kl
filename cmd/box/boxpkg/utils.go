@@ -438,7 +438,8 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 	}
 
 	sshPath := path.Join(userHomeDir, ".ssh", "id_rsa.pub")
-	rsaPath := path.Join(userHomeDir, ".ssh", "id_rsa")
+	//rsaPath := path.Join(userHomeDir, ".ssh", "id_rsa")
+	sshDir := path.Join(userHomeDir, ".ssh")
 
 	akByte, err := os.ReadFile(sshPath)
 	if err != nil {
@@ -502,10 +503,11 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 	}
 
 	volumes := []mount.Mount{
-		{Type: mount.TypeBind, Source: akTmpPath, Target: "/tmp/ssh2/authorized_keys", ReadOnly: true},
-		{Type: mount.TypeBind, Source: sshPath, Target: "/tmp/ssh2/id_rsa.pub", ReadOnly: true},
-		{Type: mount.TypeBind, Source: rsaPath, Target: "/tmp/ssh2/id_rsa", ReadOnly: true},
 		{Type: mount.TypeVolume, Source: "kl-home-cache", Target: "/home"},
+		//{Type: mount.TypeBind, Source: rsaPath, Target: "/tmp/ssh2/id_rsa", ReadOnly: true},
+		//  NOTE: never change the order of ssh mount
+		{Type: mount.TypeBind, Source: sshDir, Target: "/home/kl/.ssh", ReadOnly: true},
+		{Type: mount.TypeBind, Source: akTmpPath, Target: "/home/kl/.ssh/authorized_keys", ReadOnly: true},
 		//{Type: mount.TypeBind, Source: gitConfigPath, Target: "/tmp/gitconfig/.gitconfig", ReadOnly: true},
 		{Type: mount.TypeVolume, Source: "kl-nix-store", Target: "/nix"},
 		{Type: mount.TypeBind, Source: configFolder, Target: "/.cache/kl"},
