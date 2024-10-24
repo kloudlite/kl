@@ -148,7 +148,7 @@ jobs:
             exit 1
           fi
 
-          IMAGE_NAME=${{ k3s_base_deps_version || steps.tag_name.outputs.TAG_NAME }}
+          IMAGE_NAME=${{  github.event.inputs.k3s_base_deps_version || steps.tag_name.outputs.TAG_NAME }}
           echo "image_name=$IMAGE_NAME" >> $GITHUB_ENV
 
       - name: Build & Push Image
