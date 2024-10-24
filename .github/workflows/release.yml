@@ -2,10 +2,10 @@ name: Release
 
 on:
   workflow_dispatch:
-  inputs:
-    k3s_base_deps_version:
-      description: 'k3s base image version'
-      required: false
+    inputs:
+      k3s_base_deps_version:
+        description: 'k3s base image version'
+        required: false
   release:
     types: [created]
 
