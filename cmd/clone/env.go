@@ -55,7 +55,7 @@ func envClone(cmd *cobra.Command, args []string) error {
 		return fn.Error("env name is not available")
 	}
 
-	cluster, err := SelectCluster(apic, fc)
+	cluster, err := selectCluster(apic, fc)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName str
 	return env, nil
 }
 
-func SelectCluster(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclient.Cluster, error) {
+func selectCluster(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclient.Cluster, error) {
 	currentTeam, err := fc.CurrentTeamName()
 	if err != nil {
 		return nil, fn.NewE(err)

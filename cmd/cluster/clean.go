@@ -32,7 +32,7 @@ func cleanCluster(cmd *cobra.Command) error {
 		return err
 	}
 
-	k3sClient, err := k3s.NewClient()
+	k3sClient, err := k3s.NewClient(cmd)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func cleanCluster(cmd *cobra.Command) error {
 			if err = fc.DeleteClusterData(data.SelectedTeam); err != nil {
 				return fn.NewE(err)
 			}
-			if err = k3sClient.RemoveClusterVolume(cmd, c.Metadata.Name); err != nil {
+			if err = k3sClient.RemoveClusterVolume(c.Metadata.Name); err != nil {
 				return fn.NewE(err)
 			}
 			fn.Log(fmt.Sprintf("cluster %s of team %s deleted", c.Metadata.Name, data.SelectedTeam))

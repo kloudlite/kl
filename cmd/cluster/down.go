@@ -46,7 +46,7 @@ func StopK3sServer(cmd *cobra.Command) error {
 		return nil
 	}
 
-	k3sclient, err := k3s.NewClient()
+	k3sclient, err := k3s.NewClient(cmd)
 	if err != nil {
 		return err
 	}
