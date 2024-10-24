@@ -112,7 +112,8 @@ jobs:
               tag = ref.replace('refs/heads/release-', '')
               if not re.search('-nightly$', tag):
                   tag += "-nightly"
-                  env_file.write(f"IS_NIGHTLY=YES\n")
+                  with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
+                    env_file.write(f"IS_NIGHTLY=YES\n")
           elif ref.startswith('refs/tags/'):
               tag = ref.replace('refs/tags/', '')
           else:
