@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"os"
 	"path"
 )
@@ -104,6 +105,7 @@ func (c *fclient) SetClusterConfig(team string, accClusterConfig *TeamClusterCon
 }
 
 func (c *fclient) DeleteClusterData(team string) error {
+	defer spinner.Client.UpdateMessage("removing cluster data")()
 	cfgFolder := c.configPath
 
 	cfgPath := path.Join(cfgFolder, "k3s-local", fmt.Sprintf("%s.json", team))

@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"fmt"
-	"github.com/kloudlite/kl/cmd/clone"
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/k3s"
@@ -38,38 +37,39 @@ func cleanCluster(cmd *cobra.Command) error {
 		return err
 	}
 
-	currentTeam, err := fc.CurrentTeamName()
+	data, err := fileclient.GetExtraData()
 	if err != nil {
 		return fn.NewE(err)
 	}
 
-	selectedCluster, err := clone.SelectCluster(apic, fc)
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	fn.Printf(text.Yellow("this will delete cluster and all its data and volumes. Do you want to continue? (y/N): "))
+	fn.Printf(text.Yellow(fmt.Sprintf("this will delete k3s cluster for team %s and all its data and volumes. Do you want to continue? (y/N): ", data.SelectedTeam)))
 	if !fn.Confirm("Y", "N") {
 		return nil
 	}
 
-	//currentCluster, err := apic.GetClustersOfTeam(currentTeam)
-	//if err != nil {
-	//	return fn.NewE(err)
-	//}
-
-	fmt.Println(selectedCluster.Metadata.Name)
-	// TODO: delete cluster api call
-
-	if err = fc.DeleteClusterData(currentTeam); err != nil {
+	clusters, err := apic.GetClustersOfTeam(data.SelectedTeam)
+	if err != nil {
 		return fn.NewE(err)
 	}
-
-	if err = k3sClient.RemoveClusterVolume(cmd, selectedCluster.Metadata.Name); err != nil {
+	wgConfig, err := fc.GetWGConfig()
+	if err != nil {
 		return fn.NewE(err)
 	}
-
-	fn.Log(fmt.Sprintf("cluster %s deleted ", selectedCluster.Metadata.Name))
+	for _, c := range clusters {
+		if c.Metadata.Labels["kloudlite.io/local-uuid"] == wgConfig.UUID {
+			if err := apic.DeleteCluster(data.SelectedTeam, c.Metadata.Name); err != nil {
+				return fn.NewE(err)
+			}
+			if err = fc.DeleteClusterData(data.SelectedTeam); err != nil {
+				return fn.NewE(err)
+			}
+			if err = k3sClient.RemoveClusterVolume(cmd, c.Metadata.Name); err != nil {
+				return fn.NewE(err)
+			}
+			fn.Log(fmt.Sprintf("cluster %s of team %s deleted", c.Metadata.Name, data.SelectedTeam))
+			break
+		}
+	}
 	return nil
 
 }

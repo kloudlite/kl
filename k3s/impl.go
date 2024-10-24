@@ -636,7 +636,30 @@ func (c *client) CheckK3sRunningLocally() (bool, error) {
 }
 
 func (c *client) RemoveClusterVolume(cmd *cobra.Command, clusterName string) error {
-	if err := c.c.VolumeRemove(cmd.Context(), fmt.Sprintf("kl-k3s-%s-cache", clusterName), true); err != nil {
+	defer spinner.Client.UpdateMessage("removing cluster volume")()
+	_, err := c.CheckK3sRunningLocally()
+	if err != nil && err.Error() != "no k3s container running locally" {
+		return err
+	}
+	if err == nil {
+		existingContainers, err := c.c.ContainerList(context.Background(), container.ListOptions{
+			All: true,
+			Filters: filters.NewArgs(
+				filters.Arg("label", fmt.Sprintf("%s=%s", CONT_MARK_KEY, "true")),
+				filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
+			),
+		})
+		if err != nil {
+			return fn.Errorf("failed to list containers: %w", err)
+		}
+		if err := c.c.ContainerStop(context.Background(), existingContainers[0].ID, container.StopOptions{}); err != nil {
+			return fn.NewE(err, "failed to stop container")
+		}
+		if err := c.c.ContainerRemove(context.Background(), existingContainers[0].ID, container.RemoveOptions{}); err != nil {
+			return fn.NewE(err, "failed to remove container")
+		}
+	}
+	if err = c.c.VolumeRemove(cmd.Context(), fmt.Sprintf("kl-k3s-%s-cache", clusterName), true); err != nil {
 		return fn.NewE(err)
 	}
 	return nil

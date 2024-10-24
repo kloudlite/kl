@@ -73,7 +73,7 @@ var Cmd = &cobra.Command{
 		config, err := fc.GetClusterConfig(data.SelectedTeam)
 		if err != nil {
 			if os.IsNotExist(err) {
-				fn.PrintError(fn.Error("kl file is not synced properly. please run \"kl init\" to re-initialized kl file"))
+				fn.PrintError(fn.Error("no cluster found"))
 				return
 			} else {
 				fn.PrintError(err)
