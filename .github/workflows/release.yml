@@ -144,13 +144,22 @@ jobs:
       - name: Set default values
         id: defaults
         run: |
-          if [[ "${{ env.IS_NIGHTLY }}" == "YES" && -z "${{ github.event.inputs.k3s_base_deps_version }}" ]]; then
+          I_TAG=${{ steps.tag_name.outputs.TAG_NAME }}
+
+          if [[ "${{ env.IS_NIGHTLY }}" = "YES" ]]; then
+            I_TAG=${{ github.event.inputs.k3s_base_deps_version }}
+            if [[ -z $I_TAG ]]; then
+              I_TAG=${{ secrets.K3S_BASE_DEPS_VERSION }}
+            fi
+          fi
+
+          if [[ -z $I_TAG ]]; then
             echo "Error: k3s_base_deps_version is required for nightly builds."
             exit 1
           fi
 
-          IMAGE_NAME=${{  github.event.inputs.k3s_base_deps_version || steps.tag_name.outputs.TAG_NAME }}
-          echo "image_name=$IMAGE_NAME" >> $GITHUB_ENV
+          I_TAG=${{  github.event.inputs.k3s_base_deps_version || steps.tag_name.outputs.TAG_NAME }}
+          echo "image_name=$I_TAG" >> $GITHUB_ENV
 
       - name: Build & Push Image
         working-directory: ./k3s/k3s-base
