@@ -158,7 +158,8 @@ jobs:
             exit 1
           fi
 
-          I_TAG=${{  github.event.inputs.k3s_base_deps_version || steps.tag_name.outputs.TAG_NAME }}
+          # I_TAG=${{  github.event.inputs.k3s_base_deps_version || steps.tag_name.outputs.TAG_NAME }}
+          echo "image_tag_is:$I_TAG"
           echo "image_name=$I_TAG" >> $GITHUB_ENV
 
       - name: Build & Push Image
