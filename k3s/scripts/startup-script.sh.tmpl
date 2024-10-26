@@ -133,8 +133,6 @@ kubectl apply -f {{.InstallCommand.CRDsURL}} --server-side
 
 {{/*kubectl apply -f /tmp/helm-chart.yml*/}}
 
-echo curl -L0 -H 'Authorization: {{.InstallCommand.HelmValues.ClusterToken}}' {{.BaseURL}}/render/helm/kloudlite-agent/{{.InstallCommand.HelmValues.TeamName}}/{{.InstallCommand.HelmValues.ClusterName}}
-
 curl -L0 -H 'Authorization: {{.InstallCommand.HelmValues.ClusterToken}}' {{.BaseURL}}/render/helm/kloudlite-agent/{{.InstallCommand.HelmValues.TeamName}}/{{.InstallCommand.HelmValues.ClusterName}} |  kubectl apply -f -
 
 
