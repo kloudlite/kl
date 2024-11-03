@@ -248,7 +248,12 @@ func (c *client) generateConnectionScript(clusterConfig *fileclient.TeamClusterC
 
 	vpnTeamConfig, err := c.fc.GetVpnTeamConfig(teamName)
 	if err != nil {
-		return "", err
+		if !os.IsNotExist(err) {
+			return "", nil
+		}
+		vpnTeamConfig = &fileclient.TeamVpnConfig{
+			IpAddress: "",
+		}
 	}
 
 	cc := struct {
