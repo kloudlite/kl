@@ -230,10 +230,8 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 		}
 	}
 
-	clusterConfig, err := c.fc.GetClusterConfig(currentSystemConfig.SelectedTeam)
-	if err != nil {
-		return "", fn.NewE(err)
-	}
+	// Error is ignored here because we want to continue even if the cluster config is not found
+	clusterConfig, _ := c.fc.GetClusterConfig(currentSystemConfig.SelectedTeam)
 
 	env := []string{
 		fmt.Sprintf("KL_HASH_FILE=/.cache/kl/box-hash/%s", boxhashFileName),
@@ -301,17 +299,6 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 
 			return resp
 		}(),
-		// Binds: func() []string {
-		// 	binds := make([]string, 0, len(vmounts))
-		// 	for _, m := range vmounts {
-		// 		binds = append(binds, fmt.Sprintf("%s:%s:Z", m.Source, m.Target))
-		// 	}
-		// 	binds = append(binds, fmt.Sprintf("%s:/home/kl/workspace:Z", c.cwd))
-		//
-		// 	fmt.Printf("%#v", binds)
-		//
-		// 	return binds
-		// }(),
 	}, &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
 			"kloudlite": {
@@ -455,25 +442,9 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 		return nil, fn.NewE(err)
 	}
 
-	sshPath := path.Join(userHomeDir, ".ssh", "id_rsa.pub")
-	//rsaPath := path.Join(userHomeDir, ".ssh", "id_rsa")
 	sshDir := path.Join(userHomeDir, ".ssh")
 
-	akByte, err := os.ReadFile(sshPath)
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
-
-	ak := string(akByte)
-
-	akTmpPath := path.Join(td, "authorized_keys")
-
 	gitConfigPath := path.Join(userHomeDir, ".gitconfig")
-
-	akByte, err = os.ReadFile(path.Join(userHomeDir, ".ssh", "authorized_keys"))
-	if err == nil {
-		ak += fmt.Sprint("\n", string(akByte))
-	}
 
 	// for wsl
 	if err := func() error {
@@ -497,21 +468,10 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 			if _, err := os.Stat(pth); err != nil {
 				continue
 			}
-
-			b, err := os.ReadFile(pth)
-			if err != nil {
-				return fn.NewE(err)
-			}
-
-			ak += fmt.Sprint("\n", string(b))
 		}
 
 		return nil
 	}(); err != nil {
-		return nil, fn.NewE(err)
-	}
-
-	if err := writeOnUserScope(akTmpPath, []byte(ak)); err != nil {
 		return nil, fn.NewE(err)
 	}
 
@@ -522,8 +482,7 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 
 	volumes := []mount.Mount{
 		{Type: mount.TypeVolume, Source: "kl-home-cache", Target: "/home"},
-		{Type: mount.TypeBind, Source: sshDir, Target: "/home/kl/.ssh", ReadOnly: true},
-		{Type: mount.TypeBind, Source: akTmpPath, Target: "/home/kl/.ssh/authorized_keys", ReadOnly: true},
+		{Type: mount.TypeBind, Source: sshDir, Target: "/home/kl/.ssh", ReadOnly: false},
 		{Type: mount.TypeVolume, Source: "kl-nix-store", Target: "/nix"},
 		{Type: mount.TypeBind, Source: configFolder, Target: "/.cache/kl"},
 	}
