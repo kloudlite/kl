@@ -13,7 +13,6 @@ import (
 	"path"
 	"runtime"
 	"strconv"
-	"strings"
 	"text/template"
 	"time"
 
@@ -138,37 +137,12 @@ func (c *client) ensureImage(i string) error {
 	return nil
 }
 
-func (c *client) restartContainer(path string) error {
+func (c *client) restartContainer() error {
 	defer spinner.Client.UpdateMessage("restart container")()
-
-	existingContainers, err := c.cli.ContainerList(context.Background(), container.ListOptions{
-		Filters: filters.NewArgs(
-			dockerLabelFilter(CONT_MARK_KEY, "true"),
-			dockerLabelFilter(CONT_WORKSPACE_MARK_KEY, "true"),
-			dockerLabelFilter(CONT_PATH_KEY, path),
-		),
-		All: true,
-	})
-	if len(existingContainers) == 0 {
-		return nil
+	cmd := exec.Command("bash", "/kl-tmp/kill-sshd.sh")
+	if err := cmd.Run(); err != nil {
+		return fn.NewE(err, "failed to kill sshd")
 	}
-
-	if err != nil {
-		return fn.NewE(err, "failed to list containers")
-	}
-
-	if err := os.RemoveAll("/tmp/kl"); err != nil {
-		return fn.NewE(err)
-	}
-
-	timeOut := 0
-	if err := c.cli.ContainerRestart(context.Background(), existingContainers[0].ID, container.StopOptions{
-		Signal:  "SIGKILL",
-		Timeout: &timeOut,
-	}); err != nil {
-		return fn.NewE(err)
-	}
-
 	return nil
 }
 
@@ -257,6 +231,9 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 	}
 
 	clusterConfig, err := c.fc.GetClusterConfig(currentSystemConfig.SelectedTeam)
+	if err != nil {
+		return "", fn.NewE(err)
+	}
 
 	env := []string{
 		fmt.Sprintf("KL_HASH_FILE=/.cache/kl/box-hash/%s", boxhashFileName),
@@ -295,7 +272,10 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 		ExtraHosts: []string{
 			fmt.Sprintf("k3s-cluster.local:%s", constants.K3sServerIp),
 		},
-		Privileged:  true,
+		Privileged: true,
+		RestartPolicy: container.RestartPolicy{
+			Name: container.RestartPolicyAlways,
+		},
 		NetworkMode: "kloudlite",
 		PortBindings: nat.PortMap{
 			nat.Port(fmt.Sprintf("%d/tcp", sshPort)): []nat.PortBinding{
@@ -542,11 +522,8 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 
 	volumes := []mount.Mount{
 		{Type: mount.TypeVolume, Source: "kl-home-cache", Target: "/home"},
-		//{Type: mount.TypeBind, Source: rsaPath, Target: "/tmp/ssh2/id_rsa", ReadOnly: true},
-		//  NOTE: never change the order of ssh mount
 		{Type: mount.TypeBind, Source: sshDir, Target: "/home/kl/.ssh", ReadOnly: true},
 		{Type: mount.TypeBind, Source: akTmpPath, Target: "/home/kl/.ssh/authorized_keys", ReadOnly: true},
-		//{Type: mount.TypeBind, Source: gitConfigPath, Target: "/tmp/gitconfig/.gitconfig", ReadOnly: true},
 		{Type: mount.TypeVolume, Source: "kl-nix-store", Target: "/nix"},
 		{Type: mount.TypeBind, Source: configFolder, Target: "/.cache/kl"},
 	}
@@ -555,30 +532,26 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 		volumes = append(volumes, mount.Mount{Type: mount.TypeBind, Source: gitConfigPath, Target: "/home/kl/.gitconfig", ReadOnly: true})
 	}
 
-	dockerSock := func() string {
-		if s := os.Getenv("DOCKER_HOST"); s != "" {
-			return s
-		}
+	// dockerSock := func() string {
+	// 	if s := os.Getenv("DOCKER_HOST"); s != "" {
+	// 		return s
+	// 	}
 
-		return "unix:///var/run/docker.sock"
-	}()
+	// 	return "unix:///var/run/docker.sock"
+	// }()
 
-	dockerSockPath := func() string {
-		// extract the path from the docker sock url
-		if strings.HasPrefix(dockerSock, "unix://") {
-			return strings.TrimPrefix(dockerSock, "unix://")
-		}
+	// dockerSockPath := func() string {
+	// 	// extract the path from the docker sock url
+	// 	if strings.HasPrefix(dockerSock, "unix://") {
+	// 		return strings.TrimPrefix(dockerSock, "unix://")
+	// 	}
 
-		return dockerSock
-	}()
+	// 	return dockerSock
+	// }()
 
-	// if runtime.GOOS == constants.RuntimeWindows {
-	// 	dockerSock = "\\\\.\\pipe\\docker_engine"
-	// }
-
-	volumes = append(volumes,
-		mount.Mount{Type: mount.TypeBind, Source: dockerSockPath, Target: "/var/run/host-docker.sock"},
-	)
+	// volumes = append(volumes,
+	// 	mount.Mount{Type: mount.TypeBind, Source: dockerSockPath, Target: "/var/run/host-docker.sock"},
+	// )
 
 	return volumes, nil
 }
