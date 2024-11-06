@@ -55,7 +55,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 	}
 
 	if filePath == "" {
-		filePath = "/home/kl/workspace/"
+		filePath = "/home/kl/workspace/kl.yml"
 	}
 
 	klFile, err := fc.GetKlFile(filePath)

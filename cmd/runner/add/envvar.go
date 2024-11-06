@@ -39,7 +39,7 @@ func addEnvvar(cmd *cobra.Command, args []string) error {
 
 	filePath := fn.ParseKlFile(cmd)
 	if filePath == "" {
-		filePath = "/home/kl/workspace/"
+		filePath = "/home/kl/workspace/kl.yml"
 	}
 
 	fc, err := fileclient.New()

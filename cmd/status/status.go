@@ -70,12 +70,26 @@ var Cmd = &cobra.Command{
 		}
 		ev, err := apic.GetEnvironment(data.SelectedTeam, selectedEnv)
 		if err == nil {
-			r := text.Yellow("not ready")
-			if ev.Status.IsReady {
-				r = text.Green("ready")
+			r := text.Yellow("offline")
+			if ev.ClusterName != "" {
+				if ev.IsArchived {
+					r = text.Yellow("archived")
+				} else {
+					cluster, err := apic.GetCluster(data.SelectedTeam, ev.ClusterName)
+					if err != nil {
+						fn.PrintError(err)
+						return
+					}
+					if time.Since(cluster.LastOnlineAt) < time.Minute {
+						r = text.Green("online")
+					}
+					if ev.Spec.Suspend {
+						r = text.Yellow("suspended")
+					}
+				}
+				fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv, fmt.Sprintf("(%s)", r))
 			}
-			fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv, fmt.Sprintf("(%s)", r))
-		} else {
+		} else if selectedEnv != "" {
 			fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv)
 		}
 

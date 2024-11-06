@@ -240,3 +240,24 @@ func (apic *apiClient) DeleteCluster(team, clusterName string) error {
 	}
 	return nil
 }
+
+func (apic *apiClient) GetCluster(team, clusterName string) (*Cluster, error) {
+	cookie, err := getCookie(fn.MakeOption("teamName", team))
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+	respData, err := klFetch("cli_getBYOKCluster", map[string]any{
+		"name": clusterName,
+	}, &cookie)
+
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	fromResp, err := GetFromResp[Cluster](respData)
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+	return fromResp, nil
+
+}

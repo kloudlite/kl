@@ -49,7 +49,7 @@ func AddMres(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Comm
 
 	filePath := fn.ParseKlFile(cmd)
 	if filePath == "" {
-		filePath = "/home/kl/workspace/"
+		filePath = "/home/kl/workspace/kl.yml"
 	}
 	kt, err := fc.GetKlFile(filePath)
 	if err != nil {

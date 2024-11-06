@@ -35,12 +35,14 @@ type ApiClient interface {
 	GetEnvironment(teamName, envName string) (*Env, error)
 	EnsureEnv() (*fileclient.Env, error)
 	CloneEnv(teamName, envName, newEnvName, clusterName string) (*Env, error)
+	UpdateEnvironment(teamName string, env *Env, isSuspend bool) error
 	CheckEnvName(teamName, envName string) (bool, error)
 	GetLoadMaps() (map[string]string, MountMap, error)
 
 	//ListBYOKClusters(teamName string) ([]BYOKCluster, error)
 	GetClustersOfTeam(team string) ([]Cluster, error)
 	DeleteCluster(team, clusterName string) error
+	GetCluster(team, clusterName string) (*Cluster, error)
 	ListMreses(teamName string, envName string) ([]Mres, error)
 	ListMresKeys(teamName, envName, importedManagedResource string) ([]string, error)
 	GetMresConfigValues(teamName string) (map[string]string, error)

@@ -11,7 +11,9 @@ type Env struct {
 	Metadata    Metadata `json:"metadata"`
 	Status      Status   `json:"status"`
 	ClusterName string   `json:"clusterName"`
+	IsArchived  bool     `json:"isArchived"`
 	Spec        struct {
+		Suspend         bool   `json:"suspend"`
 		TargetNamespace string `json:"targetNamespace"`
 	} `json:"spec"`
 }
@@ -210,4 +212,29 @@ func (apic *apiClient) CheckEnvName(teamName, envName string) (bool, error) {
 	} else {
 		return fromResp.Result, nil
 	}
+}
+
+func (apic *apiClient) UpdateEnvironment(teamName string, env *Env, isSuspend bool) error {
+	cookie, err := getCookie(fn.MakeOption("teamName", teamName))
+	if err != nil {
+		return functions.NewE(err)
+	}
+	_, err = klFetch("cli_updateEnvironment", map[string]any{
+		"env": map[string]any{
+			"displayName": env.DisplayName,
+			"clusterName": env.ClusterName,
+			"metadata": map[string]any{
+				"name":      env.Metadata.Name,
+				"namespace": env.Metadata.Namespace,
+			},
+			"spec": map[string]any{
+				"suspend":         isSuspend,
+				"targetNamespace": env.Spec.TargetNamespace,
+			},
+		},
+	}, &cookie)
+	if err != nil {
+		return functions.NewE(err)
+	}
+	return nil
 }

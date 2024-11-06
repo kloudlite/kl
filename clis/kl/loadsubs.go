@@ -6,6 +6,7 @@ import (
 	"github.com/kloudlite/kl/cmd/clone"
 	"github.com/kloudlite/kl/cmd/cluster"
 	"github.com/kloudlite/kl/cmd/connect"
+	"github.com/kloudlite/kl/cmd/env"
 	"github.com/kloudlite/kl/cmd/expose"
 	"github.com/kloudlite/kl/cmd/get"
 	"github.com/kloudlite/kl/cmd/intercept"
@@ -16,7 +17,6 @@ import (
 	set_base_url "github.com/kloudlite/kl/cmd/set-base-url"
 	"github.com/kloudlite/kl/cmd/status"
 	"github.com/kloudlite/kl/cmd/use"
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/flags"
 	"github.com/spf13/cobra"
 )
@@ -39,6 +39,7 @@ func init() {
 
 	rootCmd.AddCommand(use.Cmd)
 	rootCmd.AddCommand(clone.Cmd)
+	rootCmd.AddCommand(env.Cmd)
 	rootCmd.AddCommand(runner.InitCommand)
 	rootCmd.AddCommand(set_base_url.Cmd)
 
@@ -48,7 +49,6 @@ func init() {
 	rootCmd.AddCommand(cluster.Cmd)
 	rootCmd.AddCommand(expose.Cmd)
 
-	fileclient.OnlyInsideBox(add.Command)
 	rootCmd.AddCommand(add.Command)
 	rootCmd.AddCommand(status.Cmd)
 	rootCmd.AddCommand(packages.Cmd)
