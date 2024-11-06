@@ -53,6 +53,10 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 		name = args[0]
 	}
 
+	if filePath == "" {
+		filePath = "/home/kl/workspace/"
+	}
+
 	klFile, err := fc.GetKlFile(filePath)
 	if err != nil {
 		return fn.NewE(err)

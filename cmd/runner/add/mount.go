@@ -42,6 +42,11 @@ var mountCommand = &cobra.Command{
 		}
 
 		filePath := fn.ParseKlFile(cmd)
+
+		if filePath == "" {
+			filePath = "/home/kl/workspace/"
+		}
+
 		klFile, err := fc.GetKlFile(filePath)
 		if err != nil {
 			fn.PrintError(err)

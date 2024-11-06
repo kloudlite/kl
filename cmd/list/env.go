@@ -55,15 +55,27 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 		envName = env.Name
 	}
 
-	header := table.Row{table.HeaderText("Display Name"), table.HeaderText("Name"), table.HeaderText("ready")}
+	header := table.Row{table.HeaderText("Display Name"), table.HeaderText("Name"), table.HeaderText("status")}
 	rows := make([]table.Row, 0)
 
 	for _, a := range envs {
-		rows = append(rows, table.Row{
-			fn.GetPrintRow(a, envName, a.DisplayName, true),
-			fn.GetPrintRow(a, envName, a.Metadata.Name),
-			fn.GetPrintRow(a, envName, a.Status.IsReady),
-		})
+		status := text.Yellow("not ready")
+		if a.Status.IsReady {
+			status = text.Green("ready")
+		}
+		if a.ClusterName == "" {
+			rows = append(rows, table.Row{
+				fn.GetPrintRow(a, envName, a.DisplayName, true),
+				fn.GetPrintRow(a, envName, a.Metadata.Name+" (template)"),
+				fn.GetPrintRow(a, envName, status),
+			})
+		} else {
+			rows = append(rows, table.Row{
+				fn.GetPrintRow(a, envName, a.DisplayName),
+				fn.GetPrintRow(a, envName, a.Metadata.Name),
+				fn.GetPrintRow(a, envName, status),
+			})
+		}
 	}
 
 	fn.Println(table.Table(&header, rows, cmd))

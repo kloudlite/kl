@@ -48,6 +48,9 @@ This command will add secret entry of managed resource references from current e
 func AddMres(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Command, args []string) error {
 
 	filePath := fn.ParseKlFile(cmd)
+	if filePath == "" {
+		filePath = "/home/kl/workspace/"
+	}
 	kt, err := fc.GetKlFile(filePath)
 	if err != nil {
 		return fn.NewE(err)

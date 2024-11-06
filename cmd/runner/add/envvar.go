@@ -36,6 +36,12 @@ func addEnvvar(cmd *cobra.Command, args []string) error {
 	if len(kv) != 2 {
 		return fn.Errorf("wrong envvar format use key=value")
 	}
+
+	filePath := fn.ParseKlFile(cmd)
+	if filePath == "" {
+		filePath = "/home/kl/workspace/"
+	}
+
 	fc, err := fileclient.New()
 	if err != nil {
 		return fn.NewE(err)

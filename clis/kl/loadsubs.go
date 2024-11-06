@@ -16,6 +16,7 @@ import (
 	set_base_url "github.com/kloudlite/kl/cmd/set-base-url"
 	"github.com/kloudlite/kl/cmd/status"
 	"github.com/kloudlite/kl/cmd/use"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/flags"
 	"github.com/spf13/cobra"
 )
@@ -47,6 +48,7 @@ func init() {
 	rootCmd.AddCommand(cluster.Cmd)
 	rootCmd.AddCommand(expose.Cmd)
 
+	fileclient.OnlyInsideBox(add.Command)
 	rootCmd.AddCommand(add.Command)
 	rootCmd.AddCommand(status.Cmd)
 	rootCmd.AddCommand(packages.Cmd)
