@@ -30,18 +30,18 @@ echo $KL_TEAM_NAME
 set -x
 
 if [[ -n "${CLUSTER_GATEWAY_IP}" && -n "${CLUSTER_IP_RANGE}" ]]; then
-  CLUSTER_IP_RANGE=$(echo $CLUSTER_IP_RANGE | sed 's/\//###/g')
+    CLUSTER_IP_RANGE=$(echo $CLUSTER_IP_RANGE | sed 's/\//###/g')
 
-  cat /.cache/kl/kl-workspace-wg.conf |
-    sed "s/#CLUSTER_GATEWAY_IP/${CLUSTER_GATEWAY_IP:-null}/" |
-    sed "s/#CLUSTER_IP_RANGE/${CLUSTER_IP_RANGE:-null}/" >/tmp/wg-cong
+    cat /.cache/kl/kl-workspace-wg.conf | \
+        sed "s/#CLUSTER_GATEWAY_IP/${CLUSTER_GATEWAY_IP:-null}/" | \
+        sed "s/#CLUSTER_IP_RANGE/${CLUSTER_IP_RANGE:-null}/" >/tmp/wg-cong
 
-  sed -i "s/###/\//" /tmp/wg-cong
+    sed -i "s/###/\//" /tmp/wg-cong
 
-  sudo cp /tmp/wg-cong /etc/wireguard/kl-workspace-wg.conf
-  rm /tmp/wg-cong
+    sudo cp /tmp/wg-cong /etc/wireguard/kl-workspace-wg.conf
+    rm /tmp/wg-cong
 
-  sudo wg-quick up kl-workspace-wg
+    sudo wg-quick up kl-workspace-wg
 fi
 
 cat /.cache/kl/vpn/${KL_TEAM_NAME}.json | jq -r .wg | base64 -d >/tmp/kl-vpn.conf
@@ -96,9 +96,10 @@ if [ $npkgs -gt 0 ]; then
   npath=$(nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command printenv PATH)
   echo export PATH=$PATH:$npath >> /kl-tmp/env
 
-  rm -rf /kl-tmp/nix-ld-path /kl-tmp/nix-include
   cat > /kl-tmp/nix-ld-library-and-cpath.sh <<'EOS'
     dir=$(nix eval "$1" --raw)
+
+    rm -rf /kl-tmp/nix-ld-path /kl-tmp/nix-include
 
     if [ -d "$dir/lib" ]; then
       echo -n "$dir/lib:" >> /kl-tmp/nix-ld-path
