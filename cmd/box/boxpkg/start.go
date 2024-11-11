@@ -87,12 +87,12 @@ func (c *client) Start() error {
 			return functions.NewE(err)
 		}
 
-		if c.klfile.TeamName != "" {
-			_, err = c.apic.GetClusterConfig(c.klfile.TeamName)
-			if err != nil {
-				return err
-			}
-		}
+		//if c.klfile.TeamName != "" {
+		//	_, err = c.apic.GetClusterConfig(c.klfile.TeamName)
+		//	if err != nil {
+		//		return err
+		//	}
+		//}
 
 	}
 
