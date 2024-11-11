@@ -445,6 +445,8 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 
 	gitConfigPath := path.Join(userHomeDir, ".gitconfig")
 
+	ak := string([]byte(""))
+
 	// for wsl
 	if err := func() error {
 		if runtime.GOOS != constants.RuntimeLinux {
@@ -467,10 +469,27 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 			if _, err := os.Stat(pth); err != nil {
 				continue
 			}
+
+			b, err := os.ReadFile(pth)
+			if err != nil {
+				return fn.NewE(err)
+			}
+
+			ak += fmt.Sprint("\n", string(b))
 		}
 
 		return nil
 	}(); err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	akTmpPath := path.Join(td, "kl-authorized-keys")
+
+	if err := os.MkdirAll(akTmpPath, 0755); err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	if err := writeOnUserScope(path.Join(akTmpPath, "authorized_keys"), []byte(ak)); err != nil {
 		return nil, fn.NewE(err)
 	}
 
@@ -482,6 +501,7 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 	volumes := []mount.Mount{
 		{Type: mount.TypeVolume, Source: "kl-home-cache", Target: "/home"},
 		{Type: mount.TypeBind, Source: sshDir, Target: "/home/kl/.ssh", ReadOnly: false},
+		{Type: mount.TypeBind, Source: akTmpPath, Target: "/kl-tmp/kl-authorized-keys", ReadOnly: false},
 		{Type: mount.TypeVolume, Source: "kl-nix-store", Target: "/nix"},
 		{Type: mount.TypeBind, Source: configFolder, Target: "/.cache/kl"},
 	}
@@ -489,27 +509,6 @@ func (c *client) generateMounts() ([]mount.Mount, error) {
 	if err == nil {
 		volumes = append(volumes, mount.Mount{Type: mount.TypeBind, Source: gitConfigPath, Target: "/home/kl/.gitconfig", ReadOnly: true})
 	}
-
-	// dockerSock := func() string {
-	// 	if s := os.Getenv("DOCKER_HOST"); s != "" {
-	// 		return s
-	// 	}
-
-	// 	return "unix:///var/run/docker.sock"
-	// }()
-
-	// dockerSockPath := func() string {
-	// 	// extract the path from the docker sock url
-	// 	if strings.HasPrefix(dockerSock, "unix://") {
-	// 		return strings.TrimPrefix(dockerSock, "unix://")
-	// 	}
-
-	// 	return dockerSock
-	// }()
-
-	// volumes = append(volumes,
-	// 	mount.Mount{Type: mount.TypeBind, Source: dockerSockPath, Target: "/var/run/host-docker.sock"},
-	// )
 
 	return volumes, nil
 }
