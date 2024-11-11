@@ -70,7 +70,6 @@ func (c *client) ensurePublicKey() error {
 }
 
 func (c *client) ensureCacheExist() error {
-
 	caches := []string{"kl-nix-store", "kl-home-cache", "kl-k3s-cache"}
 
 	for _, cache := range caches {
@@ -169,7 +168,6 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 			dockerLabelFilter(CONT_PATH_KEY, c.cwd),
 		),
 	})
-
 	if err != nil {
 		return "", fn.Error("failed to list containers")
 	}
@@ -207,6 +205,8 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 	if err != nil {
 		return "", fn.NewE(err)
 	}
+
+	// fn.Logf("vmounts: %+v\n", vmounts)
 
 	boxhashFileName, err := hashctrl.BoxHashFileName(c.cwd)
 	if err != nil {
@@ -398,7 +398,6 @@ func (c *client) stopContainer(path string) error {
 }
 
 func (c *client) getFreePort() (int, error) {
-
 	if c.env.SSHPort != 0 {
 		return c.env.SSHPort, nil
 	}
