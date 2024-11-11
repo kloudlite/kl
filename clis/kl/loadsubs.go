@@ -41,6 +41,7 @@ func init() {
 	rootCmd.AddCommand(clone.Cmd)
 	rootCmd.AddCommand(env.Cmd)
 	rootCmd.AddCommand(runner.InitCommand)
+	rootCmd.AddCommand(runner.AttachCommand)
 	rootCmd.AddCommand(set_base_url.Cmd)
 
 	rootCmd.AddCommand(intercept.Cmd)

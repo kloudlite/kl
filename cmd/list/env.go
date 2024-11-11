@@ -41,6 +41,9 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return functions.NewE(err)
 	}
+	if currentTeam == "" {
+		return fn.Errorf("[#] no team selected")
+	}
 	envs, err := apic.ListEnvs(currentTeam)
 	if err != nil {
 		return functions.NewE(err)

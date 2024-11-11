@@ -6,6 +6,7 @@ import (
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
+	"os"
 )
 
 var PaginationDefault = map[string]any{
@@ -212,7 +213,7 @@ func (apic *apiClient) InterceptApp(app *App, status bool, ports []AppPort, envN
 
 func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 	defer spinner.Client.UpdateMessage("Cleaning up intercepts...")()
-	// devName := fn.GetOption(options, "deviceName")
+	devName := fn.GetOption(options, "deviceName")
 	teamName := fn.GetOption(options, "teamName")
 	currentEnv, err := apic.EnsureEnv()
 	if err != nil {
@@ -238,25 +239,25 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 		options = append(options, fn.MakeOption("teamName", teamName))
 	}
 
-	config, err := apic.fc.GetClusterConfig(teamName)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	//if devName == "" {
-	//	avc, err := fc.GetVpnTeamConfig(teamName)
-	//	if err != nil && os.IsNotExist(err) {
-	//		return nil
-	//	} else if err != nil {
-	//		return functions.NewE(err)
-	//	}
-	//
-	//	if avc.DeviceName == "" {
-	//		return fn.Errorf("device name is required")
-	//	}
-	//
-	//	devName = avc.DeviceName
+	//config, err := apic.fc.GetClusterConfig(teamName)
+	//if err != nil {
+	//	return functions.NewE(err)
 	//}
+
+	if devName == "" {
+		avc, err := fc.GetVpnTeamConfig(teamName)
+		if err != nil && os.IsNotExist(err) {
+			return nil
+		} else if err != nil {
+			return functions.NewE(err)
+		}
+
+		if avc.DeviceName == "" {
+			return fn.Errorf("device name is required")
+		}
+
+		devName = avc.DeviceName
+	}
 
 	cookie, err := getCookie([]fn.Option{
 		fn.MakeOption("teamName", teamName),
@@ -267,9 +268,9 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 	query := "cli_removeDeviceIntercepts"
 
 	respData, err := klFetch(query, map[string]any{
-		"envName": currentEnv.Name,
-		//"deviceName": devName,
-		"deviceName": config.ClusterName,
+		"envName":    currentEnv.Name,
+		"deviceName": devName,
+		//"deviceName": config.ClusterName,
 	}, &cookie)
 	if err != nil {
 		return functions.NewE(err)

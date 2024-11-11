@@ -51,7 +51,7 @@ type WGConfig struct {
 }
 
 type Env struct {
-	Name    string `json:"name"`
+	Name    string `json:"name,omitempty"`
 	SSHPort int    `json:"sshPort"`
 }
 
