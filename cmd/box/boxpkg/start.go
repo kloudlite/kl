@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl/cmd/cluster"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/kloudlite/kl/cmd/cluster"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -93,9 +94,11 @@ func (c *client) Start() error {
 
 	}
 
-	_, err = c.apic.GetAccVPNConfig(c.klfile.TeamName)
-	if err != nil {
-		return err
+	if c.klfile.TeamName != "" {
+		_, err = c.apic.GetAccVPNConfig(c.klfile.TeamName)
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = c.startContainer(boxHash.KLConfHash)

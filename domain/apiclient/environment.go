@@ -27,6 +27,8 @@ const (
 	EnvironmentType      = "environment"
 )
 
+var NoDefaultEnvError = fn.Error("please initialize kl.yml by running `kl init` in current workspace")
+
 // func GetEnvironment(envName string) (*Env, error) {
 // 	var err error
 // 	projectName, err := EnsureProject()
@@ -117,7 +119,7 @@ func (apic *apiClient) EnsureEnv() (*fileclient.Env, error) {
 		return nil, functions.NewE(err)
 	}
 	if kt.DefaultEnv == "" {
-		return nil, functions.Error("please initialize kl.yml by running `kl init` in current workspace")
+		return nil, NoDefaultEnvError
 	}
 	e, err := apic.GetEnvironment(kt.TeamName, kt.DefaultEnv)
 	if err != nil {

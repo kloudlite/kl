@@ -131,9 +131,9 @@ func SyncBoxHash(apic apiclient.ApiClient, fc fileclient.FileClient, fpath strin
 	} else {
 		envName = e.Name
 	}
-	if envName == "" {
-		return fn.Error("envName is required")
-	}
+	// if envName == "" {
+	// 	return fn.Error("envName is required")
+	// }
 
 	configFolder, err := fileclient.GetConfigFolder()
 	if err != nil {
@@ -219,9 +219,14 @@ func GenerateKLConfigHash(kf *fileclient.KLFileType) (string, error) {
 }
 
 func generatePersistedEnv(apic apiclient.ApiClient, fc fileclient.FileClient, kf *fileclient.KLFileType, envName string, path string) (*PersistedEnv, error) {
-	envs, mm, err := apic.GetLoadMaps()
-	if err != nil {
-		return nil, fn.NewE(err)
+	envs := make(map[string]string)
+	mm := make(map[string]string)
+	var err error
+	if envName != "" {
+		envs, mm, err = apic.GetLoadMaps()
+		if err != nil {
+			return nil, fn.NewE(err)
+		}
 	}
 
 	realPkgs, err := packagectrl.SyncLockfileWithNewConfig(*kf)
@@ -253,17 +258,22 @@ func generatePersistedEnv(apic apiclient.ApiClient, fc fileclient.FileClient, kf
 		ev[ne.Key] = ne.Value
 	}
 
-	e, err := fc.EnvOfPath(path)
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
-
 	extraData, err := fileclient.GetExtraData()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	ev["PURE_PROMPT_SYMBOL"] = fmt.Sprintf("(%s) %s", envName, ">")
-	ev["KL_SEARCH_DOMAIN"] = fmt.Sprintf("%s.%s.%s", e.Name, kf.TeamName, extraData.DnsHostSuffix)
+	if envName == "" {
+		ev["PURE_PROMPT_SYMBOL"] = ">"
+	} else {
+		ev["PURE_PROMPT_SYMBOL"] = fmt.Sprintf("(%s) %s", envName, ">")
+	}
+
+	e, err := fc.EnvOfPath(path)
+	if err == nil {
+		ev["KL_SEARCH_DOMAIN"] = fmt.Sprintf("%s.%s.%s", e.Name, kf.TeamName, extraData.DnsHostSuffix)
+		// return nil, fn.NewE(err)
+	}
+
 	//ev["KL_DEV"] = "false"
 	//if flags.IsDev() {
 	//	ev["KL_DEV"] = "true"

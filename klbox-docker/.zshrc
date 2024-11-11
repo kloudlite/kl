@@ -38,6 +38,9 @@ if [[ -f $ZSH_HIGHLIGHT_PATH ]]; then
 fi
 
 function update_rprompt {
+ if [ -z "$KL_TEAM_NAME" ]; then
+  return
+ fi
  [ -f /kl-tmp/online.status ] || return
  online_status=$(tail -n 1 /kl-tmp/online.status)
  if [ "$online_status" = "online" ]; then

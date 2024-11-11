@@ -24,12 +24,11 @@ var logoutCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		err = stopAllContainers(cmd)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
+		// err = stopAllContainers(cmd)
+		// if err != nil {
+		// 	fn.PrintError(err)
+		// 	return
+		// }
 		if err := fc.Logout(); err != nil {
 			fn.PrintError(err)
 			return

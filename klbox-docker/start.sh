@@ -26,8 +26,6 @@ EOL
 chown -R kl /kl-tmp/global-profile
 
 mkdir -p /etc/wireguard
-echo $KL_TEAM_NAME
-set -x
 
 if [[ -n "${CLUSTER_GATEWAY_IP}" && -n "${CLUSTER_IP_RANGE}" ]]; then
   CLUSTER_IP_RANGE=$(echo $CLUSTER_IP_RANGE | sed 's/\//###/g')
@@ -44,11 +42,12 @@ if [[ -n "${CLUSTER_GATEWAY_IP}" && -n "${CLUSTER_IP_RANGE}" ]]; then
   sudo wg-quick up kl-workspace-wg
 fi
 
-cat /.cache/kl/vpn/${KL_TEAM_NAME}.json | jq -r .wg | base64 -d >/tmp/kl-vpn.conf
-sudo cp /tmp/kl-vpn.conf /etc/wireguard/kl-vpn.conf
-rm /tmp/kl-vpn.conf
-sudo wg-quick up kl-vpn
-set +x
+if [[ -n "${KL_TEAM_NAME}" ]]; then
+  cat /.cache/kl/vpn/${KL_TEAM_NAME}.json | jq -r .wg | base64 -d >/tmp/kl-vpn.conf
+  sudo cp /tmp/kl-vpn.conf /etc/wireguard/kl-vpn.conf
+  rm /tmp/kl-vpn.conf
+  sudo wg-quick up kl-vpn
+fi
 
 entrypoint_executed="/home/kl/.kloudlite_entrypoint_executed"
 if [ ! -f "$entrypoint_executed" ]; then

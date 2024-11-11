@@ -30,11 +30,6 @@ var InitCommand = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
 
 		if envclient.InsideBox() {
 			fn.PrintError(fn.Error("cannot re-initialize workspace in dev box"))
@@ -51,27 +46,27 @@ var InitCommand = &cobra.Command{
 			return
 		}
 
-		selectedTeam, err := selectTeam(apic)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		} else {
-			if selectedEnv, err := selectEnv(apic, fc, *selectedTeam); err != nil {
-				fn.PrintError(err)
-			} else {
-				newKlFile := fileclient.KLFileType{
-					TeamName:   *selectedTeam,
-					DefaultEnv: *selectedEnv,
-					Version:    "v1",
-					Packages:   []string{"neovim", "git"},
-				}
-				if err := fc.WriteKLFile(newKlFile); err != nil {
-					fn.PrintError(err)
-				} else {
-					fn.Printf(text.Green("workspace initialized successfully.\n"))
-				}
-			}
+		// // selectedTeam, err := selectTeam(apic)
+		// if err != nil {
+		// 	fn.PrintError(err)
+		// 	return
+		// } else {
+		// if selectedEnv, err := selectEnv(apic, fc, *selectedTeam); err != nil {
+		// 	fn.PrintError(err)
+		// } else {
+		newKlFile := fileclient.KLFileType{
+			// TeamName:   *selectedTeam,
+			// DefaultEnv: *selectedEnv,
+			Version:  "v1",
+			Packages: []string{"neovim", "git"},
 		}
+		if err := fc.WriteKLFile(newKlFile); err != nil {
+			fn.PrintError(err)
+		} else {
+			fn.Printf(text.Green("workspace initialized successfully.\n"))
+		}
+		// }
+		// }
 
 		dir, err := os.Getwd()
 		if err != nil {
@@ -79,6 +74,11 @@ var InitCommand = &cobra.Command{
 			return
 		}
 
+		apic, err := apiclient.New()
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
 		if err := hashctrl.SyncBoxHash(apic, fc, dir); err != nil {
 			fn.PrintError(err)
 			return

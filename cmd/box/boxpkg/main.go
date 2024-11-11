@@ -5,9 +5,10 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
-	"github.com/kloudlite/kl/k3s"
 	"io"
 	"os"
+
+	"github.com/kloudlite/kl/k3s"
 
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -91,14 +92,17 @@ func NewClient(cmd *cobra.Command, args []string) (BoxClient, error) {
 
 	env, err := fc.EnvOfPath(cwd)
 	if err != nil && errors.Is(err, fileclient.NoEnvSelected) {
-		environment, err := apic.GetEnvironment(klFile.TeamName, klFile.DefaultEnv)
-		if err != nil {
-			return nil, fn.NewE(err)
-		}
-		env = &fileclient.Env{
-			Name:    environment.Metadata.Name,
+		env := &fileclient.Env{
 			SSHPort: 0,
 		}
+		if klFile.DefaultEnv != "" && klFile.TeamName != "" {
+			environment, err := apic.GetEnvironment(klFile.TeamName, klFile.DefaultEnv)
+			if err != nil {
+				return nil, fn.NewE(err)
+			}
+			env.Name = environment.Metadata.Name
+		}
+
 		data, err := fileclient.GetExtraData()
 		if err != nil {
 			return nil, fn.NewE(err)
@@ -113,8 +117,6 @@ func NewClient(cmd *cobra.Command, args []string) (BoxClient, error) {
 		if err := fileclient.SaveExtraData(data); err != nil {
 			return nil, fn.NewE(err)
 		}
-	} else if err != nil {
-		return nil, fn.NewE(err)
 	}
 
 	return &client{

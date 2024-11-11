@@ -11,7 +11,8 @@ import (
 
 type KLFileType struct {
 	Version    string   `json:"version" yaml:"version"`
-	DefaultEnv string   `json:"defaultEnv" yaml:"defaultEnv"`
+	DefaultEnv string   `json:"defaultEnv,omitempty" yaml:"defaultEnv,omitempty"`
+	TeamName   string   `json:"teamName,omitempty" yaml:"teamName,omitempty"`
 	Packages   []string `json:"packages" yaml:"packages"`
 
 	EnvVars EnvVars `json:"envVars" yaml:"envVars"`
@@ -19,7 +20,6 @@ type KLFileType struct {
 	Ports   []int   `json:"ports" yaml:"ports"`
 
 	// InitScripts []string `json:"initScripts" yaml:"initScripts"`
-	TeamName string `json:"teamName" yaml:"teamName"`
 }
 
 const (
@@ -57,12 +57,12 @@ func (c *fclient) GetKlFile(filePath string) (*KLFileType, error) {
 	if err != nil {
 		return nil, functions.NewE(err)
 	}
-	if klfile.TeamName == "" {
-		return nil, functions.Error("kl file is not valid, teamName is not set properly. You can re-initialize kl file by running \"kl init\" command.")
-	}
-	if klfile.DefaultEnv == "" {
-		return nil, functions.Error("kl file is not valid, defaultEnv is not set properly. You can re-intialize kl file by running \"kl init\" command.")
-	}
+	// if klfile.TeamName == "" {
+	// 	return nil, functions.Error("kl file is not valid, teamName is not set properly. You can re-initialize kl file by running \"kl init\" command.")
+	// }
+	// if klfile.DefaultEnv == "" {
+	// 	return nil, functions.Error("kl file is not valid, defaultEnv is not set properly. You can re-intialize kl file by running \"kl init\" command.")
+	// }
 	return klfile, nil
 }
 
