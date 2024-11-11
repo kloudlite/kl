@@ -33,7 +33,7 @@ RUN groupadd -g 1000 kl && useradd -u 1000 -g 1000 -m kl && usermod -aG sudo kl 
 RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
 
 RUN echo "GatewayPorts yes" >> /etc/ssh/sshd_config
-RUN echo "AuthorizedKeysFile  .ssh/authorized_keys .ssh/id_rsa.pub" >> /etc/ssh/sshd_config
+RUN echo "AuthorizedKeysFile /kl-tmp/kl-authorized-keys/authorized_keys  .ssh/authorized_keys .ssh/id_rsa.pub" >> /etc/ssh/sshd_config
 
 ENV HOSTNAME box
 RUN mkdir -m 0755 /nix && chown kl /nix
