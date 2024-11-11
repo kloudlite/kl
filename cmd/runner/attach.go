@@ -107,6 +107,14 @@ var AttachCommand = &cobra.Command{
 			return
 		}
 
+		if envclient.InsideBox() {
+			if err := c.StopContainer(); err != nil {
+				fn.PrintError(err)
+				return
+			}
+			return
+		}
+
 		if err := c.ConfirmBoxRestart(); err != nil {
 			fn.PrintError(err)
 			return

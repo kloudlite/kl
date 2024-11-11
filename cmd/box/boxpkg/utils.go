@@ -138,10 +138,21 @@ func (c *client) ensureImage(i string) error {
 
 func (c *client) restartContainer() error {
 	defer spinner.Client.UpdateMessage("restart container")()
+	cmd := exec.Command("bash", "/kl-tmp/kill-sshd.sh", "-9")
+	if err := cmd.Run(); err != nil {
+		return fn.NewE(err, "failed to kill sshd")
+	}
+	return nil
+}
+
+func (c *client) StopContainer() error {
+	defer spinner.Client.UpdateMessage("stopping container")()
+
 	cmd := exec.Command("bash", "/kl-tmp/kill-sshd.sh")
 	if err := cmd.Run(); err != nil {
 		return fn.NewE(err, "failed to kill sshd")
 	}
+
 	return nil
 }
 
@@ -272,7 +283,7 @@ func (c *client) startContainer(klconfHash string) (string, error) {
 		},
 		Privileged: true,
 		RestartPolicy: container.RestartPolicy{
-			Name: container.RestartPolicyAlways,
+			Name: container.RestartPolicyOnFailure,
 		},
 		NetworkMode: "kloudlite",
 		PortBindings: nat.PortMap{

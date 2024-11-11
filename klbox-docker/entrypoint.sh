@@ -11,7 +11,7 @@ export SSH_PORT=$SSH_PORT
 pid=$!
 
 cat >/kl-tmp/kill-sshd.sh <<EOF
-sudo kill -9 $pid
+sudo kill $@ $pid
 EOF
 
 wait $pid

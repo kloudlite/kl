@@ -51,6 +51,7 @@ type BoxClient interface {
 
 	ConfirmBoxRestart() error
 	StartWgContainer() error
+	StopContainer() error
 }
 
 func (c *client) Context() context.Context {
