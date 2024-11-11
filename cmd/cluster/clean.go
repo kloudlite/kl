@@ -15,7 +15,7 @@ var cleanCmd = &cobra.Command{
 	Short: "clean the cluster",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := cleanCluster(cmd); err != nil {
-			fmt.Println(err)
+			fn.PrintError(err)
 			return
 		}
 	},

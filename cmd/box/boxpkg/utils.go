@@ -376,9 +376,9 @@ func (c *client) stopContainer(path string) error {
 	}
 
 	for _, c2 := range existingContainers {
-		if c2.Labels["kl-team"] == c.klfile.TeamName {
-			continue
-		}
+		//if c2.Labels["kl-team"] == c.klfile.TeamName {
+		//	continue
+		//}
 		timeOut := 0
 		if err := c.cli.ContainerStop(context.Background(), c2.ID, container.StopOptions{
 			Timeout: &timeOut,
