@@ -52,7 +52,9 @@ var Cmd = &cobra.Command{
 
 		data, err := fileclient.GetExtraData()
 		if err == nil {
-			fn.Log(fmt.Sprint(text.Bold(text.Blue("Team: ")), data.SelectedTeam))
+			if data.SelectedTeam != "" {
+				fn.Log(fmt.Sprint(text.Bold(text.Blue("Team: ")), data.SelectedTeam))
+			}
 		}
 
 		e, err := apic.EnsureEnv()
