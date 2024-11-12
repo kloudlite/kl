@@ -48,6 +48,13 @@ func generateBoxHashContent(apic apiclient.ApiClient, fc fileclient.FileClient, 
 		hash.Write([]byte(persistedConfig.PackageHashes[v]))
 	}
 
+	libraries := keys(persistedConfig.LibraryHashes)
+	slices.Sort(libraries)
+	for _, v := range libraries {
+		hash.Write([]byte(v))
+		hash.Write([]byte(persistedConfig.LibraryHashes[v]))
+	}
+
 	envKeys := keys(persistedConfig.Env)
 	slices.Sort(envKeys)
 	for _, v := range envKeys {
@@ -199,6 +206,10 @@ func GenerateKLConfigHash(kf *fileclient.KLFileType) (string, error) {
 	for _, v := range kf.Packages {
 		klConfhash.Write([]byte(v))
 	}
+	slices.Sort(kf.Libraries)
+	for _, v := range kf.Libraries {
+		klConfhash.Write([]byte(v))
+	}
 	for _, v := range kf.Mounts {
 		klConfhash.Write([]byte(v.Path))
 		klConfhash.Write([]byte(func() string {
@@ -236,8 +247,16 @@ func generatePersistedEnv(apic apiclient.ApiClient, fc fileclient.FileClient, kf
 
 	hashConfig := PersistedEnv{
 		Packages:      kf.Packages,
-		PackageHashes: realPkgs,
+		PackageHashes: realPkgs.Packages,
 	}
+
+	realLibs, err := packagectrl.SyncLockfileWithNewConfigLibs(*kf)
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	hashConfig.Libraries = kf.Libraries
+	hashConfig.LibraryHashes = realLibs.Libraries
 
 	fm := map[string]string{}
 	for _, fe := range kf.Mounts.GetMounts() {

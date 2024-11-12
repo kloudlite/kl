@@ -9,6 +9,8 @@ import (
 type PersistedEnv struct {
 	Packages      []string          `yaml:"packages" json:"packages"`
 	PackageHashes map[string]string `yaml:"packageHashes" json:"packageHashes"`
+	Libraries     []string          `yaml:"libraries" json:"libraries"`
+	LibraryHashes map[string]string `yaml:"libraryHashes" json:"libraryHashes"`
 	Env           map[string]string `yaml:"env" json:"env"`
 	Mounts        map[string]string `yaml:"mounts" json:"mounts"`
 	KLConfHash    string            `yaml:"klConfHash" json:"klConfHash"`

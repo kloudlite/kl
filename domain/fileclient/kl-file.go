@@ -14,10 +14,10 @@ type KLFileType struct {
 	DefaultEnv string   `json:"defaultEnv,omitempty" yaml:"defaultEnv,omitempty"`
 	TeamName   string   `json:"teamName,omitempty" yaml:"teamName,omitempty"`
 	Packages   []string `json:"packages" yaml:"packages"`
-
-	EnvVars EnvVars `json:"envVars" yaml:"envVars"`
-	Mounts  Mounts  `json:"mounts" yaml:"mounts"`
-	Ports   []int   `json:"ports" yaml:"ports"`
+	Libraries  []string `json:"libraries" yaml:"libraries"`
+	EnvVars    EnvVars  `json:"envVars" yaml:"envVars"`
+	Mounts     Mounts   `json:"mounts" yaml:"mounts"`
+	Ports      []int    `json:"ports" yaml:"ports"`
 
 	// InitScripts []string `json:"initScripts" yaml:"initScripts"`
 }

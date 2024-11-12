@@ -53,6 +53,7 @@ func init() {
 	rootCmd.AddCommand(add.Command)
 	rootCmd.AddCommand(status.Cmd)
 	rootCmd.AddCommand(packages.Cmd)
+	rootCmd.AddCommand(packages.LibCmd)
 
 	rootCmd.AddCommand(connect.Command)
 }
