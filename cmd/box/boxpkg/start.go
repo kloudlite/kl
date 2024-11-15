@@ -72,9 +72,11 @@ func (c *client) Start() error {
 		return fn.NewE(err)
 	}
 	if data.SelectedTeam != c.klfile.TeamName && data.SelectedTeam != "" {
-		functions.Logf(text.Yellow(fmt.Sprintf("[#] this will switch your main team context from %s to %s. do you want to proceed? [Y/n] ", data.SelectedTeam, c.klfile.TeamName)))
-		if !functions.Confirm("y", "y") {
-			return nil
+		if c.klfile.TeamName != "" {
+			functions.Logf(text.Yellow(fmt.Sprintf("[#] this will switch your main team context from %s to %s. do you want to proceed? [Y/n] ", data.SelectedTeam, c.klfile.TeamName)))
+			if !functions.Confirm("y", "y") {
+				return nil
+			}
 		}
 
 		data.SelectedTeam = c.klfile.TeamName
@@ -136,6 +138,18 @@ func (c *client) Start() error {
 
 		c.env.SSHPort, err = strconv.Atoi(cr.Labels[SSH_PORT_KEY])
 		if err != nil {
+			return fn.NewE(err)
+		}
+	}
+
+	data, err = fileclient.GetExtraData()
+	if err != nil {
+		return fn.NewE(err)
+	}
+
+	if c.klfile.TeamName == "" && data.SelectedEnvs[c.cwd] != nil {
+		data.SelectedEnvs[c.cwd].Name = ""
+		if err := fileclient.SaveExtraData(data); err != nil {
 			return fn.NewE(err)
 		}
 	}

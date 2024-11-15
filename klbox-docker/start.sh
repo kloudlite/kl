@@ -95,52 +95,47 @@ if [ $npkgs -gt 0 ]; then
   npath=$(nix shell $(cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command printenv PATH)
   echo export PATH=$PATH:$npath >> /kl-tmp/env
 
-  rm -rf /kl-tmp/nix-ld-path /kl-tmp/nix-include /kl-tmp/libs.list /kl-tmp/nix-ld-library-and-cpath.sh
+  rm -rf /kl-tmp/nix-ld-path /kl-tmp/nix-include
   cat > /kl-tmp/nix-ld-library-and-cpath.sh <<'EOS'
     package=$(nix eval "$1" --raw)
 
-  if [ -d "$package/lib" ]; then
-    echo -n "$package/lib:" >> /kl-tmp/libs.list
-  fi
+    nix-store --query --references $package >> /kl-tmp/libs.list
 
-  if [ -d "$package/include" ]; then
-    echo -n "$package/include:" >> /kl-tmp/nix-include
-  fi
+    if [ -d "$package/lib" ]; then
+      echo -n "$package/lib:" >> /kl-tmp/libs.list
+    fi
+
+    if [ -d "$package/include" ]; then
+      echo -n "$package/include:" >> /kl-tmp/nix-include
+    fi
 EOS
 
   cat $KL_HASH_FILE | jq '.config.packageHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} bash /kl-tmp/nix-ld-library-and-cpath.sh "{}"
-fi
-nlibs=$(cat $KL_HASH_FILE | jq '.config.libraryHashes | length')
-if [ $nlibs -gt 0 ]; then
-  nix shell --log-format bar-with-logs $(cat $KL_HASH_FILE | jq '.config.libraryHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed libraries"
-  cat $KL_HASH_FILE | jq '.config.libraryHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} bash /kl-tmp/nix-ld-library-and-cpath.sh "{}"
-fi
 
-if [ -f /kl-tmp/libs.list ]; then
-  libs=$(cat /kl-tmp/libs.list | grep -v '\-glibc\-' | sort -u | xargs -I{} printf "{}/lib:")
-  echo export LD_LIBRARY_PATH="$libs:$LD_LIBRARY_PATH" >> /kl-tmp/env
-fi
+  if [ -f /kl-tmp/libs.list ]; then
+    libs=$(cat /kl-tmp/libs.list | grep -v '\-glibc\-' | sort -u | xargs -I{} printf "{}/lib:")
+    echo export LD_LIBRARY_PATH="$libs:$LD_LIBRARY_PATH" >> /kl-tmp/env
+  fi
 
-if [ -f /kl-tmp/nix-include ]; then
-  echo export CPATH="$(cat /kl-tmp/nix-include):$CPATH" >> /kl-tmp/env
+  if [ -f /kl-tmp/nix-include ]; then
+    echo export CPATH="$(cat /kl-tmp/nix-include):$CPATH" >> /kl-tmp/env
+  fi
 fi
-
 EOF
 
-
-# cat >/tmp/lib-install.sh <<'EOF'
-# set -o errexit
-# set -o pipefail
-# npkgs=$(cat $KL_HASH_FILE | jq '.config.libraryHashes | length')
-# if [ $npkgs -gt 0 ]; then
-#   export PATH=$PATH:/home/kl/.nix-profile/bin
-#   nix shell --log-format bar-with-logs $(cat $KL_HASH_FILE | jq '.config.libraryHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed libraries"
-#   nlibs=$(cat $KL_HASH_FILE | jq '.config.libraryHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {})
-# fi
-# EOF
+ cat >/tmp/lib-install.sh <<'EOF'
+ set -o errexit
+ set -o pipefail
+ npkgs=$(cat $KL_HASH_FILE | jq '.config.libraryHashes | length')
+ if [ $npkgs -gt 0 ]; then
+   export PATH=$PATH:/home/kl/.nix-profile/bin
+   nix shell --log-format bar-with-logs $(cat $KL_HASH_FILE | jq '.config.libraryHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {}) --command echo "successfully installed libraries"
+   nlibs=$(cat $KL_HASH_FILE | jq '.config.libraryHashes | to_entries | map_values(. = .value) | .[]' -r | xargs -I{} printf "%s " {})
+ fi
+ EOF
 
 sudo -u kl KL_HASH_FILE=$KL_HASH_FILE PATH=$PATH bash /tmp/pkg-install.sh
-# sudo -u kl KL_HASH_FILE=$KL_HASH_FILE PATH=$PATH bash /tmp/lib-install.sh
+ sudo -u kl KL_HASH_FILE=$KL_HASH_FILE PATH=$PATH bash /tmp/lib-install.sh
 
 echo "export KL_HASH_FILE=$KL_HASH_FILE" >>/kl-tmp/env
 echo "kloudlite-entrypoint:INSTALLING_PACKAGES_DONE"
