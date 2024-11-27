@@ -6,10 +6,13 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"text/template"
 	"time"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
@@ -527,6 +530,52 @@ kubectl delete pods --all -n kl-gateway --grace-period=0
 	fn.Log(text.Yellow("It will usually take a minute for the cluster to come online"))
 
 	return nil
+}
+
+func (c *client) Exec(script string) ([]byte, error) {
+	existingContainers, err := c.c.ContainerList(c.cmd.Context(), container.ListOptions{
+		All: true,
+		Filters: filters.NewArgs(
+			filters.Arg("label", fmt.Sprintf("%s=%s", CONT_MARK_KEY, "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
+		),
+	})
+
+	if err != nil {
+		return nil, fn.Errorf("failed to list containers: %w", err)
+	}
+
+	if len(existingContainers) == 0 {
+		return nil, fn.Errorf("no k3s container running locally")
+	}
+
+	execID, err := c.c.ContainerExecCreate(c.cmd.Context(), existingContainers[0].ID, container.ExecOptions{
+		Cmd:          []string{"/bin/sh", "-c", script},
+		AttachStdout: true,
+		AttachStderr: true,
+	})
+
+	if err != nil {
+		return nil, fn.NewE(err, "failed to create exec instance for container")
+	}
+
+	execResp, err := c.c.ContainerExecAttach(c.cmd.Context(), execID.ID, types.ExecStartCheck{})
+	if err != nil {
+		log.Fatalf("Error attaching to exec: %v", err)
+	}
+	defer execResp.Close()
+
+	// Capture the output
+	var output bytes.Buffer
+	if _, err := io.Copy(&output, execResp.Reader); err != nil {
+		return nil, fn.Errorf("failed to read exec output: %w", err)
+	}
+
+	if output.Len() <= 8 {
+		return nil, fn.Errorf("no output")
+	}
+
+	return bytes.Trim(output.Bytes()[8:], "\n"), nil
 }
 
 func (c *client) runScriptInContainer(script string) error {

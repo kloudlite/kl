@@ -1,6 +1,8 @@
 package kl
 
 import (
+	"os/exec"
+
 	"github.com/kloudlite/kl/cmd/auth"
 	"github.com/kloudlite/kl/cmd/box"
 	"github.com/kloudlite/kl/cmd/clone"
@@ -10,6 +12,7 @@ import (
 	"github.com/kloudlite/kl/cmd/expose"
 	"github.com/kloudlite/kl/cmd/get"
 	"github.com/kloudlite/kl/cmd/intercept"
+	"github.com/kloudlite/kl/cmd/kubectl"
 	"github.com/kloudlite/kl/cmd/list"
 	"github.com/kloudlite/kl/cmd/packages"
 	"github.com/kloudlite/kl/cmd/runner"
@@ -45,7 +48,6 @@ func init() {
 	rootCmd.AddCommand(set_base_url.Cmd)
 
 	rootCmd.AddCommand(intercept.Cmd)
-	//rootCmd.AddCommand(vpn.Cmd)
 
 	rootCmd.AddCommand(cluster.Cmd)
 	rootCmd.AddCommand(expose.Cmd)
@@ -56,4 +58,14 @@ func init() {
 	rootCmd.AddCommand(packages.LibCmd)
 
 	rootCmd.AddCommand(connect.Command)
+
+	if flags.IsDev() {
+		if _, err := exec.LookPath("k9s"); err == nil {
+			rootCmd.AddCommand(kubectl.K9sCmd)
+		}
+
+		if _, err := exec.LookPath("kubectl"); err == nil {
+			rootCmd.AddCommand(kubectl.KubectlCmd)
+		}
+	}
 }

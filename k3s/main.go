@@ -18,6 +18,7 @@ type K3sClient interface {
 	CheckK3sRunningLocally() (bool, error)
 	RemoveClusterVolume(clusterName string) error
 	CheckK3sServerRunning() (string, error)
+	Exec(script string) ([]byte, error)
 }
 
 type client struct {
