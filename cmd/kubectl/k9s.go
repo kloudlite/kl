@@ -28,6 +28,7 @@ var K9sCmd = &cobra.Command{
 
 		c.Stdout = os.Stdout
 		c.Stderr = os.Stderr
+		c.Stdin = os.Stdin
 
 		if err := c.Run(); err != nil {
 			err = nil
