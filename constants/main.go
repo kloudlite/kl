@@ -91,8 +91,8 @@ var (
 
 // Temporary Constants
 const (
-	NetworkService     = "kloudlite-network"
-	LocalSearchDomains = "local-search-domains"
+	NetworkService = "Wi-Fi"
+	// LocalSearchDomains = "local-search-domains"
 )
 
 // new constants kl-v2

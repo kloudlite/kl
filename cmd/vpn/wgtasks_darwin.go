@@ -18,12 +18,7 @@ func connect(verbose bool, options ...fn.Option) error {
 		}
 	}()
 
-	fc, err := fileclient.New()
-	if err != nil {
-		return err
-	}
-
-	configFolder, err := fc.GetConfigPath()
+	configFolder, err := fileclient.GetConfigFolder()
 	if err != nil {
 		return err
 	}
@@ -35,7 +30,7 @@ func connect(verbose bool, options ...fn.Option) error {
 
 	if err := startConfiguration(verbose, options...); err != nil {
 		_ = wg_vpn.ResetDnsServers(ifName, verbose)
-		return err
+		return fn.NewE(err)
 	}
 	success = true
 

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -30,17 +31,27 @@ func portAvailable(port string) bool {
 	return true
 }
 
+type StreamingWriter struct {
+	io.Writer
+}
+
+func (w StreamingWriter) Write(b []byte) (int, error) {
+	n, err := w.Writer.Write(b)
+	if flusher, ok := w.Writer.(http.Flusher); ok {
+		flusher.Flush()
+	}
+	return n, err
+}
+
 func (s *Server) Start(ctx context.Context) error {
 
 	ch := make(chan error)
 
-	defer func() {
-		ctx.Done()
-	}()
+	defer ctx.Done()
 
 	app := http.NewServeMux()
 	app.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		outputCh := make(chan string)
+		// outputCh := make(chan string)
 		errCh := make(chan error)
 
 		command := strings.TrimPrefix(req.URL.Path, "/")
@@ -56,21 +67,10 @@ func (s *Server) Start(ctx context.Context) error {
 			return
 
 		case "start", "stop", "status", "restart":
-
-			go fn.StreamOutput(fmt.Sprintf("%s vpn %s", s.bin, command), map[string]string{"KL_APP": "true"}, outputCh, errCh)
-
-			for {
-				select {
-				case output := <-outputCh:
-					w.Write([]byte(output))
-					w.(http.Flusher).Flush()
-				case err := <-errCh:
-					if err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-					}
-					return
-				}
+			if err := fn.StreamOutput(req.Context(), fmt.Sprintf("%s vpn %s", s.bin, command), map[string]string{"KL_APP": "true"}, StreamingWriter{Writer: w}, errCh); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
+
 		default:
 			w.WriteHeader(http.StatusNotFound)
 			return

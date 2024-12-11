@@ -5,13 +5,16 @@ import (
 	"io"
 	"net"
 	"os"
+	"runtime"
 
 	"github.com/Fa1k3n/resolvconf"
+	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
 func ResetDnsServers(devName string, verbose bool) error {
+	return nil
 	fc, err := fileclient.New()
 	if err != nil {
 		return err
@@ -45,6 +48,7 @@ func ResetDnsServers(devName string, verbose bool) error {
 }
 
 func SetDnsServers(dnsServers []net.IP, devName string, verbose bool) error {
+	return nil
 	warn := func(str ...interface{}) {
 		if verbose {
 			fn.Warn(str)
@@ -112,6 +116,10 @@ func SetDnsServers(dnsServers []net.IP, devName string, verbose bool) error {
 }
 
 func ResetSearchDomain() error {
+	if runtime.GOOS == constants.RuntimeDarwin {
+		_UnsetDnsSearch()
+	}
+
 	bkpPath := "/etc/resolv.conf.kl-bkp"
 	resPath := "/etc/resolv.conf"
 
@@ -125,6 +133,9 @@ func ResetSearchDomain() error {
 }
 
 func SetSearchDomain(domain string) error {
+	if runtime.GOOS == constants.RuntimeDarwin {
+		return _SetDnsSearch(domain)
+	}
 	// make reader for this file
 	bkpPath := "/etc/resolv.conf.kl-bkp"
 	resPath := "/etc/resolv.conf"
@@ -142,7 +153,7 @@ func SetSearchDomain(domain string) error {
 
 	conf, err := resolvconf.ReadConf(reader)
 	if err != nil {
-		return err
+		return fn.NewE(err)
 	}
 
 	f := conf.GetSearchDomains()

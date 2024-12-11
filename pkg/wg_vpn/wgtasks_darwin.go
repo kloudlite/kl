@@ -199,80 +199,31 @@ func getDnsSearchDomain(networkService string) ([]string, error) {
 	return domains, nil
 }
 
-func _SetDnsSearch() error {
-	// data, err := client.GetExtraData()
-	// if err != nil {
-	// 	return err
-	// }
-	// currentDns, err := getCurrentDns(false)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if data.DnsAdded {
-	// 	uniqueDns := make(map[string]bool)
-	// 	for _, dns := range data.DnsValues {
-	// 		uniqueDns[dns] = true
-	// 	}
-	// 	for _, val := range currentDns {
-	// 		uniqueDns[val] = true
-	// 	}
-	// 	var combinedDns []string
-	// 	for val := range uniqueDns {
-	// 		combinedDns = append(combinedDns, val)
-	// 	}
-	// 	data.DnsValues = combinedDns
-	// } else {
-	// 	data.DnsValues = currentDns
-	// 	data.DnsAdded = true
-	// }
-	// if err := client.SaveExtraData(data); err != nil {
-	// 	return err
-	// }
-
-	// var privateIPs []net.IP
-	// for _, ipStr := range data.DnsValues {
-	// 	ip := net.ParseIP(ipStr)
-	// 	if ip == nil {
-	// 		functions.Log("Invalid IP address: %s\n", ipStr)
-	// 		continue
-	// 	}
-	// 	if isPrivateIP(ip) {
-	// 		privateIPs = append(privateIPs, net.ParseIP(ipStr))
-	// 	}
-	// }
-
-	// err = setDnsServers(privateIPs, constants.NetworkService, false)
-	// if err != nil {
-	// 	return err
-	// }
-
+func _SetDnsSearch(sd string) error {
 	searchDomains, err := getDnsSearchDomain(constants.NetworkService)
+
 	if err == nil {
-		if slices.Contains(searchDomains, constants.LocalSearchDomains) {
+		if slices.Contains(searchDomains, sd) {
 			return nil
 		}
-		searchDomains = append(searchDomains, constants.LocalSearchDomains)
+		searchDomains = append(searchDomains, sd)
 		err1 := setDnsSearchDomain(constants.NetworkService, searchDomains)
 		if err1 != nil {
 			return nil
 		}
 	} else {
-		searchDomains[0] = constants.LocalSearchDomains
+		searchDomains[0] = sd
 		err1 := setDnsSearchDomain(constants.NetworkService, searchDomains)
 		if err1 != nil {
 			return nil
 		}
 	}
-	// data.SearchDomainAdded = true
-	// if err := client.SaveExtraData(data); err != nil {
-	// 	return err
-	// }
+
 	return nil
 }
 
 func _UnsetDnsSearch() error {
-
+	return setDnsSearchDomain(constants.NetworkService, nil)
 	// if data.DnsAdded {
 	// 	ips := make([]net.IP, 0)
 	// 	for _, dns := range data.DnsValues {

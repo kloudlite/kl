@@ -59,7 +59,7 @@ var startCmd = &cobra.Command{
 			Interface: "interfaces",
 		})
 
-		if err != nil {
+		if err != nil && runtime.GOOS != constants.RuntimeDarwin {
 			fn.PrintError(err)
 			return
 		}
