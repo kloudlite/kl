@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
 func createSet[T comparable](v []T) []T {
@@ -56,7 +58,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 	path, err := installPackage(args.Packages...)
 	// f()
 	if err != nil {
-		return err
+		return fn.NewE(err)
 	}
 
 	ev = append(ev, fmt.Sprintf("PATH=%s", strings.TrimSpace(path)))
@@ -68,7 +70,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 		c := exec.CommandContext(ctx, "nix", "eval", lib, "--raw")
 		b, err := c.CombinedOutput()
 		if err != nil {
-			return err
+			return fn.NewE(err)
 		}
 
 		if pathExists(string(b) + "/lib") {
@@ -82,7 +84,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 		c2 := exec.CommandContext(ctx, "nix-store", "--query", "--references", string(b))
 		b2, err := c2.CombinedOutput()
 		if err != nil {
-			return err
+			return fn.NewE(err)
 		}
 		lines := strings.Split(string(b2), "\n")
 
@@ -122,7 +124,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 	c.Env = ev
 
 	if err := c.Run(); err != nil {
-		return err
+		return fn.NewE(err)
 	}
 
 	return nil

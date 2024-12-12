@@ -34,7 +34,7 @@ func Shell(cmd *cobra.Command, args []string) error {
 
 	kshflag, ok := os.LookupEnv("KL_SHELL")
 	if ok && kshflag == "true" {
-		return fmt.Errorf(text.Red("You are already in an active kl shell.\nRun `exit` before calling `kl shell` again. Shell inception is not supported."))
+		return fn.Errorf(text.Red("You are already in an active kl shell.\nRun `exit` before calling `kl shell` again. Shell inception is not supported."))
 	}
 
 	p, err := daemon_server.NewProxyWithService(false)
@@ -137,7 +137,7 @@ func Shell(cmd *cobra.Command, args []string) error {
 		Packages:  pkgs,
 		Libraries: libs,
 	}); err != nil {
-		return err
+		return fn.NewE(err)
 	}
 
 	// f = spinner.Client.UpdateMessage("shutting down network...")
