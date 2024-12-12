@@ -124,6 +124,10 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 	}
 
 	c := exec.Command(shell)
+	if flags.IsVerbose {
+		fn.Log(c.String())
+	}
+
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Stdin = os.Stdin
