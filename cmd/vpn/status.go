@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/kloudlite/kl/domain/apiclient"
-	proxy "github.com/kloudlite/kl/domain/dev-proxy"
+	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/pkg/wg_vpn/wgc"
@@ -27,11 +27,7 @@ Example:
 			if os.Getenv("KL_APP") != "true" {
 				if err := func() error {
 
-					if err := proxy.EnsureAppRunning(); err != nil {
-						return err
-					}
-
-					p, err := proxy.NewProxy(true)
+					p, err := daemon_server.NewProxyWithService(true)
 					if err != nil {
 						return err
 					}

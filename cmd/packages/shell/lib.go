@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 )
 
 func createSet[T comparable](v []T) []T {
@@ -50,18 +52,11 @@ func pathExists(p string) bool {
 }
 
 func NixShell(ctx context.Context, args ShellArgs) error {
-	mainenvs := os.Environ()
-
-	for i, v := range mainenvs {
-		if strings.HasPrefix(v, "PS1=") {
-			mainenvs[i] = fmt.Sprintf("PS1=(kl) %s", os.Getenv("PS1"))
-			break
-		}
-	}
-
 	ev := append(os.Environ(), args.EnvVars...)
 
+	f := spinner.Client.UpdateMessage("setting up nix environment...")
 	path, err := installPackage(args.Packages...)
+	f()
 	if err != nil {
 		return err
 	}

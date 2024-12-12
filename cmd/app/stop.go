@@ -1,7 +1,7 @@
 package app
 
 import (
-	proxy "github.com/kloudlite/kl/domain/dev-proxy"
+	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
 )
@@ -21,7 +21,7 @@ var stopCmd = &cobra.Command{
 }
 
 func Stop() error {
-	p, err := proxy.NewProxy(true)
+	p, err := daemon_server.NewProxyWithService(true, false)
 	if err != nil {
 		return err
 	}

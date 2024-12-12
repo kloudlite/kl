@@ -1,4 +1,4 @@
-package proxy
+package daemon_server
 
 import (
 	"bufio"
@@ -7,11 +7,15 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/adrg/xdg"
+	"github.com/kloudlite/kl/flags"
+	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
@@ -54,10 +58,53 @@ type Proxy struct {
 	logResponse bool
 }
 
-func NewProxy(logResponse bool) (*Proxy, error) {
-	return &Proxy{
+func NewProxyWithService(logResponse bool, ensureAppRunning ...bool) (*Proxy, error) {
+
+	p := &Proxy{
 		logResponse: logResponse,
-	}, nil
+	}
+
+	if len(ensureAppRunning) > 0 && !ensureAppRunning[0] {
+		return p, nil
+	}
+
+	if p.Status() {
+		return p, nil
+	}
+
+	count := 0
+	for {
+		if p.Status() {
+			return p, nil
+		}
+
+		if runtime.GOOS != "windows" {
+			cmd := exec.Command("sudo", "echo", "")
+			cmd.Stdin = os.Stdin
+			cmd.Stderr = os.Stderr
+			cmd.Stdout = os.Stdout
+
+			err := cmd.Run()
+			if err != nil {
+				return nil, err
+			}
+			command := exec.Command("sudo", flags.CliName, "app", "start")
+			_ = command.Start()
+
+		} else {
+			if _, err := fn.WinSudoExec(fmt.Sprintf("%s app start", flags.CliName), nil); err != nil {
+				functions.PrintError(err)
+			}
+		}
+
+		count++
+		if count >= 2 {
+			return nil, fn.Errorf("failed to start app")
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+
 }
 
 func (p *Proxy) MakeRequest(path string, params ...[]byte) ([]byte, error) {
@@ -159,6 +206,24 @@ func (p *Proxy) Stop() ([]byte, error) {
 }
 
 func (p *Proxy) Restart() ([]byte, error) {
+	b, err := p.MakeRequest("/restart")
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func (p *Proxy) SetSearchDomain(sd string) ([]byte, error) {
+	b, err := p.MakeRequest("/set-search-domain")
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func (p *Proxy) ResetSearchDomain() ([]byte, error) {
 	b, err := p.MakeRequest("/restart")
 	if err != nil {
 		return nil, err

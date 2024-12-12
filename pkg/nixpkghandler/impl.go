@@ -7,6 +7,7 @@ import (
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 )
 
 func (p *pkgHandler) Search(query string) (*SearchResults, error) {
@@ -114,6 +115,8 @@ func (p *pkgHandler) Find(pname string) (string, string, error) {
 }
 
 func (p *pkgHandler) SyncLockfile() error {
+	defer spinner.Client.UpdateMessage("syncing lockfile...")()
+
 	type System struct {
 		AttrPaths []string `json:"attr_paths"`
 	}
@@ -141,12 +144,12 @@ func (p *pkgHandler) SyncLockfile() error {
 			continue
 		}
 
-		pkg, pkgHash, err := p.resolve(v)
+		_, pkgHash, err := p.resolve(v)
 		if err != nil {
 			return fn.NewE(err)
 		}
 
-		newLock[pkg] = pkgHash
+		newLock[v] = pkgHash
 	}
 	lf.Packages = newLock
 
@@ -157,14 +160,12 @@ func (p *pkgHandler) SyncLockfile() error {
 			continue
 		}
 
-		fmt.Println(lf.Libraries, v)
-
-		pkg, pkgHash, err := p.resolve(v)
+		_, pkgHash, err := p.resolve(v)
 		if err != nil {
 			return fn.NewE(err)
 		}
 
-		newLock[pkg] = pkgHash
+		newLock[v] = pkgHash
 	}
 	lf.Libraries = newLock
 

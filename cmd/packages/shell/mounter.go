@@ -4,9 +4,12 @@ import (
 	"os"
 	"path"
 	"strings"
+
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 )
 
 func mount(mounts map[string]string, mountpath string) error {
+	defer spinner.Client.UpdateMessage("mounting...")()
 
 	for k, v := range mounts {
 		key := strings.TrimPrefix(k, "$kl_mounts")

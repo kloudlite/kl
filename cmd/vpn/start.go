@@ -7,7 +7,7 @@ import (
 
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/apiclient"
-	proxy "github.com/kloudlite/kl/domain/dev-proxy"
+	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/pkg/wg_vpn/wgc"
@@ -30,11 +30,7 @@ var startCmd = &cobra.Command{
 
 				if err := func() error {
 
-					if err := proxy.EnsureAppRunning(); err != nil {
-						return err
-					}
-
-					p, err := proxy.NewProxy(true)
+					p, err := daemon_server.NewProxyWithService(true)
 					if err != nil {
 						return err
 					}
@@ -78,7 +74,7 @@ var startCmd = &cobra.Command{
 				time.Sleep(3 * time.Second)
 			}
 
-			time.Sleep(1 * time.Second)
+			time.Sleep(300 * time.Millisecond)
 
 			if err := startConnecting(verbose, options...); err != nil {
 				fn.PrintError(err)

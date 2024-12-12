@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/kloudlite/kl/domain/apiclient"
-	proxy "github.com/kloudlite/kl/domain/dev-proxy"
+	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -23,12 +23,7 @@ var restartCmd = &cobra.Command{
 
 			if euid := os.Geteuid(); euid != 0 {
 				if err := func() error {
-
-					if err := proxy.EnsureAppRunning(); err != nil {
-						return err
-					}
-
-					p, err := proxy.NewProxy(true)
+					p, err := daemon_server.NewProxyWithService(true)
 					if err != nil {
 						return err
 					}

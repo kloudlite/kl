@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -127,4 +128,29 @@ func StreamOutput(ctx context.Context, cmdString string, env map[string]string, 
 	}
 
 	return nil
+}
+
+func GetUidNGid() (int, int, error) {
+
+	uidstr, ok := os.LookupEnv("SUDO_UID")
+	if !ok {
+		return 0, 0, Error("failed to get sudo uid")
+	}
+
+	gidstr, ok := os.LookupEnv("SUDO_GID")
+	if !ok {
+		return 0, 0, Error("failed to get sudo gid")
+	}
+
+	uid, err := strconv.Atoi(uidstr)
+	if err != nil {
+		return 0, 0, NewE(err, "failed to get sudo uid")
+	}
+
+	gid, err := strconv.Atoi(gidstr)
+	if err != nil {
+		return 0, 0, NewE(err, "failed to get sudo gid")
+	}
+
+	return uid, gid, nil
 }

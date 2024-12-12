@@ -2,15 +2,20 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"strings"
 
-	proxy "github.com/kloudlite/kl/domain/dev-proxy"
+	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
+
+type SetDomainBody struct {
+	Domain string `json:"domain"`
+}
 
 type Server struct {
 	bin string
@@ -66,6 +71,17 @@ func (s *Server) Start(ctx context.Context) error {
 			ch <- nil
 			return
 
+		case "set-search-domain":
+			var body SetDomainBody
+			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			fmt.Println("needs to set search domain ", body.Domain)
+
+			return
+
 		case "start", "stop", "status", "restart":
 			if err := fn.StreamOutput(req.Context(), fmt.Sprintf("%s vpn %s", s.bin, command), map[string]string{"KL_APP": "true"}, StreamingWriter{Writer: w}, errCh); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -78,11 +94,11 @@ func (s *Server) Start(ctx context.Context) error {
 	})
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", proxy.AppPort),
+		Addr:    fmt.Sprintf(":%d", daemon_server.AppPort),
 		Handler: app,
 	}
 
-	fn.Logf("starting server at :%d", proxy.AppPort)
+	fn.Logf("starting server at :%d", daemon_server.AppPort)
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
 			ch <- err
@@ -91,8 +107,8 @@ func (s *Server) Start(ctx context.Context) error {
 
 	err := <-ch
 
-	if err2 := server.Shutdown(ctx); err2 != nil {
-		return err2
+	if err := server.Shutdown(ctx); err != nil {
+		return err
 	}
 
 	return err

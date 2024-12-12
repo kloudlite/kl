@@ -1,30 +1,40 @@
 package wg_vpn
 
 import (
-	"errors"
 	"net"
+
+	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
-func getCurrentDns(verbose bool) ([]string, error) {
-	return []string{}, nil
+var notSupportedInWindows = fn.Errorf("not supported on windows")
+
+func (wc *wgClientImpl) resetSearchDomain() error {
+	return notSupportedInWindows
 }
 
-func SetDeviceIp(ip net.IPNet, deviceName string, _ bool) error {
-	return errors.New("this command is not available for windows, will be available soon")
+func (wc *wgClientImpl) setSearchDomain(domain string) error {
+	return notSupportedInWindows
 }
 
-func StartService(_ string, verbose bool) error {
-	return errors.New("this command is not available for windows, will be available soon")
+func (wc *wgClientImpl) setDnsServers(dnsServers []net.IP, deviceName string, verbose bool) error {
+	return notSupportedInWindows
 }
 
-func ipRouteAdd(ip string, interfaceIp string, devName string, verbose bool) error {
-	return errors.New("this command is not available for windows, will be available soon")
+func (wc *wgClientImpl) resetDnsServers(deviceName string, verbose bool) error {
+	return notSupportedInWindows
 }
 
-func StopService(verbose bool) error {
-	return errors.New("this command is not available for windows, will be available soon")
+func (wc *wgClientImpl) setDeviceIp(ip net.IPNet, deviceName string, verbose bool) error {
+	return notSupportedInWindows
+}
+func (wc *wgClientImpl) ipRouteAdd(ip string, _ string, devName string, _ bool) error {
+	return notSupportedInWindows
 }
 
-func setDnsServers(_ []net.IP, _ string, _ bool) error {
-	return errors.New("this command is not available for windows, will be available soon")
+func (wc *wgClientImpl) startService(devName string, _ bool) error {
+	return notSupportedInWindows
+}
+
+func (wc *wgClientImpl) stopService(verbose bool) error {
+	return notSupportedInWindows
 }

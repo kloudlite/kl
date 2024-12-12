@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"runtime"
-	"strconv"
 	"strings"
 
 	uuid "github.com/nu7hatch/gouuid"
@@ -121,24 +120,9 @@ func GetConfigFolder() (configFolder string, err error) {
 
 	// ensuring user permission on created dir
 	if _, ok := os.LookupEnv("SUDO_USER"); ok {
-		uidstr, ok := os.LookupEnv("SUDO_UID")
-		if !ok {
-			return "", functions.Error("failed to get sudo uid")
-		}
-
-		gidstr, ok := os.LookupEnv("SUDO_GID")
-		if !ok {
-			return "", functions.Error("failed to get sudo gid")
-		}
-
-		uid, err := strconv.Atoi(uidstr)
+		uid, gid, err := fn.GetUidNGid()
 		if err != nil {
-			return "", functions.NewE(err, "failed to get sudo uid")
-		}
-
-		gid, err := strconv.Atoi(gidstr)
-		if err != nil {
-			return "", functions.NewE(err, "failed to get sudo gid")
+			return "", err
 		}
 
 		if err := os.Chown(configPath, uid, gid); err != nil {
@@ -337,10 +321,13 @@ func writeOnUserScope(name string, data []byte) error {
 		return functions.NewE(err, "failed to write file")
 	}
 
-	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
-		if err := fn.ExecCmd(
-			fmt.Sprintf("chown %s %s", usr, filePath), nil, false,
-		); err != nil {
+	if _, ok := os.LookupEnv("SUDO_USER"); ok {
+		uid, gid, err := fn.GetUidNGid()
+		if err != nil {
+			return err
+		}
+
+		if err := os.Chown(filePath, uid, gid); err != nil {
 			return functions.NewE(err, "failed to change user permission on file")
 		}
 	}

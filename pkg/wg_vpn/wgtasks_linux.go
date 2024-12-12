@@ -12,6 +12,42 @@ import (
 	"github.com/vishvananda/netlink"
 )
 
+func (wc *wgClientImpl) resetSearchDomain() error {
+	return fmt.Errorf("reset search domain is not implemented")
+}
+
+func (wc *wgClientImpl) setSearchDomain(domain string) error {
+	return fmt.Errorf("set search domain is not implemented")
+}
+
+func (wc *wgClientImpl) setDnsServers(dnsServers []net.IP, deviceName string, verbose bool) error {
+	return fmt.Errorf("set dns servers is not implemented")
+
+	if IsSystemdReslov() {
+		if len(dnsServers) == 0 {
+			fn.Warnf("No DNS server configured for %s", deviceName)
+			return nil
+		}
+
+		return ExecCmd(fmt.Sprintf("resolvectl dns %s %s", deviceName, dnsServers[0].String()), verbose)
+	}
+
+	ips := []string{}
+	for _, v := range dnsServers {
+		ips = append(ips, fmt.Sprintf("nameserver %s", v.To4().String()))
+	}
+
+	if err := os.WriteFile("/etc/resolv.conf", []byte(strings.Join(ips, "\n")), 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (wc *wgClientImpl) resetDnsServers(deviceName string, verbose bool) error {
+	return fmt.Errorf("reset dns servers is not implemented")
+}
+
 func getCurrentDns(_ bool) ([]string, error) {
 	config, err := dns.ClientConfigFromFile("/etc/resolv.conf")
 
@@ -22,7 +58,7 @@ func getCurrentDns(_ bool) ([]string, error) {
 	return config.Servers, nil
 }
 
-func StartService(devName string, _ bool) error {
+func (wc *wgClientImpl) startService(devName string, _ bool) error {
 
 	// Add Wireguard device
 	wgLink := &netlink.GenericLink{
@@ -48,7 +84,7 @@ func StartService(devName string, _ bool) error {
 	return nil
 }
 
-func ipRouteAdd(ip string, _ string, devName string, _ bool) error {
+func (wc *wgClientImpl) ipRouteAdd(ip string, _ string, devName string, _ bool) error {
 	_, dst, err := net.ParseCIDR(ip)
 	if err != nil {
 		return fmt.Errorf("failed to parse CIDR: %v", err)
@@ -71,7 +107,7 @@ func ipRouteAdd(ip string, _ string, devName string, _ bool) error {
 	return nil
 }
 
-func StopService(verbose bool) error {
+func (wc *wgClientImpl) stopService(verbose bool) error {
 	wgInterface, err := wgc.Show(&wgc.WgShowOptions{
 		Interface: "interfaces",
 	})
@@ -105,29 +141,7 @@ func StopService(verbose bool) error {
 	return nil
 }
 
-func setDnsServers(dnsServers []net.IP, deviceName string, verbose bool) error {
-	if IsSystemdReslov() {
-		if len(dnsServers) == 0 {
-			fn.Warnf("No DNS server configured for %s", deviceName)
-			return nil
-		}
-
-		return ExecCmd(fmt.Sprintf("resolvectl dns %s %s", deviceName, dnsServers[0].String()), verbose)
-	}
-
-	ips := []string{}
-	for _, v := range dnsServers {
-		ips = append(ips, fmt.Sprintf("nameserver %s", v.To4().String()))
-	}
-
-	if err := os.WriteFile("/etc/resolv.conf", []byte(strings.Join(ips, "\n")), 0644); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func SetDeviceIp(ip net.IPNet, deviceName string, _ bool) error {
+func (wc *wgClientImpl) setDeviceIp(ip net.IPNet, deviceName string, _ bool) error {
 	link, err := netlink.LinkByName(deviceName)
 	if err != nil {
 		return fmt.Errorf("failed to find the interface %s: %v", deviceName, err)

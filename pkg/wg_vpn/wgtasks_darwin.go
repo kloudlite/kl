@@ -28,6 +28,43 @@ const (
 	ifName string = "utun2464"
 )
 
+var notImplemented = fn.Errorf("not implemented")
+
+func (wc *wgClientImpl) resetSearchDomain() error {
+	return notImplemented
+}
+
+func (wc *wgClientImpl) setSearchDomain(domain string) error {
+	return notImplemented
+}
+
+func (wc *wgClientImpl) setDnsServers(dnsServers []net.IP, deviceName string, verbose bool) error {
+	return notImplemented
+}
+
+func (wc *wgClientImpl) resetDnsServers(deviceName string, verbose bool) error {
+	return notImplemented
+}
+
+func (wc *wgClientImpl) startService(devName string, _ bool) error {
+	return notImplemented
+}
+
+func (wc *wgClientImpl) setDeviceIp(ip net.IPNet, deviceName string, verbose bool) error {
+	return notImplemented
+}
+func (wc *wgClientImpl) ipRouteAdd(ip string, _ string, devName string, _ bool) error {
+	return notImplemented
+}
+
+func (wc *wgClientImpl) stopService(verbose bool) error {
+	return notImplemented
+}
+
+// **********************************************************
+// * below section just utils only used for above functions *
+// **********************************************************
+
 func ipRouteAdd(ip string, interfaceIp string, deviceName string, verbose bool) error {
 	return ExecCmd(fmt.Sprintf("route -n add -net %s %s", ip, interfaceIp), verbose)
 }

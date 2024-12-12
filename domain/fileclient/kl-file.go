@@ -24,10 +24,6 @@ type KLFileType struct {
 	EnvVars EnvVars `json:"envVars" yaml:"envVars"`
 	Mounts  Mounts  `json:"mounts" yaml:"mounts"`
 	Ports   []int   `json:"ports" yaml:"ports"`
-
-	// packagesMap  map[string]int `json:"-"`
-	// librariesMap map[string]int `json:"-"`
-	// ConfigFile   string         `json:"-"`
 }
 
 type HashData map[string]string
@@ -47,7 +43,7 @@ func (k *Lockfile) Save() error {
 		return err
 	}
 
-	if err := confighandler.WriteConfig(fmt.Sprintf("%s.lock", cpath), *k, 0o644); err != nil {
+	if err := confighandler.WriteConfig(path.Join(path.Dir(cpath), "kl-lock.yaml"), *k, 0o644); err != nil {
 		fn.PrintError(err)
 		return functions.NewE(err)
 	}
@@ -61,7 +57,7 @@ func (c *fclient) GetLockfile() (*Lockfile, error) {
 		return nil, err
 	}
 
-	kllockfile, err := confighandler.ReadConfig[Lockfile](fmt.Sprintf("%s.lock", cpath))
+	kllockfile, err := confighandler.ReadConfig[Lockfile](path.Join(path.Dir(cpath), "kl-lock.yaml"))
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return nil, err

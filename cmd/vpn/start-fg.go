@@ -17,9 +17,7 @@ var startFgCmd = &cobra.Command{
 	Hidden: true,
 	Run: func(cmd *cobra.Command, _ []string) {
 		if euid := os.Geteuid(); euid != 0 {
-			fn.Log(
-				text.Colored("make sure you are running command with sudo", 209),
-			)
+			fn.Log(text.Colored("make sure you are running command with sudo", 209))
 			return
 		}
 
@@ -29,7 +27,8 @@ var startFgCmd = &cobra.Command{
 			return
 		}
 
-		if err := wg_vpn.StartService(devName, false); err != nil {
+		wc := wg_vpn.NewWgClient()
+		if err := wc.StartService(devName, false); err != nil {
 			fn.PrintError(err)
 			return
 		}

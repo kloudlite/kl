@@ -6,9 +6,11 @@ import (
 	"path"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/nixpkghandler"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
 )
@@ -27,6 +29,18 @@ func Shell(cmd *cobra.Command, args []string) error {
 	kshflag, ok := os.LookupEnv("KL_SHELL")
 	if ok && kshflag == "true" {
 		return fmt.Errorf(text.Red("You are already in an active kl shell.\nRun `exit` before calling `kl shell` again. Shell inception is not supported."))
+	}
+
+	p, err := daemon_server.NewProxyWithService(false)
+	if err != nil {
+		return err
+	}
+
+	f := spinner.Client.UpdateMessage("setting up network...")
+	err = p.Start()
+	f()
+	if err != nil {
+		return err
 	}
 
 	apic, err := apiclient.New()
@@ -105,6 +119,13 @@ func Shell(cmd *cobra.Command, args []string) error {
 		Packages:  pkgs,
 		Libraries: libs,
 	}); err != nil {
+		return err
+	}
+
+	f = spinner.Client.UpdateMessage("shutting down network...")
+	_, err = p.Stop()
+	f()
+	if err != nil {
 		return err
 	}
 

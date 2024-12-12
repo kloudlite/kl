@@ -1,15 +1,12 @@
 package wg_vpn
 
 import (
-	"encoding/csv"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
-	"runtime"
-	"strings"
 
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/flags"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
@@ -17,38 +14,40 @@ import (
 	"golang.zx2c4.com/wireguard/wgctrl"
 )
 
-func IsSystemdReslov() bool {
-	if runtime.GOOS != "linux" {
-		return false
-	}
+type WgClient interface {
+	StartServiceInBg(devName string, configFolder string) error
 
-	if err := ExecCmd("systemctl status systemd-resolved", false); err != nil {
-		return false
-	}
+	StartService(devName string, verbose bool) error
+	startService(devName string, verbose bool) error
 
-	return true
+	StopService(verbose bool) error
+	stopService(verbose bool) error
+
+	Configure(configuration []byte, interfaceName string, verbose bool) error
+
+	SetDnsServers(dnsServers []net.IP, devName string, verbose bool) error
+	ResetDnsServers(devName string, verbose bool) error
+
+	SetSearchDomain(domain string) error
+	ResetSearchDomain() error
+
+	setDnsServers(dnsServers []net.IP, devName string, verbose bool) error
+	resetDnsServers(devName string, verbose bool) error
+	setSearchDomain(domain string) error
+	resetSearchDomain() error
+
+	setDeviceIp(ip net.IPNet, deviceName string, verbose bool) error
+	ipRouteAdd(ip string, _ string, devName string, _ bool) error
 }
 
-func ExecCmd(cmdString string, verbose bool) error {
-	r := csv.NewReader(strings.NewReader(cmdString))
-	r.Comma = ' '
-	cmdArr, err := r.Read()
-	if err != nil {
-		return err
-	}
+type wgClientImpl struct{}
 
-	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
-	if verbose {
-		fn.Log("[#] " + strings.Join(cmdArr, " "))
-		cmd.Stdout = os.Stdout
-	}
-
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	return err
+func NewWgClient() WgClient {
+	return &wgClientImpl{}
 }
 
-func StartServiceInBg(devName string, configFolder string) error {
+// Deprecated: start service from daemon istead
+func (c *wgClientImpl) StartServiceInBg(devName string, configFolder string) error {
 	command := exec.Command(flags.CliName, "vpn", "start-fg", "-d", devName)
 	err := command.Start()
 	if err != nil {
@@ -61,9 +60,13 @@ func StartServiceInBg(devName string, configFolder string) error {
 		return err
 	}
 
-	if usr, ok := os.LookupEnv("SUDO_USER"); ok {
-		if err = ExecCmd(fmt.Sprintf("chown %s %s", usr, configFolder+"/wgpid"),
-			false); err != nil {
+	if _, ok := os.LookupEnv("SUDO_USER"); ok {
+		uid, gid, err := fn.GetUidNGid()
+		if err != nil {
+			return err
+		}
+
+		if err = os.Chown(configFolder+"/wgpid", uid, gid); err != nil {
 			fn.PrintError(err)
 			return err
 		}
@@ -72,7 +75,7 @@ func StartServiceInBg(devName string, configFolder string) error {
 	return nil
 }
 
-func Configure(
+func (c *wgClientImpl) Configure(
 	configuration []byte,
 	interfaceName string,
 	verbose bool,
@@ -93,7 +96,7 @@ func Configure(
 
 	if len(cfg.Address) == 0 {
 		return errors.New("device ip not found")
-	} else if e := SetDeviceIp(cfg.Address[0], interfaceName, verbose); e != nil {
+	} else if e := c.setDeviceIp(cfg.Address[0], interfaceName, verbose); e != nil {
 		return e
 	}
 
@@ -106,77 +109,10 @@ func Configure(
 		fn.Log("[#] setting up connection")
 	}
 
-	// if err := func() error {
-	// 	if runtime.GOOS != constants.RuntimeLinux {
-	// 		return nil
-	// 	}
-
-	// 	return nil
-
-	// 	if len(cfg.Address) > 0 {
-	// 		dc, err := client.GetDeviceContext()
-	// 		if err != nil {
-	// 			return err
-	// 		}
-
-	// 		priv := dc.PrivateKey
-
-	// 		if priv == nil {
-	// 			_, priv, err = GenerateWgKeys()
-	// 			if err != nil {
-	// 				return err
-	// 			}
-
-	// 			dc.PrivateKey = priv
-	// 		}
-
-	// 		pub, err := GeneratePublicKey(string(priv))
-	// 		if err != nil {
-	// 			return err
-	// 		}
-
-	// 		if len(pub) < 32 {
-	// 			fmt.Println("wrong public key length")
-	// 		}
-	// 		var pubBuff [32]byte
-	// 		copy(pubBuff[:], pub[:32])
-
-	// 		hostPublicKey, err := GeneratePublicKey(cfg.PrivateKey.String())
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		dc.HostPublicKey = hostPublicKey
-
-	// 		cfg.Peers = append(cfg.Peers, wgtypes.PeerConfig{
-	// 			PublicKey: pubBuff,
-	// 			Endpoint: &net.UDPAddr{
-	// 				IP:   net.ParseIP("127.0.0.1"),
-	// 				Port: constants.ContainerVpnPort,
-	// 			},
-	// 			AllowedIPs: []net.IPNet{{
-	// 				IP:   cfg.Address[0].IP,
-	// 				Mask: net.CIDRMask(32, 32),
-	// 			}},
-	// 		})
-
-	// 		dc.DeviceIp = cfg.Address[0].IP
-	// 		cfg.Address = []net.IPNet{}
-
-	// 		if err := client.WriteDeviceContext(dc); err != nil {
-	// 			return err
-	// 		}
-	// 	}
-
-	// 	return nil
-	// }(); err != nil {
+	// TODO: needs to managed separately
+	// if err := c.setDnsServers(cfg.DNS, interfaceName, verbose); err != nil {
 	// 	return err
 	// }
-
-	// fn.Log(cfg.PrivateKey.String(), cfg.Address[0].IP.To4().String())
-
-	if err := SetDnsServers(cfg.DNS, interfaceName, verbose); err != nil {
-		return err
-	}
 
 	err = wg.ConfigureDevice(interfaceName, cfg.Config)
 	if err != nil {
@@ -185,7 +121,7 @@ func Configure(
 
 	for _, pc := range cfg.Peers {
 		for _, i2 := range pc.AllowedIPs {
-			err = ipRouteAdd(i2.String(), cfg.Address[0].IP.String(), interfaceName, verbose)
+			err = c.ipRouteAdd(i2.String(), cfg.Address[0].IP.String(), interfaceName, verbose)
 			if err != nil {
 				return err
 			}
@@ -196,25 +132,50 @@ func Configure(
 		return err
 	}
 
-	if len(cfg.DNS) > 0 {
-		fc, err := fileclient.New()
-		if err != nil {
-			return err
-		}
-
-		ed, err := fc.GetExtraData()
-		if err != nil {
-			return err
-		}
-
-		ed.SetBackupDns(func() []string {
-			resp := make([]string, len(cfg.DNS))
-			for i, v := range cfg.DNS {
-				resp[i] = v.To4().String()
-			}
-			return resp
-		}())
-	}
+	// TODO: needs to managed separately
+	// if len(cfg.DNS) > 0 {
+	// 	fc, err := fileclient.New()
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	//
+	// 	ed, err := fc.GetExtraData()
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	//
+	// 	ed.SetBackupDns(func() []string {
+	// 		resp := make([]string, len(cfg.DNS))
+	// 		for i, v := range cfg.DNS {
+	// 			resp[i] = v.To4().String()
+	// 		}
+	// 		return resp
+	// 	}())
+	// }
 
 	return nil
+}
+
+func (c *wgClientImpl) SetDnsServers(dnsServers []net.IP, devName string, verbose bool) error {
+	return c.setDnsServers(dnsServers, devName, verbose)
+}
+
+func (c *wgClientImpl) ResetDnsServers(devName string, verbose bool) error {
+	return c.resetDnsServers(devName, verbose)
+}
+
+func (c *wgClientImpl) SetSearchDomain(domain string) error {
+	return c.setSearchDomain(domain)
+}
+
+func (c *wgClientImpl) ResetSearchDomain() error {
+	return c.resetSearchDomain()
+}
+
+func (c *wgClientImpl) StartService(devName string, verbose bool) error {
+	return c.startService(devName, verbose)
+}
+
+func (c *wgClientImpl) StopService(verbose bool) error {
+	return c.stopService(verbose)
 }
