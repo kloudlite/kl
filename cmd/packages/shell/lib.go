@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/kloudlite/kl/flags"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
@@ -81,12 +82,17 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 			includes = append(includes, string(b)+"/include")
 		}
 
-		c2 := exec.CommandContext(ctx, "nix-store", "--query", "--references", string(b))
-		b2, err := c2.CombinedOutput()
+		cmd := exec.CommandContext(ctx, "nix-store", "--query", "--references", string(b))
+
+		if flags.IsVerbose {
+			fn.Log(cmd.String())
+		}
+
+		coutput, err := cmd.CombinedOutput()
 		if err != nil {
 			return fn.NewE(err)
 		}
-		lines := strings.Split(string(b2), "\n")
+		lines := strings.Split(string(coutput), "\n")
 
 		for _, line := range lines {
 			if len(strings.TrimSpace(line)) > 0 && !strings.Contains(line, "-glibc-") {
