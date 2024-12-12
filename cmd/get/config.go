@@ -3,7 +3,6 @@ package get
 import (
 	"encoding/json"
 
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 
 	"github.com/kloudlite/kl/domain/apiclient"
@@ -25,11 +24,6 @@ var configCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
 
 		configName := ""
 
@@ -38,7 +32,7 @@ var configCmd = &cobra.Command{
 		}
 
 		if configName == "" {
-			currentTeam, err := fc.GetDataContext().GetWsTeam()
+			currentTeam, err := apic.GetFClient().GetDataContext().GetWsTeam()
 			if err != nil {
 				fn.PrintError(err)
 				return
@@ -67,7 +61,7 @@ var configCmd = &cobra.Command{
 			configName = selectedConfig.Metadata.Name
 		}
 
-		currentTeamName, err := fc.GetDataContext().GetWsTeam()
+		currentTeamName, err := apic.GetFClient().GetDataContext().GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

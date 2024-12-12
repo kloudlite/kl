@@ -14,6 +14,10 @@ import (
 	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
+const (
+	ifName string = "utun2464"
+)
+
 func connect(verbose bool, options ...fn.Option) error {
 	return fmt.Errorf("not supported for windows")
 

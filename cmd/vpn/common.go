@@ -9,10 +9,6 @@ import (
 	"github.com/kloudlite/kl/pkg/wg_vpn"
 )
 
-const (
-	ifName string = "utun2464"
-)
-
 func startConfiguration(verbose bool, _ ...fn.Option) error {
 	apic, err := apiclient.New()
 	if err != nil {

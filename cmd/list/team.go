@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -41,13 +40,8 @@ func listTeams(apic apiclient.ApiClient, cmd *cobra.Command) error {
 		return fn.Errorf("[#] no teams found")
 	}
 
-	fc, err := fileclient.New()
-	if err != nil {
-		return functions.NewE(err)
-	}
-
 	// this erro ignore is intentional
-	teamName, _ := fc.GetDataContext().GetTeam()
+	teamName, _ := apic.GetFClient().GetDataContext().GetTeam()
 
 	header := table.Row{table.HeaderText("name"), table.HeaderText("id")}
 	rows := make([]table.Row, 0)

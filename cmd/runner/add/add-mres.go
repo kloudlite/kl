@@ -23,18 +23,12 @@ This command will add secret entry of managed resource references from current e
   kl add  mres [name] # add specific mres secret entry to your kl-config as env var by providing mres name
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
 		apic, err := apiclient.New()
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
-		if err := AddMres(apic, fc, cmd, args); err != nil {
+		if err := AddMres(apic, cmd, args); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -42,13 +36,13 @@ This command will add secret entry of managed resource references from current e
 	},
 }
 
-func AddMres(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Command, args []string) error {
+func AddMres(apic apiclient.ApiClient, cmd *cobra.Command, args []string) error {
 
 	filePath := fn.ParseKlFile(cmd)
 	if filePath == "" {
 		filePath = "/home/kl/workspace/kl.yml"
 	}
-	kt, err := fc.GetKlFile()
+	kt, err := apic.GetFClient().GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -56,13 +50,13 @@ func AddMres(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Comm
 	//TODO: add changes to the klbox-hash file
 	// mresName := fn.ParseStringFlag(cmd, "resource")
 
-	mres, err := selectMres(apic, fc)
+	mres, err := selectMres(apic, apic.GetFClient())
 
 	if err != nil {
 		return fn.NewE(err)
 	}
 
-	mresKey, err := selectMresKey(apic, fc, mres.SecretRefName.Name)
+	mresKey, err := selectMresKey(apic, apic.GetFClient(), mres.SecretRefName.Name)
 
 	if err != nil {
 		return fn.NewE(err)

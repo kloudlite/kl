@@ -17,6 +17,10 @@ type SetDomainBody struct {
 	Domain string `json:"domain"`
 }
 
+type SetDnsBody struct {
+	Dns string `json:"dns"`
+}
+
 type Server struct {
 	bin string
 }
@@ -70,6 +74,15 @@ func (s *Server) Start(ctx context.Context) error {
 			w.WriteHeader(http.StatusOK)
 			ch <- nil
 			return
+
+		case "set-dns":
+			var body SetDnsBody
+			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			fmt.Println("needs to set dns ", body.Dns)
 
 		case "set-search-domain":
 			var body SetDomainBody

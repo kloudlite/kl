@@ -29,11 +29,7 @@ type client struct {
 }
 
 func NewClient(cmd *cobra.Command) (K3sClient, error) {
-	apiClient, err := apiclient.New()
-	if err != nil {
-		return nil, err
-	}
-	fc, err := fileclient.New()
+	ac, err := apiclient.New()
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +40,8 @@ func NewClient(cmd *cobra.Command) (K3sClient, error) {
 	}
 	return &client{
 		c:    c,
-		apic: apiClient,
-		fc:   fc,
+		apic: ac,
+		fc:   ac.GetFClient(),
 		cmd:  cmd,
 	}, nil
 }

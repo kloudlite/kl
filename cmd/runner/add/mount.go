@@ -28,25 +28,19 @@ var mountCommand = &cobra.Command{
   kl add config-mount [path] --secret=<secret_name>	# add secret from secret.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
 		apic, err := apiclient.New()
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		klFile, err := fc.GetKlFile()
+		klFile, err := apic.GetFClient().GetKlFile()
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		err = selectConfigMount(apic, fc, *klFile, cmd, args)
+		err = selectConfigMount(apic, *klFile, cmd, args)
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -54,7 +48,7 @@ var mountCommand = &cobra.Command{
 	},
 }
 
-func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFile fileclient.KLFileType, cmd *cobra.Command, args []string) error {
+func selectConfigMount(apic apiclient.ApiClient, klFile fileclient.KLFileType, cmd *cobra.Command, args []string) error {
 
 	//TODO: add changes to the klbox-hash file
 	c := cmd.Flag("config").Value.String()
@@ -92,7 +86,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 
 	items := make([]apiclient.ConfigORSecret, 0)
 	if cOrs == fileclient.ConfigType {
-		currentTeam, err := fc.GetDataContext().GetWsTeam()
+		currentTeam, err := apic.GetFClient().GetDataContext().GetWsTeam()
 		if err != nil {
 			return err
 		}
@@ -115,7 +109,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 		}
 
 	} else {
-		currentTeam, err := fc.GetDataContext().GetWsTeam()
+		currentTeam, err := apic.GetFClient().GetDataContext().GetWsTeam()
 		if err != nil {
 			return err
 		}

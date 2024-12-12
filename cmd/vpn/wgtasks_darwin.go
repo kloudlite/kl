@@ -9,6 +9,10 @@ import (
 	"github.com/kloudlite/kl/pkg/wg_vpn"
 )
 
+const (
+	ifName string = "utun2464"
+)
+
 func connect(verbose bool, options ...fn.Option) error {
 	wc := wg_vpn.NewWgClient()
 	success := false

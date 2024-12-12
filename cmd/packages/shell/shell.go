@@ -3,6 +3,7 @@ package shell
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 
 	"github.com/kloudlite/kl/domain/apiclient"
@@ -26,6 +27,11 @@ var Cmd = &cobra.Command{
 }
 
 func Shell(cmd *cobra.Command, args []string) error {
+	_, err := exec.LookPath("nix")
+	if err != nil {
+		return fn.NewE(err, text.Red("nix is not installed. Please install it before using `kl shell`"))
+	}
+
 	kshflag, ok := os.LookupEnv("KL_SHELL")
 	if ok && kshflag == "true" {
 		return fmt.Errorf(text.Red("You are already in an active kl shell.\nRun `exit` before calling `kl shell` again. Shell inception is not supported."))
@@ -48,12 +54,7 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fc, err := fileclient.New()
-	if err != nil {
-		return err
-	}
-
-	kpath, err := fc.GetConfigPath()
+	kpath, err := apic.GetFClient().GetConfigPath()
 	if err != nil {
 		return err
 	}
@@ -72,10 +73,11 @@ func Shell(cmd *cobra.Command, args []string) error {
 		envMap = ck.EnvVars
 		mountMap = ck.Mounts
 	} else {
-		fn.Log(text.Yellow("cache not found, refetching"))
+		fn.Warn(text.Yellow("cache not found, refetching"))
 		envMap, mountMap, err = apic.GetLoadMaps()
 		if err != nil {
 			fn.Warn(err)
+			fn.Warn("ignoring, loading environment variables and mounts.")
 			envMap = make(map[string]string)
 			mountMap = make(map[string]string)
 		}

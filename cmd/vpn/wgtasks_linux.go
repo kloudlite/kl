@@ -8,6 +8,10 @@ import (
 	"github.com/kloudlite/kl/pkg/wg_vpn"
 )
 
+const (
+	ifName string = "kl"
+)
+
 func connect(verbose bool, options ...fn.Option) error {
 	wc := wg_vpn.NewWgClient()
 	success := false
