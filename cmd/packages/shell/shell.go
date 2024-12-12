@@ -140,12 +140,12 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	f = spinner.Client.UpdateMessage("shutting down network...")
-	_, err = p.Stop()
-	f()
-	if err != nil {
-		return err
-	}
+	// f = spinner.Client.UpdateMessage("shutting down network...")
+	// _, err = p.Stop()
+	// f()
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

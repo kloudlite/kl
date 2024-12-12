@@ -62,6 +62,7 @@ var startCmd = &cobra.Command{
 
 		if len(wgInterface) != 0 {
 			fn.Log("[#] already connected")
+			return
 
 			fn.Log("\n[#] reconnecting")
 
