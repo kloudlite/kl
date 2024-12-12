@@ -1,9 +1,9 @@
-package app
+package daemon
 
 import (
 	"context"
 
-	"github.com/kloudlite/kl/app/server"
+	"github.com/kloudlite/kl/daemon/server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 

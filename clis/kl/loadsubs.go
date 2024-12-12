@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/kloudlite/kl/cmd/app"
 	"github.com/kloudlite/kl/cmd/auth"
+	daemon_cmd "github.com/kloudlite/kl/cmd/daemon"
 	"github.com/kloudlite/kl/cmd/get"
 	"github.com/kloudlite/kl/cmd/initp"
 	"github.com/kloudlite/kl/cmd/intercept"
@@ -46,7 +46,7 @@ func init() {
 	rootCmd.AddCommand(list.Cmd)
 	rootCmd.AddCommand(get.Cmd)
 	rootCmd.AddCommand(vpn.Cmd)
-	rootCmd.AddCommand(app.Cmd)
+	rootCmd.AddCommand(daemon_cmd.Cmd)
 
 	if runtime.GOOS == constants.RuntimeWindows {
 		return

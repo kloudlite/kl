@@ -1,4 +1,4 @@
-package app
+package daemon_cmd
 
 import (
 	"github.com/spf13/cobra"
@@ -6,12 +6,13 @@ import (
 
 var Cmd = &cobra.Command{
 	Hidden: true,
-	Use:    "app",
-	Short:  "app commands to start and stop controller app",
+	Use:    "daemon",
+	Short:  "daemon commands to manage kloudlite daemon",
 }
 
 func init() {
 	Cmd.AddCommand(startCmd)
 	Cmd.AddCommand(stopCmd)
 	Cmd.AddCommand(statusCmd)
+	Cmd.Aliases = append(Cmd.Aliases, "d")
 }

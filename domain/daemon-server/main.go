@@ -17,6 +17,7 @@ import (
 	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
 func GetUserHomeDir() (string, error) {
@@ -79,6 +80,8 @@ func NewProxyWithService(logResponse bool, ensureAppRunning ...bool) (*Proxy, er
 		}
 
 		if runtime.GOOS != "windows" {
+			fn.Log(text.Yellow("Administrator privileges are required to configure the network settings. Please enter your password to proceed."))
+
 			cmd := exec.Command("sudo", "echo", "")
 			cmd.Stdin = os.Stdin
 			cmd.Stderr = os.Stderr
@@ -216,6 +219,15 @@ func (p *Proxy) Restart() ([]byte, error) {
 
 func (p *Proxy) SetSearchDomain(sd string) ([]byte, error) {
 	b, err := p.MakeRequest("/set-search-domain")
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func (p *Proxy) SetDns(sd string) ([]byte, error) {
+	b, err := p.MakeRequest("/set-dns")
 	if err != nil {
 		return nil, err
 	}

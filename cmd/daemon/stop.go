@@ -1,4 +1,4 @@
-package app
+package daemon_cmd
 
 import (
 	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
@@ -7,16 +7,15 @@ import (
 )
 
 var stopCmd = &cobra.Command{
-	Use:   "stop",
-	Short: "stop the kloudlite controller app",
-	Long:  `This is internal command`,
+	Use:   "down",
+	Short: "stop the kloudlite daemon service",
 	Run: func(_ *cobra.Command, _ []string) {
 		if err := Stop(); err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		fn.Log("app stopped successfully")
+		fn.Log("daemon service stopped successfully")
 	},
 }
 
@@ -31,4 +30,8 @@ func Stop() error {
 	}
 
 	return nil
+}
+
+func init() {
+	stopCmd.Aliases = append(stopCmd.Aliases, "stop")
 }

@@ -7,11 +7,14 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"runtime"
 	"strings"
 
 	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
+
+// TODO: transform this to grpc for better performance and security
 
 type SetDomainBody struct {
 	Domain string `json:"domain"`
@@ -83,7 +86,6 @@ func (s *Server) Start(ctx context.Context) error {
 			}
 
 			fmt.Println("needs to set dns ", body.Dns)
-
 		case "set-search-domain":
 			var body SetDomainBody
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
@@ -92,10 +94,13 @@ func (s *Server) Start(ctx context.Context) error {
 			}
 
 			fmt.Println("needs to set search domain ", body.Domain)
-
 			return
 
 		case "start", "stop", "status", "restart":
+			if runtime.GOOS == "darwin" {
+				// ensure tunnel service is running
+			}
+
 			if err := fn.StreamOutput(req.Context(), fmt.Sprintf("%s vpn %s", s.bin, command), map[string]string{"KL_APP": "true"}, StreamingWriter{Writer: w}, errCh); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
