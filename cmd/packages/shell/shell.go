@@ -56,6 +56,20 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain()
+	if err != nil {
+		return err
+	}
+
+	dclient, err := daemon_server.NewProxyWithService(true, false)
+	if err != nil {
+		return err
+	}
+
+	if _, err := dclient.SetSearchDomain(searchDomain); err != nil {
+		return err
+	}
+
 	kpath, err := apic.GetFClient().GetConfigPath()
 	if err != nil {
 		return err

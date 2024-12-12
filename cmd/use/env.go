@@ -16,7 +16,7 @@ import (
 steps to be peformed:
 1. list envs for current team from apic
 2. pick one using fzf
-3. persist selected env in session
+3. set search domain
 */
 
 var switchCmd = &cobra.Command{
@@ -99,6 +99,7 @@ func switchEnv(*cobra.Command, []string) error {
 			return err
 		}
 	}
+
 	fn.Log(text.Bold(text.Green("\nSelected Environment:")),
 		text.Blue(fmt.Sprintf("\n%s (%s)", env.DisplayName, env.Metadata.Name)),
 	)

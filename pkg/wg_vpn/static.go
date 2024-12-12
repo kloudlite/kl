@@ -2,6 +2,7 @@ package wg_vpn
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/miekg/dns"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
@@ -89,4 +91,37 @@ func copyFile(src, dst string) error {
 	}
 
 	return nil
+}
+
+func clientConfigToString(config *dns.ClientConfig) string {
+	var sb strings.Builder
+
+	// Add the nameservers
+	for _, server := range config.Servers {
+		sb.WriteString(fmt.Sprintf("nameserver %s\n", server))
+	}
+
+	// Add the search domains
+	if len(config.Search) > 0 {
+		sb.WriteString(fmt.Sprintf("search %s\n", strings.Join(config.Search, " ")))
+	}
+
+	// // Add the options
+	// if config.Ndots > 0 {
+	// 	sb.WriteString(fmt.Sprintf("options ndots:%d\n", config.Ndots))
+	// }
+	//
+	// if config.Timeout > 0 {
+	// 	sb.WriteString(fmt.Sprintf("options timeout:%d\n", config.Timeout))
+	// }
+	//
+	// if config.Attempts > 0 {
+	// 	sb.WriteString(fmt.Sprintf("options attempts:%d\n", config.Attempts))
+	// }
+	//
+	// if config.Port != "" {
+	// 	sb.WriteString(fmt.Sprintf("options port:%s\n", config.Port))
+	// }
+
+	return sb.String()
 }

@@ -22,7 +22,7 @@ func connect(verbose bool, options ...fn.Option) error {
 		}
 	}()
 
-	// TODO: handle this error later
+	// // TODO: handle this error later
 	if err := wc.StartService(ifName, verbose); err != nil {
 		fn.Log(text.Yellow(fmt.Sprintf("[#] %s", err)))
 	}

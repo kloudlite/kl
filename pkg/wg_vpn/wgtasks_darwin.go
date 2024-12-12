@@ -30,12 +30,36 @@ const (
 
 var notImplemented = fn.Errorf("not implemented")
 
-func (wc *wgClientImpl) resetSearchDomain() error {
-	return notImplemented
+func (wc *wgClientImpl) resetSearchDomain(string) error {
+	return wc.setSearchDomain("", "")
 }
 
-func (wc *wgClientImpl) setSearchDomain(domain string) error {
-	return notImplemented
+func (wc *wgClientImpl) setSearchDomain(domain string, _ string) error {
+	setDnsSearchDomain := func(networkService string, localSearchDomains []string) error {
+		if localSearchDomains == nil {
+			return ExecCmd(fmt.Sprintf("networksetup -setsearchdomains %s %s", networkService, "Empty"), false)
+		}
+		return ExecCmd(fmt.Sprintf("networksetup -setsearchdomains %s %s", networkService, strings.Join(localSearchDomains, " ")), false)
+	}
+
+	searchDomains, err := getDnsSearchDomain(constants.NetworkService)
+
+	if err == nil {
+		if slices.Contains(searchDomains, domain) {
+			return nil
+		}
+		searchDomains = append(searchDomains, domain)
+		if err := setDnsSearchDomain(constants.NetworkService, searchDomains); err != nil {
+			return nil
+		}
+	} else {
+		searchDomains[0] = searchDomains[0]
+		if err := setDnsSearchDomain(constants.NetworkService, searchDomains); err != nil {
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func (wc *wgClientImpl) setDnsServers(dnsServers []net.IP, deviceName string, verbose bool) error {
@@ -46,27 +70,44 @@ func (wc *wgClientImpl) resetDnsServers(deviceName string, verbose bool) error {
 	return notImplemented
 }
 
-func (wc *wgClientImpl) startService(devName string, _ bool) error {
-	return notImplemented
+func (wc *wgClientImpl) setDeviceIp(ip net.IPNet, deviceName string, verbose bool) error {
+	return ExecCmd(fmt.Sprintf("ifconfig %s %s %s", ifName, ip.IP.String(), ip.IP.String()), verbose)
 }
 
-func (wc *wgClientImpl) setDeviceIp(ip net.IPNet, deviceName string, verbose bool) error {
-	return notImplemented
-}
-func (wc *wgClientImpl) ipRouteAdd(ip string, _ string, devName string, _ bool) error {
-	return notImplemented
+func (wc *wgClientImpl) ipRouteAdd(ip string, interfaceIp string, devName string, verbose bool) error {
+	return ExecCmd(fmt.Sprintf("route -n add -net %s %s", ip, interfaceIp), verbose)
 }
 
 func (wc *wgClientImpl) stopService(verbose bool) error {
-	return notImplemented
-}
 
-// **********************************************************
-// * below section just utils only used for above functions *
-// **********************************************************
+	cmd := exec.Command("pgrep", "-f", fmt.Sprintf("%s %s", flags.CliName, "vpn start-fg"))
+	output, err := cmd.Output()
+	if err != nil {
+		return err
+	}
 
-func ipRouteAdd(ip string, interfaceIp string, deviceName string, verbose bool) error {
-	return ExecCmd(fmt.Sprintf("route -n add -net %s %s", ip, interfaceIp), verbose)
+	if verbose {
+		functions.Log("[#]", cmd.String())
+	}
+
+	i, err := strconv.ParseInt(strings.TrimSpace(string(output)), 10, 64)
+	if err != nil {
+		return err
+	}
+	p, err := os.FindProcess(int(i))
+	if err != nil {
+		return err
+	}
+	if p == nil {
+		return errors.New("process not found")
+	}
+
+	err = syscall.Kill(int(i), syscall.SIGTERM)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //func getNetworkServices(verbose bool) ([]string, error) {
@@ -115,11 +156,7 @@ func getCurrentDns(verbose bool) ([]string, error) {
 	return dnsServers, nil
 }
 
-func SetDeviceIp(deviceIp net.IPNet, _ string, verbose bool) error {
-	return ExecCmd(fmt.Sprintf("ifconfig %s %s %s", ifName, deviceIp.IP.String(), deviceIp.IP.String()), verbose)
-}
-
-func StartService(_ string, verbose bool) error {
+func (wc *wgClientImpl) startService(_ string, verbose bool) error {
 
 	t, err := tun.CreateTUN(ifName, device.DefaultMTU)
 	if err != nil {
@@ -164,49 +201,17 @@ func StartService(_ string, verbose bool) error {
 	}()
 
 	logger.Verbosef("UAPI listener started")
-	signal.Notify(term, syscall.SIGTERM)
-	signal.Notify(term, syscall.SIGKILL)
-	signal.Notify(term, os.Interrupt)
+	signal.Notify(term, syscall.SIGTERM, syscall.SIGKILL, os.Interrupt)
 
 	select {
 	case <-term:
 	case <-errs:
 	case <-d.Wait():
 	}
+
 	_ = uapi.Close()
 	d.Close()
 	logger.Verbosef("Shutting down")
-	return nil
-}
-
-func StopService(verbose bool) error {
-	cmd := exec.Command("pgrep", "-f", fmt.Sprintf("%s %s", flags.CliName, "vpn start-fg"))
-	output, err := cmd.Output()
-	if err != nil {
-		return err
-	}
-
-	if verbose {
-		functions.Log("[#]", cmd.String())
-	}
-
-	i, err := strconv.ParseInt(strings.TrimSpace(string(output)), 10, 64)
-	if err != nil {
-		return err
-	}
-	p, err := os.FindProcess(int(i))
-	if err != nil {
-		return err
-	}
-	if p == nil {
-		return errors.New("process not found")
-	}
-
-	err = syscall.Kill(int(i), syscall.SIGTERM)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -214,12 +219,9 @@ func StopService(verbose bool) error {
 //	return ExecCmd(fmt.Sprintf("networksetup -setdnsservers %s %s", d, dnsServer.String()), verbose)
 //}
 
-func setDnsSearchDomain(networkService string, localSearchDomains []string) error {
-	if localSearchDomains == nil {
-		return ExecCmd(fmt.Sprintf("networksetup -setsearchdomains %s %s", networkService, "Empty"), false)
-	}
-	return ExecCmd(fmt.Sprintf("networksetup -setsearchdomains %s %s", networkService, strings.Join(localSearchDomains, " ")), false)
-}
+// func setDnsSearchDomain(networkService string, localSearchDomains []string) error {
+//
+// }
 
 func getDnsSearchDomain(networkService string) ([]string, error) {
 	d, err := exec.Command("networksetup", "-getsearchdomains", networkService).Output()
@@ -236,59 +238,28 @@ func getDnsSearchDomain(networkService string) ([]string, error) {
 	return domains, nil
 }
 
-func _SetDnsSearch(sd string) error {
-	searchDomains, err := getDnsSearchDomain(constants.NetworkService)
-
-	if err == nil {
-		if slices.Contains(searchDomains, sd) {
-			return nil
-		}
-		searchDomains = append(searchDomains, sd)
-		err1 := setDnsSearchDomain(constants.NetworkService, searchDomains)
-		if err1 != nil {
-			return nil
-		}
-	} else {
-		searchDomains[0] = sd
-		err1 := setDnsSearchDomain(constants.NetworkService, searchDomains)
-		if err1 != nil {
-			return nil
-		}
-	}
-
-	return nil
-}
-
-func _UnsetDnsSearch() error {
-	return setDnsSearchDomain(constants.NetworkService, nil)
-	// if data.DnsAdded {
-	// 	ips := make([]net.IP, 0)
-	// 	for _, dns := range data.DnsValues {
-	// 		ips = append(ips, net.ParseIP(dns))
-	// 	}
-	// 	if err := setDnsServers(ips, constants.NetworkService, false); err != nil {
-	// 		return err
-	// 	}
-	// }
-	// data.DnsAdded = false
-	// data.DnsValues = nil
-
-	// if data.SearchDomainAdded {
-	// 	searchDomains, err := getDnsSearchDomain(constants.NetworkService)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	searchDomains = functions.RemoveFromArray(constants.LocalSearchDomains, searchDomains)
-	// 	if err = setDnsSearchDomain(constants.NetworkService, searchDomains); err != nil {
-	// 		return err
-	// 	}
-	// 	data.SearchDomainAdded = false
-	// 	if err := client.SaveExtraData(data); err != nil {
-	// 		return err
-	// 	}
-	// }
-	return nil
-}
+// func _SetDnsSearch(sd string) error {
+// 	searchDomains, err := getDnsSearchDomain(constants.NetworkService)
+//
+// 	if err == nil {
+// 		if slices.Contains(searchDomains, sd) {
+// 			return nil
+// 		}
+// 		searchDomains = append(searchDomains, sd)
+// 		err1 := setDnsSearchDomain(constants.NetworkService, searchDomains)
+// 		if err1 != nil {
+// 			return nil
+// 		}
+// 	} else {
+// 		searchDomains[0] = sd
+// 		err1 := setDnsSearchDomain(constants.NetworkService, searchDomains)
+// 		if err1 != nil {
+// 			return nil
+// 		}
+// 	}
+//
+// 	return nil
+// }
 
 func isPrivateIP(ip net.IP) bool {
 	private := false

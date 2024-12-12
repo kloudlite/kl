@@ -6,22 +6,91 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Fa1k3n/resolvconf"
+	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/wg_vpn/wgc"
 	"github.com/miekg/dns"
 	"github.com/vishvananda/netlink"
 )
 
-func (wc *wgClientImpl) resetSearchDomain() error {
-	return fmt.Errorf("reset search domain is not implemented")
+const (
+	bkpPath = "/etc/.resolv.conf.kl-bkp"
+	resPath = "/etc/resolv.conf"
+)
+
+const (
+	ifName = "kl"
+)
+
+func (wc *wgClientImpl) resetSearchDomain(devName string) error {
+	return wc.setSearchDomain("", devName)
 }
 
-func (wc *wgClientImpl) setSearchDomain(domain string) error {
-	return fmt.Errorf("set search domain is not implemented")
+func (wc *wgClientImpl) setSearchDomain(domain string, deviceName string) error {
+	if IsSystemdReslov() {
+		if err := ExecCmd(fmt.Sprintf("resolvectl domain %s %s", deviceName, func() string {
+			if domain == "" {
+				return "~."
+			}
+
+			return domain
+		}()), false); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	fc, err := fileclient.New()
+	if err != nil {
+		return err
+	}
+
+	e, err := fc.GetExtraData()
+	if err != nil {
+		return err
+	}
+
+	hs, err := e.GetDnsHostSuffix()
+	if err != nil {
+		return err
+	}
+
+	config, err := dns.ClientConfigFromFile("/etc/resolv.conf")
+
+	if err != nil {
+		return err
+	}
+
+	currSearchDomains := config.Search
+	newSearchDomains := make([]string, 0)
+	for _, v := range currSearchDomains {
+		if strings.HasSuffix(v, hs) {
+			continue
+		}
+		newSearchDomains = append(newSearchDomains, v)
+	}
+
+	if _, err := os.Stat(bkpPath); os.IsNotExist(err) {
+		if err := copyFile(resPath, bkpPath); err != nil {
+			return err
+		}
+	}
+
+	if domain != "" {
+		newSearchDomains = append(newSearchDomains, domain)
+	}
+
+	config.Search = newSearchDomains
+	fmt.Println(domain)
+
+	s := clientConfigToString(config)
+
+	return os.WriteFile(resPath, []byte(s), 0644)
 }
 
 func (wc *wgClientImpl) setDnsServers(dnsServers []net.IP, deviceName string, verbose bool) error {
-	return fmt.Errorf("set dns servers is not implemented")
 
 	if IsSystemdReslov() {
 		if len(dnsServers) == 0 {
@@ -32,12 +101,24 @@ func (wc *wgClientImpl) setDnsServers(dnsServers []net.IP, deviceName string, ve
 		return ExecCmd(fmt.Sprintf("resolvectl dns %s %s", deviceName, dnsServers[0].String()), verbose)
 	}
 
-	ips := []string{}
-	for _, v := range dnsServers {
-		ips = append(ips, fmt.Sprintf("nameserver %s", v.To4().String()))
+	if _, err := os.Stat(bkpPath); os.IsNotExist(err) {
+		if err := copyFile(resPath, bkpPath); err != nil {
+			return err
+		}
 	}
 
-	if err := os.WriteFile("/etc/resolv.conf", []byte(strings.Join(ips, "\n")), 0644); err != nil {
+	conf := resolvconf.New()
+
+	for _, v := range dnsServers {
+		conf.Add(resolvconf.NewNameserver(v))
+	}
+
+	writer, err := os.Create("/etc/resolv.conf")
+	if err != nil {
+		return err
+	}
+
+	if err := conf.Write(writer); err != nil {
 		return err
 	}
 
@@ -45,7 +126,14 @@ func (wc *wgClientImpl) setDnsServers(dnsServers []net.IP, deviceName string, ve
 }
 
 func (wc *wgClientImpl) resetDnsServers(deviceName string, verbose bool) error {
-	return fmt.Errorf("reset dns servers is not implemented")
+	if _, err := os.Stat(bkpPath); err == nil {
+		if err := copyFile(bkpPath, resPath); err != nil {
+			return err
+		}
+		return os.Remove(bkpPath)
+	}
+
+	return nil
 }
 
 func getCurrentDns(_ bool) ([]string, error) {

@@ -7,11 +7,14 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"runtime"
 	"strings"
 
-	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/wg_vpn"
+)
+
+const (
+	AppPort = 55678
 )
 
 // TODO: transform this to grpc for better performance and security
@@ -57,6 +60,8 @@ func (w StreamingWriter) Write(b []byte) (int, error) {
 
 func (s *Server) Start(ctx context.Context) error {
 
+	wc := wg_vpn.NewWgClient()
+
 	ch := make(chan error)
 
 	defer ctx.Done()
@@ -85,7 +90,30 @@ func (s *Server) Start(ctx context.Context) error {
 				return
 			}
 
-			fmt.Println("needs to set dns ", body.Dns)
+			if body.Dns == "" {
+				if err := wc.SetDnsServers([]net.IP{}, "kl", true); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				return
+			}
+
+			ips := make([]net.IP, 0)
+			for _, v := range strings.Split(body.Dns, ",") {
+				ip := net.ParseIP(v)
+				if ip == nil {
+					http.Error(w, fn.Errorf("invalid ip address: %s", v).Error(), http.StatusInternalServerError)
+					return
+				}
+				ips = append(ips, ip)
+			}
+
+			if err := wc.SetDnsServers(ips, "kl", true); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			return
 		case "set-search-domain":
 			var body SetDomainBody
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
@@ -93,14 +121,21 @@ func (s *Server) Start(ctx context.Context) error {
 				return
 			}
 
-			fmt.Println("needs to set search domain ", body.Domain)
-			return
-
-		case "start", "stop", "status", "restart":
-			if runtime.GOOS == "darwin" {
-				// ensure tunnel service is running
+			if body.Domain == "" {
+				if err := wc.ResetSearchDomain(); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				return
 			}
 
+			if err := wc.SetSearchDomain(body.Domain); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			return
+		case "start", "stop", "status", "restart":
 			if err := fn.StreamOutput(req.Context(), fmt.Sprintf("%s vpn %s", s.bin, command), map[string]string{"KL_APP": "true"}, StreamingWriter{Writer: w}, errCh); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
@@ -112,11 +147,11 @@ func (s *Server) Start(ctx context.Context) error {
 	})
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", daemon_server.AppPort),
+		Addr:    fmt.Sprintf(":%d", AppPort),
 		Handler: app,
 	}
 
-	fn.Logf("starting server at :%d", daemon_server.AppPort)
+	fn.Logf("starting server at :%d\n", AppPort)
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
 			ch <- err

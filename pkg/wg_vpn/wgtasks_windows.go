@@ -6,13 +6,17 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
+const (
+	ifName = "kl"
+)
+
 var notSupportedInWindows = fn.Errorf("not supported on windows")
 
-func (wc *wgClientImpl) resetSearchDomain() error {
+func (wc *wgClientImpl) resetSearchDomain(devName string) error {
 	return notSupportedInWindows
 }
 
-func (wc *wgClientImpl) setSearchDomain(domain string) error {
+func (wc *wgClientImpl) setSearchDomain(domain string, devName string) error {
 	return notSupportedInWindows
 }
 

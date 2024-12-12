@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/adrg/xdg"
+	"github.com/kloudlite/kl/daemon/server"
 	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -91,7 +92,7 @@ func NewProxyWithService(logResponse bool, ensureAppRunning ...bool) (*Proxy, er
 			if err != nil {
 				return nil, err
 			}
-			command := exec.Command("sudo", flags.CliName, "app", "start")
+			command := exec.Command("sudo", flags.CliName, "daemon", "start")
 			_ = command.Start()
 
 		} else {
@@ -111,12 +112,12 @@ func NewProxyWithService(logResponse bool, ensureAppRunning ...bool) (*Proxy, er
 }
 
 func (p *Proxy) MakeRequest(path string, params ...[]byte) ([]byte, error) {
-	url := fmt.Sprintf("http://localhost:%d%s", AppPort, path)
+	url := fmt.Sprintf("http://localhost:%d%s", server.AppPort, path)
 
 	if err := func() error {
 		hostIp := "localhost"
 
-		url = fmt.Sprintf("http://%s:%d%s", hostIp, AppPort, path)
+		url = fmt.Sprintf("http://%s:%d%s", hostIp, server.AppPort, path)
 		return nil
 	}(); err != nil {
 		return nil, err
@@ -218,7 +219,17 @@ func (p *Proxy) Restart() ([]byte, error) {
 }
 
 func (p *Proxy) SetSearchDomain(sd string) ([]byte, error) {
-	b, err := p.MakeRequest("/set-search-domain")
+
+	payload := server.SetDomainBody{
+		Domain: sd,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := p.MakeRequest("/set-search-domain", payloadBytes)
 	if err != nil {
 		return nil, err
 	}

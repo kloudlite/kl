@@ -29,12 +29,13 @@ type WgClient interface {
 	ResetDnsServers(devName string, verbose bool) error
 
 	SetSearchDomain(domain string) error
+	setSearchDomain(domain string, devName string) error
+
 	ResetSearchDomain() error
+	resetSearchDomain(devName string) error
 
 	setDnsServers(dnsServers []net.IP, devName string, verbose bool) error
 	resetDnsServers(devName string, verbose bool) error
-	setSearchDomain(domain string) error
-	resetSearchDomain() error
 
 	setDeviceIp(ip net.IPNet, deviceName string, verbose bool) error
 	ipRouteAdd(ip string, _ string, devName string, _ bool) error
@@ -165,11 +166,11 @@ func (c *wgClientImpl) ResetDnsServers(devName string, verbose bool) error {
 }
 
 func (c *wgClientImpl) SetSearchDomain(domain string) error {
-	return c.setSearchDomain(domain)
+	return c.setSearchDomain(domain, ifName)
 }
 
 func (c *wgClientImpl) ResetSearchDomain() error {
-	return c.resetSearchDomain()
+	return c.resetSearchDomain(ifName)
 }
 
 func (c *wgClientImpl) StartService(devName string, verbose bool) error {
