@@ -7,8 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/kloudlite/kl/pkg/ui/spinner"
 )
 
 func createSet[T comparable](v []T) []T {
@@ -54,9 +52,9 @@ func pathExists(p string) bool {
 func NixShell(ctx context.Context, args ShellArgs) error {
 	ev := append(os.Environ(), args.EnvVars...)
 
-	f := spinner.Client.UpdateMessage("setting up nix environment...")
+	// f := spinner.Client.UpdateMessage("setting up nix environment...")
 	path, err := installPackage(args.Packages...)
-	f()
+	// f()
 	if err != nil {
 		return err
 	}
