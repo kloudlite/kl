@@ -49,6 +49,8 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// p.SetDns("")
+
 	apic, err := apiclient.New()
 	if err != nil {
 		return err

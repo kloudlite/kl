@@ -1,6 +1,7 @@
 package fileclient
 
 import (
+	"fmt"
 	"path"
 	"time"
 
@@ -16,7 +17,7 @@ type Extra interface {
 	SetBaseUrl(string) error
 
 	SetDnsHostSuffix(suffix string) error
-	GetDnsHostSuffix() string
+	GetDnsHostSuffix() (string, error)
 
 	GetLastUpdatedCheck() time.Time
 	SetLastUpdatedCheck(t time.Time) error
@@ -48,8 +49,12 @@ func (ed *extra) SetDnsHostSuffix(suffix string) error {
 	return ed.Save()
 }
 
-func (ed *extra) GetDnsHostSuffix() string {
-	return ed.DnsHostSuffix
+func (ed *extra) GetDnsHostSuffix() (string, error) {
+	if ed.DnsHostSuffix == "" {
+		return "", fmt.Errorf("dns host suffix is empty")
+	}
+
+	return ed.DnsHostSuffix, nil
 }
 
 func (ed *extra) GetBaseUrl() string {
@@ -75,10 +80,10 @@ func (ed *extra) Save() error {
 }
 
 func (fc *fclient) GetExtraData() (Extra, error) {
-	return fc.getExtraData()
+	return getExtraData()
 }
 
-func (fc *fclient) getExtraData() (Extra, error) {
+func getExtraData() (Extra, error) {
 	cdir, err := GetConfigFolder()
 	if err != nil {
 		return nil, err

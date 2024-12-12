@@ -134,7 +134,7 @@ func GetConfigFolder() (configFolder string, err error) {
 }
 
 func (fc *fclient) SaveBaseURL(url string) error {
-	extraData, err := fc.getExtraData()
+	extraData, err := getExtraData()
 	if err != nil {
 		return functions.NewE(err)
 	}
@@ -143,7 +143,7 @@ func (fc *fclient) SaveBaseURL(url string) error {
 }
 
 func (fc *fclient) GetBaseURL() (string, error) {
-	extraData, err := fc.getExtraData()
+	extraData, err := getExtraData()
 	if err != nil {
 		return "", functions.NewE(err)
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/kloudlite/kl/pkg/ui/text"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
 )
@@ -69,8 +70,6 @@ func switchEnv(*cobra.Command, []string) error {
 		return fn.NewE(err)
 	}
 
-	dctx := apic.GetFClient().GetDataContext()
-
 	wc, err := apic.GetFClient().GetWsContext()
 	if err != nil {
 		return err
@@ -80,24 +79,18 @@ func switchEnv(*cobra.Command, []string) error {
 		return fn.NewE(err)
 	}
 
-	ed, err := apic.GetFClient().GetExtraData()
+	searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain()
 	if err != nil {
 		return err
 	}
 
-	dnsHostSuffix := ed.GetDnsHostSuffix()
+	dclient, err := daemon_server.NewProxyWithService(true, false)
+	if err != nil {
+		return err
+	}
 
-	if dnsHostSuffix != "" {
-		env, err := dctx.GetEnv()
-		if err != nil {
-			return err
-		}
-		team, err := dctx.GetTeam()
-		if err != nil {
-			return err
-		}
-
-		dctx.SetSearchDomain(fmt.Sprintf("%s.%s.%s", env, team, dnsHostSuffix))
+	if _, err := dclient.SetSearchDomain(searchDomain); err != nil {
+		return err
 	}
 
 	if klFile.DefaultEnv == "" {

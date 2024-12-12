@@ -1,6 +1,7 @@
 package fileclient
 
 import (
+	"fmt"
 	"os"
 	"path"
 
@@ -26,7 +27,6 @@ type Session interface {
 	Clear() error
 
 	GetSearchDomain() (string, error)
-	SetSearchDomain(domain string) error
 }
 
 func (c *fclient) GetDataContext() Session {
@@ -46,11 +46,9 @@ type EnvData struct {
 }
 
 type SessionData struct {
-	Session      string `json:"session"`
-	Team         string `json:"team,omitempty"`
-	Env          string `json:"env,omitempty"`
-	SearchDomain string `json:"searchDomain,omitempty"`
-
+	Session   string                 `json:"session"`
+	Team      string                 `json:"team,omitempty"`
+	Env       string                 `json:"env,omitempty"`
 	TeamsData map[string]*DeviceData `json:"teamsData,omitempty"`
 }
 
@@ -59,22 +57,33 @@ type sed struct {
 	handler confighandler.Config[SessionData]
 }
 
+func (c *sed) GetSearchDomain() (string, error) {
+	ed, err := getExtraData()
+	if err != nil {
+		return "", fn.NewE(err)
+	}
+
+	hostsuffix, err := ed.GetDnsHostSuffix()
+	if err != nil {
+		return "", err
+	}
+
+	team, err := c.GetTeam()
+	if err != nil {
+		return "", nil
+	}
+
+	env, err := c.GetEnv()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s.%s.%s", env, team, hostsuffix), nil
+}
+
 func (c *sed) Clear() error {
 	c.SessionData = &SessionData{}
 	return c.handler.Write()
-}
-
-func (s *sed) GetSearchDomain() (string, error) {
-	if s.SearchDomain == "" {
-		return "", fn.Errorf("search domain not found")
-	}
-
-	return s.SearchDomain, nil
-}
-
-func (s *sed) SetSearchDomain(domain string) error {
-	s.SearchDomain = domain
-	return s.handler.Write()
 }
 
 func (s *sed) SetDevice(dev DeviceData) error {
