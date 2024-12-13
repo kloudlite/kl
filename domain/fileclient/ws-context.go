@@ -10,11 +10,15 @@ import (
 	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
+type ShellData struct {
+	Envs map[string]string
+}
+
 type CacheKLConfig struct {
 	Hash      string
 	EnvVars   map[string]string
 	Mounts    map[string]string
-	ShellPath string
+	ShellData *ShellData
 }
 
 type wsContextData struct {
@@ -23,20 +27,20 @@ type wsContextData struct {
 	Cache *CacheKLConfig `json:"cache"`
 }
 
-func (w wsContext) GetShellPath() (string, error) {
+func (w wsContext) GetShellData() (*ShellData, error) {
 	if w.Cache == nil {
-		return "", fn.Errorf("cache is nil")
+		return nil, fn.Errorf("cache is nil")
 	}
 
-	if w.Cache.ShellPath == "" {
-		return "", fn.Errorf("shell path is empty")
+	if w.Cache.ShellData == nil {
+		return nil, fn.Errorf("shell data is nil")
 	}
 
-	return w.Cache.ShellPath, nil
+	return w.Cache.ShellData, nil
 }
 
-func (w wsContext) SetShellPath(path string) error {
-	w.Cache.ShellPath = path
+func (w wsContext) SetShellData(shellData *ShellData) error {
+	w.Cache.ShellData = shellData
 	return w.handler.Write()
 }
 
@@ -54,8 +58,8 @@ type WsContext interface {
 	GetEnv() (string, error)
 	GetCache() *CacheKLConfig
 	SetCache(cache *CacheKLConfig) error
-	GetShellPath() (string, error)
-	SetShellPath(path string) error
+	GetShellData() (*ShellData, error)
+	SetShellData(shellData *ShellData) error
 }
 
 func (w wsContext) GetEnv() (string, error) {

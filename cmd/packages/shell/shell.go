@@ -120,11 +120,12 @@ func Shell(cmd *cobra.Command, args []string) error {
 		envs = append(envs, fmt.Sprintf("%s=%s", k, v))
 	}
 
-	if err := NixShell(cmd.Context(), ShellArgs{
+	if err := NixShell(cmd, ShellArgs{
 		Shell:     os.Getenv("SHELL"),
 		EnvVars:   append(envs, "KL_SHELL=true", fmt.Sprintf("kl_mounts=%s", mountpath)),
 		Packages:  pkgs,
 		Libraries: libs,
+		ShellData: ck.ShellData,
 	}); err != nil {
 		return fn.NewE(err)
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"runtime"
 	"strings"
 
@@ -85,4 +86,23 @@ func (p *pkgHandler) syncPackage(pkghash string) error {
 	}
 
 	return nil
+}
+
+func createSet[T comparable](v []T) []T {
+	m := make(map[T]struct{}, len(v))
+	result := make([]T, 0, len(v))
+
+	for i := range v {
+		if _, ok := m[v[i]]; !ok {
+			m[v[i]] = struct{}{}
+			result = append(result, v[i])
+		}
+	}
+
+	return result
+}
+
+func pathExists(p string) bool {
+	_, err := os.Stat(p)
+	return err == nil
 }

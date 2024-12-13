@@ -1,10 +1,15 @@
 package nixpkghandler
 
 import (
+	"bytes"
+	"context"
 	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/flags"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 )
@@ -175,4 +180,88 @@ func (p *pkgHandler) SyncLockfile() error {
 	lf.Checksum = lfcheck
 
 	return lf.Save()
+}
+
+func (p *pkgHandler) EvaluateShell(ctx context.Context, packages []string, libraries []string, envMap map[string]string) (map[string]string, error) {
+	resp := make(map[string]string)
+
+	path, err := installPackage(envMap, packages...)
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	resp["PATH"] = strings.TrimSpace(path)
+
+	libPaths := make([]string, 0, len(libraries))
+	var includes []string
+
+	for _, lib := range libraries {
+		c := exec.CommandContext(ctx, "nix", "eval", lib, "--raw")
+		c.Env = fn.EnvMapToSlice(envMap)
+		if flags.IsVerbose {
+			fn.Log(c.String())
+		}
+
+		b, err := c.CombinedOutput()
+		if err != nil {
+			return nil, fn.NewE(err)
+		}
+
+		if pathExists(string(b) + "/lib") {
+			libPaths = append(libPaths, string(b)+"/lib")
+		}
+
+		if pathExists(string(b) + "/include") {
+			includes = append(includes, string(b)+"/include")
+		}
+
+		cmd := exec.CommandContext(ctx, "nix-store", "--query", "--references", string(b))
+		cmd.Env = fn.EnvMapToSlice(envMap)
+
+		if flags.IsVerbose {
+			fn.Log(cmd.String())
+		}
+
+		coutput, err := cmd.CombinedOutput()
+		if err != nil {
+			return nil, fn.NewE(err)
+		}
+		lines := strings.Split(string(coutput), "\n")
+
+		for _, line := range lines {
+			if len(strings.TrimSpace(line)) > 0 && !strings.Contains(line, "-glibc-") {
+				if pathExists(line + "/lib") {
+					libPaths = append(libPaths, line+"/lib")
+				}
+			}
+		}
+	}
+
+	libPaths = createSet(libPaths)
+	includes = createSet(includes)
+
+	resp["LD_LIBRARY_PATH"] = fmt.Sprintf("%s:%s", strings.Join(libPaths, ":"), os.Getenv("LD_LIBRARY_PATH"))
+	resp["CPATH"] = fmt.Sprintf("%s:%s", strings.Join(includes, ":"), os.Getenv("CPATH"))
+
+	return resp, nil
+}
+
+func installPackage(envMap map[string]string, pkgs ...string) (path string, err error) {
+	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --ignore-environment --keep printenv --command printenv PATH", strings.Join(pkgs, " ")))
+	c.Env = fn.EnvMapToSlice(envMap)
+
+	if flags.IsVerbose {
+		fn.Log(c.String())
+	}
+
+	b := new(bytes.Buffer)
+	c.Stdout = b
+	c.Stderr = os.Stderr
+	c.Stdin = os.Stdin
+	if err := c.Run(); err != nil {
+		return "", err
+	}
+
+	opath := envMap["PATH"]
+	return fmt.Sprintf("%s:%s", strings.TrimSpace(b.String()), strings.TrimSpace(opath)), nil
 }

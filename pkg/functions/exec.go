@@ -154,3 +154,23 @@ func GetUidNGid() (int, int, error) {
 
 	return uid, gid, nil
 }
+
+func EnvMapToSlice(env map[string]string) []string {
+	var result []string
+	for k, v := range env {
+		result = append(result, fmt.Sprintf("%s=%s", k, v))
+	}
+	return result
+}
+
+func EnvSliceToMap(env []string) map[string]string {
+	result := make(map[string]string, len(env))
+	for _, kv := range env {
+		key, val, found := strings.Cut(kv, "=")
+		if !found {
+			return nil
+		}
+		result[key] = val
+	}
+	return result
+}

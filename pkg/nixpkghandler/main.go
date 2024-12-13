@@ -1,6 +1,8 @@
 package nixpkghandler
 
 import (
+	"context"
+
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/spf13/cobra"
 )
@@ -18,6 +20,8 @@ type PackageClient interface {
 	// used for fzf search
 	Find(pname string) (string, string, error)
 	SyncLockfile() error
+
+	EvaluateShell(ctx context.Context, pkgs []string, libs []string, envMap map[string]string) (map[string]string, error)
 }
 
 type pkgHandler struct {
