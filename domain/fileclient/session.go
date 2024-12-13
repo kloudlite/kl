@@ -27,6 +27,8 @@ type Session interface {
 	Clear() error
 
 	GetSearchDomain() (string, error)
+
+	Reload() error
 }
 
 func (c *fclient) GetDataContext() Session {
@@ -55,6 +57,16 @@ type SessionData struct {
 type sed struct {
 	*SessionData
 	handler confighandler.Config[SessionData]
+}
+
+func (c *sed) Reload() error {
+	sd, err := c.handler.Read()
+	if err != nil {
+		return err
+	}
+
+	c.SessionData = sd
+	return nil
 }
 
 func (c *sed) GetSearchDomain() (string, error) {

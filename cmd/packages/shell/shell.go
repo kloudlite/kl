@@ -9,6 +9,7 @@ import (
 	"github.com/kloudlite/kl/domain/apiclient"
 	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/utils"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/nixpkghandler"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -36,7 +37,7 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	isOnlyPkgMode := fileclient.IsOnlyPkgMode()
+	isOnlyPkgMode := utils.IsOnlyPkgMode()
 
 	if !isOnlyPkgMode {
 		dclient, err := daemon_server.NewProxyWithService(false)

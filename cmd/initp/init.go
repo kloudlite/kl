@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/utils"
 	fn "github.com/kloudlite/kl/pkg/functions"
 
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -27,7 +28,7 @@ var InitCommand = &cobra.Command{
 
 func handleInit() error {
 
-	isOnlyPkgMode := fileclient.IsOnlyPkgMode()
+	isOnlyPkgMode := utils.IsOnlyPkgMode()
 
 	cwd, err := os.Getwd()
 	if err != nil {

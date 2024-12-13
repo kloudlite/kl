@@ -85,7 +85,6 @@ func (w wsContext) GetEnv() (string, error) {
 }
 
 func (w wsContext) SetEnv(env string) error {
-
 	s, err := getCtxData()
 	if err != nil {
 		return err

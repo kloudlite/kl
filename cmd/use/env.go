@@ -7,6 +7,7 @@ import (
 	"github.com/kloudlite/kl/pkg/ui/text"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
@@ -31,10 +32,7 @@ var switchCmd = &cobra.Command{
 }
 
 func switchEnv(*cobra.Command, []string) error {
-	apic, err := apiclient.New()
-	if err != nil {
-		return err
-	}
+	apic := clients.Api
 
 	klFile, err := apic.GetFClient().GetKlFile()
 	if err != nil {
@@ -77,6 +75,10 @@ func switchEnv(*cobra.Command, []string) error {
 
 	if err := wc.SetEnv(env.Metadata.Name); err != nil {
 		return fn.NewE(err)
+	}
+
+	if err := apic.GetFClient().GetDataContext().Reload(); err != nil {
+		return err
 	}
 
 	searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain()
