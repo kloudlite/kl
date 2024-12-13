@@ -62,10 +62,8 @@ func (a *apiClient) GetFClient() fileclient.FileClient {
 }
 
 func New() (ApiClient, error) {
-	fc, err := fileclient.New()
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
+	fc := fileclient.File
+
 	return &apiClient{
 		fc: fc,
 	}, nil

@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -21,10 +21,7 @@ var listCmd = &cobra.Command{
 }
 
 func listPackages(cmd *cobra.Command, _ []string) error {
-	fc, err := fileclient.New()
-	if err != nil {
-		return functions.NewE(err)
-	}
+	fc := clients.File
 
 	l, err := fc.GetLockfile()
 	if err != nil {

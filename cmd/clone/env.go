@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -29,12 +30,12 @@ func envClone(cmd *cobra.Command, args []string) error {
 	}
 	envName := args[0]
 
-	fc, err := fileclient.New()
+	fc := clients.File
 	if err != nil {
 		return err
 	}
 
-	apic, err := apiclient.New()
+	apic := clients.Api
 	if err != nil {
 		return err
 	}

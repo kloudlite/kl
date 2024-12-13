@@ -2,11 +2,11 @@ package list
 
 import (
 	"fmt"
+
 	"github.com/kloudlite/kl/pkg/ui/text"
 
-	"github.com/kloudlite/kl/domain/fileclient"
-
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 
 	// fn "github.com/kloudlite/kl/pkg/functions"
@@ -19,17 +19,8 @@ var secretsCmd = &cobra.Command{
 	Use:   "secrets",
 	Short: "Get list of secrets in selected environment",
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		fc := clients.File
+		apic := clients.Api
 
 		currentTeam, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {

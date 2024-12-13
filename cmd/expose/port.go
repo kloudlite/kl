@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -29,7 +29,7 @@ This command will add ports to your kl-config file.
 }
 
 func exposePorts(cmd *cobra.Command, args []string) error {
-	fc, err := fileclient.New()
+	fc := clients.File
 	if err != nil {
 		return functions.NewE(err)
 	}

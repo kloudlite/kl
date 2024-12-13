@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 
@@ -23,11 +24,8 @@ This command will add secret entry of managed resource references from current e
   kl add  mres [name] # add specific mres secret entry to your kl-config as env var by providing mres name
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
+
 		if err := AddMres(apic, cmd, args); err != nil {
 			fn.PrintError(err)
 			return

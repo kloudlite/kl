@@ -3,9 +3,8 @@ package list
 import (
 	"github.com/kloudlite/kl/pkg/ui/text"
 
-	"github.com/kloudlite/kl/domain/fileclient"
-
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
 
@@ -16,17 +15,8 @@ var mresCmd = &cobra.Command{
 	Use:   "mreses",
 	Short: "Get list of managed resources in selected environment",
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		fc := clients.File
+		apic := clients.Api
 
 		currentEnv, err := apic.EnsureEnv()
 		if err != nil {

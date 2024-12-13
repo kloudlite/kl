@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -16,13 +17,8 @@ var accCmd = &cobra.Command{
 	Use:   "teams",
 	Short: "Get list of teams accessible to you",
 	Run: func(cmd *cobra.Command, _ []string) {
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		err = listTeams(apic, cmd)
-		if err != nil {
+		apic := clients.Api
+		if err := listTeams(apic, cmd); err != nil {
 			fn.PrintError(err)
 			return
 		}

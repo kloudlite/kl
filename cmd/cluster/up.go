@@ -2,15 +2,16 @@ package cluster
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/k3s"
 	"github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var upCmd = &cobra.Command{
@@ -28,12 +29,12 @@ var upCmd = &cobra.Command{
 func startK3sServer(cmd *cobra.Command) error {
 	defer spinner.Client.UpdateMessage("starting k3s server")()
 
-	fc, err := fileclient.New()
+	fc := clients.File
 	if err != nil {
 		return functions.NewE(err)
 	}
 
-	apic, err := apiclient.New()
+	apic := clients.Api
 	if err != nil {
 		return functions.NewE(err)
 	}

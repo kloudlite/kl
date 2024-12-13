@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 
@@ -18,17 +18,9 @@ var configsCmd = &cobra.Command{
 	Use:   "configs",
 	Short: "Get list of configs in selected environment",
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		fc := clients.File
+		apic := clients.Api
 
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
 		currentTeam, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)

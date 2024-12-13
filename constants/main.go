@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kloudlite/kl/flags"
-
 	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/flags"
+	// "github.com/kloudlite/kl/domain/fileclient"
 )
 
 const (

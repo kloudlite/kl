@@ -2,8 +2,8 @@ package cluster
 
 import (
 	"fmt"
-	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
+
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/k3s"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -22,12 +22,12 @@ var cleanCmd = &cobra.Command{
 }
 
 func cleanCluster(cmd *cobra.Command) error {
-	fc, err := fileclient.New()
+	fc := clients.File
 	if err != nil {
 		return err
 	}
 
-	apic, err := apiclient.New()
+	apic := clients.Api
 	if err != nil {
 		return err
 	}

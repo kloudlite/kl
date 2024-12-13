@@ -140,7 +140,7 @@ func (c *wgClientImpl) Configure(
 
 	// TODO: needs to managed separately
 	// if len(cfg.DNS) > 0 {
-	// 	fc, err := fileclient.New()
+	// 	fc:= clients.File
 	// 	if err != nil {
 	// 		return err
 	// 	}

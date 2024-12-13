@@ -5,6 +5,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/utils"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -60,7 +61,7 @@ func handleInit() error {
 	team := ""
 
 	if !isOnlyPkgMode {
-		fc, err := fileclient.New()
+		fc := clients.File
 		if err != nil {
 			return err
 		}

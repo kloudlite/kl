@@ -2,6 +2,7 @@ package use
 
 import (
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -20,10 +21,7 @@ var teamCmd = &cobra.Command{
 }
 
 func UseTeam(cmd *cobra.Command) error {
-	apic, err := apiclient.New()
-	if err != nil {
-		return err
-	}
+	apic := clients.Api
 
 	teams, err := apic.ListTeams()
 	if err != nil {

@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/utils"
@@ -32,7 +32,7 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err, text.Red("nix is not installed. Please install it before using `kl shell`"))
 	}
 
-	apic, err := apiclient.New()
+	apic := clients.Api
 	if err != nil {
 		return err
 	}

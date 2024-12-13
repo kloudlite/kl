@@ -3,7 +3,7 @@ package vpn
 import (
 	"os"
 
-	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -76,7 +76,7 @@ Example:
 			return
 		}
 
-		apic, err := apiclient.New()
+		apic := clients.Api
 		if err != nil {
 			fn.PrintError(err)
 			return

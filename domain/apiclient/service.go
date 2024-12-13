@@ -75,11 +75,7 @@ func (apic *apiClient) ListServices(teamName string, envName string) ([]Service,
 
 func (apic *apiClient) InterceptService(service *Service, status bool, ports []ServicePort, envName string, options ...fn.Option) error {
 	devName := fn.GetOption(options, "deviceName")
-
-	fc, err := fileclient.New()
-	if err != nil {
-		return functions.NewE(err)
-	}
+	fc := apic.GetFClient()
 
 	teamName, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {
@@ -156,7 +152,7 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 		return functions.NewE(err)
 	}
 
-	fc, err := fileclient.New()
+	fc := fileclient.File
 	if err != nil {
 		return functions.NewE(err)
 	}

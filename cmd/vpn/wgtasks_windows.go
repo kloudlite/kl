@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -28,7 +28,7 @@ func connect(verbose bool, options ...fn.Option) error {
 			return err
 		}
 
-		apic, err := apiclient.New()
+		apic := clients.Api
 		if err != nil {
 			return err
 		}

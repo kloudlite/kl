@@ -2,11 +2,13 @@ package add
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 //kl add envvar key=value
@@ -38,10 +40,7 @@ func addEnvvar(cmd *cobra.Command, args []string) error {
 		filePath = "/home/kl/workspace/kl.yml"
 	}
 
-	fc, err := fileclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
+	fc := clients.File
 
 	kt, err := fc.GetKlFile()
 	if err != nil {

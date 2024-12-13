@@ -6,6 +6,7 @@ import (
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -19,11 +20,7 @@ var configCmd = &cobra.Command{
 	Short: "list config entries",
 	Long:  "use this command to list entries of specific config",
 	Run: func(cmd *cobra.Command, args []string) {
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
 
 		configName := ""
 

@@ -3,7 +3,6 @@ package pkg
 import (
 	"fmt"
 
-	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/nixpkghandler"
 
@@ -14,13 +13,7 @@ var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "add new package",
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		if err := addPackages(fc, cmd, args); err != nil {
+		if err := addPackages(cmd, args); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -28,12 +21,7 @@ var addCmd = &cobra.Command{
 	},
 }
 
-func addPackages(fc fileclient.FileClient, cmd *cobra.Command, args []string) error {
-	fc, err := fileclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
+func addPackages(cmd *cobra.Command, args []string) error {
 	name := fn.ParseStringFlag(cmd, "name")
 	if name == "" && len(args) > 0 {
 		name = args[0]

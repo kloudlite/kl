@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"strconv"
 
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/flags"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -69,7 +70,7 @@ func NixShell(cmd *cobra.Command, args ShellArgs) error {
 			envMap[k] = v
 		}
 
-		fc, err := fileclient.New()
+		fc := clients.File
 		if err != nil {
 			return fn.NewE(err)
 		}

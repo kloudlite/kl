@@ -1,12 +1,13 @@
 package list
 
 import (
-	"github.com/kloudlite/kl/pkg/ui/text"
 	"strconv"
 	"strings"
 
+	"github.com/kloudlite/kl/pkg/ui/text"
+
 	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -17,11 +18,7 @@ var serviesCmd = &cobra.Command{
 	Use:   "services",
 	Short: "get list of services in current environment",
 	Run: func(cmd *cobra.Command, args []string) {
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
 
 		if err := listServices(apic, cmd, args); err != nil {
 			fn.PrintError(err)
@@ -31,10 +28,7 @@ var serviesCmd = &cobra.Command{
 }
 
 func listServices(apic apiclient.ApiClient, cmd *cobra.Command, _ []string) error {
-	fc, err := fileclient.New()
-	if err != nil {
-		return functions.NewE(err)
-	}
+	fc := clients.File
 
 	currentTeamName, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {

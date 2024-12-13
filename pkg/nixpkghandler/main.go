@@ -3,6 +3,7 @@ package nixpkghandler
 import (
 	"context"
 
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/spf13/cobra"
 )
@@ -30,11 +31,7 @@ type pkgHandler struct {
 }
 
 func New(cmd *cobra.Command) (PackageClient, error) {
-	fc, err := fileclient.New()
-	if err != nil {
-		return nil, err
-	}
-
+	fc := clients.File
 	return &pkgHandler{
 		cmd: cmd,
 		fc:  fc,

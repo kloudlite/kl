@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/constants"
-	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
@@ -15,11 +15,7 @@ var loginCmd = &cobra.Command{
 	Short: "login to kloudlite",
 	Run: func(cmd *cobra.Command, _ []string) {
 
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
 
 		loginId, err := apic.CreateRemoteLogin()
 		if err != nil {

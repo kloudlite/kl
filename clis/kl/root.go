@@ -6,7 +6,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/pkg/ui/text"
 
 	"github.com/kloudlite/kl/flags"
@@ -77,10 +77,7 @@ func Execute() {
 }
 
 func versionCheck() {
-	fc, err := fileclient.New()
-	if err != nil {
-		return
-	}
+	fc := clients.File
 
 	data, err := fc.GetExtraData()
 	if err == nil {

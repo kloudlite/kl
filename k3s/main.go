@@ -3,6 +3,7 @@ package k3s
 import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/spf13/cobra"
 )
@@ -29,10 +30,7 @@ type client struct {
 }
 
 func NewClient(cmd *cobra.Command) (K3sClient, error) {
-	ac, err := apiclient.New()
-	if err != nil {
-		return nil, err
-	}
+	ac := clients.Api
 
 	c, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
 	if err != nil {

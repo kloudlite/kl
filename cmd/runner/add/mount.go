@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -28,11 +29,7 @@ var mountCommand = &cobra.Command{
   kl add config-mount [path] --secret=<secret_name>	# add secret from secret.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
 
 		klFile, err := apic.GetFClient().GetKlFile()
 		if err != nil {

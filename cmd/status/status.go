@@ -8,7 +8,7 @@ import (
 	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/k3s"
 
-	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -23,11 +23,7 @@ var Cmd = &cobra.Command{
 	Use:   "status",
 	Short: "get status of your current context (user, team, environment, vpn status)",
 	Run: func(cmd *cobra.Command, _ []string) {
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
 
 		if u, err := apic.GetCurrentUser(); err == nil {
 			fn.Logf("\nLogged in as %s (%s)\n",
@@ -36,11 +32,7 @@ var Cmd = &cobra.Command{
 			)
 		}
 
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		fc := clients.File
 
 		k3sClient, err := k3s.NewClient(cmd)
 		if err != nil {

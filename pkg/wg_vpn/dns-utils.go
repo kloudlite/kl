@@ -2,7 +2,7 @@ package wg_vpn
 
 // func ResetDnsServers(devName string, verbose bool) error {
 // 	return nil
-// 	fc, err := fileclient.New()
+// 	fc:= clients.File
 // 	if err != nil {
 // 		return err
 // 	}
@@ -61,7 +61,7 @@ package wg_vpn
 // 			return nil
 // 		}
 //
-// 		fc, err := fileclient.New()
+// 		fc:= clients.File
 // 		if err != nil {
 // 			return err
 // 		}

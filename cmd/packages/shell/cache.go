@@ -1,15 +1,13 @@
 package shell
 
 import (
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
 func getCache() (*fileclient.CacheKLConfig, error) {
-	fc, err := fileclient.New()
-	if err != nil {
-		return nil, err
-	}
+	fc := clients.File
 
 	wc, err := fc.GetWsContext()
 	if err != nil {
@@ -34,10 +32,8 @@ func getCache() (*fileclient.CacheKLConfig, error) {
 }
 
 func setCache(ck *fileclient.CacheKLConfig) error {
-	fc, err := fileclient.New()
-	if err != nil {
-		return err
-	}
+	fc := clients.File
+
 	wc, err := fc.GetWsContext()
 	if err != nil {
 		return err

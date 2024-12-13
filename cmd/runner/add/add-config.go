@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -34,15 +35,8 @@ This command will add config entry references from current environment to your k
 }
 
 func selectAndAddConfig(cmd *cobra.Command, args []string) error {
-	fc, err := fileclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	apic, err := apiclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
+	fc := clients.File
+	apic := clients.Api
 
 	name := ""
 	if len(args) >= 1 {

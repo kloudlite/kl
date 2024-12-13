@@ -1,11 +1,11 @@
 package list
 
 import (
-	"github.com/kloudlite/kl/pkg/ui/text"
 	"time"
 
-	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/pkg/ui/text"
+
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -26,16 +26,8 @@ var envCmd = &cobra.Command{
 }
 
 func listEnvironments(cmd *cobra.Command, args []string) error {
-
-	fc, err := fileclient.New()
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	apic, err := apiclient.New()
-	if err != nil {
-		return functions.NewE(err)
-	}
+	fc := clients.File
+	apic := clients.Api
 
 	currentTeam, err := fc.GetDataContext().GetTeam()
 	if err != nil {

@@ -3,17 +3,9 @@ package clients
 import (
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 )
 
-var Api = func() apiclient.ApiClient {
-	ac, err := apiclient.New()
-	if err != nil {
-		panic(err)
-	}
-
-	return ac
-}()
-
-var File = func() fileclient.FileClient {
-	return Api.GetFClient()
-}()
+var Api = apiclient.Api
+var File = fileclient.File
+var Spinner = spinner.Client

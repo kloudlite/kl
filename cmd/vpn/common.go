@@ -4,16 +4,13 @@ import (
 	"encoding/base64"
 	"errors"
 
-	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/wg_vpn"
 )
 
 func startConfiguration(verbose bool, _ ...fn.Option) error {
-	apic, err := apiclient.New()
-	if err != nil {
-		return err
-	}
+	apic := clients.Api
 
 	device, err := apic.EnsureDevice()
 	if err != nil {

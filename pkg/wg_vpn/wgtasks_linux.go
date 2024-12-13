@@ -42,11 +42,7 @@ func (wc *wgClientImpl) setSearchDomain(domain string, deviceName string) error 
 		return nil
 	}
 
-	fc, err := fileclient.New()
-	if err != nil {
-		return err
-	}
-
+	fc := fileclient.File
 	e, err := fc.GetExtraData()
 	if err != nil {
 		return err

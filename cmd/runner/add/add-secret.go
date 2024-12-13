@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -31,15 +32,8 @@ var secCmd = &cobra.Command{
 }
 
 func selectAndAddSecret(cmd *cobra.Command, args []string) error {
-	fc, err := fileclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	apic, err := apiclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
+	fc := clients.File
+	apic := clients.Api
 
 	//TODO: add changes to the klbox-hash file
 	// m := fn.ParseStringFlag(cmd, "map")

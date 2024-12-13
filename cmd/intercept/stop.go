@@ -2,7 +2,7 @@ package intercept
 
 import (
 	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/spf13/cobra"
@@ -18,18 +18,8 @@ Examples:
 	`,
 
 	Run: func(cmd *cobra.Command, _ []string) {
-
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
+		fc := clients.File
 
 		currentAcc, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {

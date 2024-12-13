@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
@@ -20,11 +21,7 @@ var Cmd = &cobra.Command{
 	Short: "intercept service to tunnel trafic to your device",
 	Long:  `use this command to intercept an service to tunnel trafic to your device`,
 	Run: func(cmd *cobra.Command, args []string) {
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
 		if err := startIntercept(apic); err != nil {
 			fn.PrintError(err)
 		}

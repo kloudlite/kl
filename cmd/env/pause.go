@@ -1,8 +1,7 @@
 package env
 
 import (
-	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
@@ -21,12 +20,12 @@ var pauseCmd = &cobra.Command{
 
 func envPause() error {
 
-	fc, err := fileclient.New()
+	fc := clients.File
 	if err != nil {
 		return err
 	}
 
-	apic, err := apiclient.New()
+	apic := clients.Api
 	if err != nil {
 		return err
 	}

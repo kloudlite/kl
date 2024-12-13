@@ -7,7 +7,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/kloudlite/kl/constants"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/spf13/cobra"
@@ -19,12 +19,8 @@ var logoutCmd = &cobra.Command{
 	Example: `# Logout from kloudlite
 {cmd} auth logout`,
 	Run: func(cmd *cobra.Command, _ []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		err = stopAllContainers(cmd)
+		fc := clients.File
+		err := stopAllContainers(cmd)
 		if err != nil {
 			fn.PrintError(err)
 			return
