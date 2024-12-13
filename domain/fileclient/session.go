@@ -128,6 +128,13 @@ func (s *sed) GetWsTeam() (string, error) {
 	}
 
 	if kt.TeamName != s.Team {
+		if kt.TeamName == "" {
+			kt.TeamName = s.Team
+			if err := kt.Save(); err != nil {
+				return "", err
+			}
+			return s.Team, nil
+		}
 		return "", fn.Errorf("selected team is not same as current working directory, please change selected team using %s", text.Blue("kl use team"))
 	}
 

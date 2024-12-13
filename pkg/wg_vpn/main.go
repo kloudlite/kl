@@ -49,9 +49,14 @@ func NewWgClient() WgClient {
 
 // Deprecated: start service from daemon istead
 func (c *wgClientImpl) StartServiceInBg(devName string, configFolder string) error {
-	command := exec.Command(flags.CliName, "vpn", "start-fg", "-d", devName)
-	err := command.Start()
+	s, err := exec.LookPath(flags.CliName)
 	if err != nil {
+		fn.Warn(err)
+		return err
+	}
+
+	command := exec.Command(s, "vpn", "start-fg", "-d", devName)
+	if err := command.Start(); err != nil {
 		return err
 	}
 

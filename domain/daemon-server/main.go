@@ -16,7 +16,6 @@ import (
 	"github.com/adrg/xdg"
 	"github.com/kloudlite/kl/daemon/server"
 	"github.com/kloudlite/kl/flags"
-	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 )
@@ -92,18 +91,26 @@ func NewProxyWithService(logResponse bool, ensureAppRunning ...bool) (*Proxy, er
 			if err != nil {
 				return nil, err
 			}
-			command := exec.Command("sudo", flags.CliName, "daemon", "start")
-			_ = command.Start()
+
+			klpath, err := exec.LookPath(flags.CliName)
+			if err != nil {
+				return nil, err
+			}
+
+			command := exec.Command("sudo", klpath, "daemon", "start")
+			if err = command.Start(); err != nil {
+				fn.Warn(err)
+			}
 
 		} else {
 			if _, err := fn.WinSudoExec(fmt.Sprintf("%s daemon start", flags.CliName), nil); err != nil {
-				functions.PrintError(err)
+				fn.PrintError(err)
 			}
 		}
 
 		count++
 		if count >= 2 {
-			return nil, fn.Errorf("failed to start app")
+			return nil, fn.Errorf("failed to start daemon server")
 		}
 
 		time.Sleep(2 * time.Second)
