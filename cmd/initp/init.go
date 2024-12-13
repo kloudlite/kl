@@ -26,6 +26,9 @@ var InitCommand = &cobra.Command{
 }
 
 func handleInit() error {
+
+	isOnlyPkgMode := fileclient.IsOnlyPkgMode()
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -53,14 +56,18 @@ func handleInit() error {
 		}
 	}
 
-	fc, err := fileclient.New()
-	if err != nil {
-		return err
-	}
+	team := ""
 
-	team, err := fc.GetDataContext().GetTeam()
-	if err != nil {
-		return err
+	if !isOnlyPkgMode {
+		fc, err := fileclient.New()
+		if err != nil {
+			return err
+		}
+
+		team, err = fc.GetDataContext().GetTeam()
+		if err != nil {
+			return err
+		}
 	}
 
 	newKlFile := fileclient.KLFileType{

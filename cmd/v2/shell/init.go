@@ -45,6 +45,4 @@ var Command = &cobra.Command{
 			panic(err)
 		}
 	},
-
-
 }

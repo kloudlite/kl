@@ -36,16 +36,7 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	isOnlyPkgMode := func() bool {
-		s := apic.GetFClient().GetDataContext()
-		_, err := s.GetSession()
-		if err != nil {
-			return false
-		}
-
-		fn.Warn(text.Yellow("session not found, but you can use as pure package manager"))
-		return true
-	}()
+	isOnlyPkgMode := fileclient.IsOnlyPkgMode()
 
 	if !isOnlyPkgMode {
 		dclient, err := daemon_server.NewProxyWithService(false)
