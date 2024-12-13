@@ -11,15 +11,33 @@ import (
 )
 
 type CacheKLConfig struct {
-	Hash    string
-	EnvVars map[string]string
-	Mounts  map[string]string
+	Hash      string
+	EnvVars   map[string]string
+	Mounts    map[string]string
+	ShellPath string
 }
 
 type wsContextData struct {
 	EnvName string `json:"envName"`
 
 	Cache *CacheKLConfig `json:"cache"`
+}
+
+func (w wsContext) GetShellPath() (string, error) {
+	if w.Cache == nil {
+		return "", fn.Errorf("cache is nil")
+	}
+
+	if w.Cache.ShellPath == "" {
+		return "", fn.Errorf("shell path is empty")
+	}
+
+	return w.Cache.ShellPath, nil
+}
+
+func (w wsContext) SetShellPath(path string) error {
+	w.Cache.ShellPath = path
+	return w.handler.Write()
 }
 
 func (w wsContext) GetCache() *CacheKLConfig {
@@ -36,6 +54,8 @@ type WsContext interface {
 	GetEnv() (string, error)
 	GetCache() *CacheKLConfig
 	SetCache(cache *CacheKLConfig) error
+	GetShellPath() (string, error)
+	SetShellPath(path string) error
 }
 
 func (w wsContext) GetEnv() (string, error) {

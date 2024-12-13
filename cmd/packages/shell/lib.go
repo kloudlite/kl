@@ -79,9 +79,7 @@ func envSliceToMap(env []string) map[string]string {
 func NixShell(ctx context.Context, args ShellArgs) error {
 	envMap := envSliceToMap(append(os.Environ(), args.EnvVars...))
 
-	// f := spinner.Client.UpdateMessage("setting up nix environment...")
 	path, err := installPackage(args.Packages...)
-	// f()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -111,6 +109,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 		}
 
 		cmd := exec.CommandContext(ctx, "nix-store", "--query", "--references", string(b))
+
 		if flags.IsVerbose {
 			fn.Log(cmd.String())
 		}
@@ -126,13 +125,6 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 				if pathExists(line + "/lib") {
 					libPaths = append(libPaths, line+"/lib")
 				}
-				// if pathExists(line + "/lib64") {
-				// 	libPaths = append(libPaths, line+"/lib64")
-				// }
-
-				// if pathExists(line + "/include") {
-				// 	includes = append(includes, line+"/include")
-				// }
 			}
 		}
 	}

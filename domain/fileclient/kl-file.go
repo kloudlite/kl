@@ -218,9 +218,9 @@ func (c *fclient) GetKlFileHash() ([]byte, error) {
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	hash := sha256.Sum256(b)
 
-	return hash[:], nil
+	hash := sha256.Sum256(b)
+	return []byte(fmt.Sprintf("%x", hash)), nil
 }
 
 func getKlFile() (*KLFileType, error) {
