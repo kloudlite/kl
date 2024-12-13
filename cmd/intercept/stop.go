@@ -61,7 +61,7 @@ Examples:
 		}
 
 		appToStop, err := fzf.FindOne(filteredApps, func(item apiclient.Service) string {
-			return item.Metadata.Name
+			return item.Spec.ServiceRef.Name
 		}, fzf.WithPrompt("Select service to stop"))
 		if err != nil {
 			fn.PrintError(err)

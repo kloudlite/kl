@@ -74,7 +74,7 @@ func startIntercept(apic apiclient.ApiClient) error {
 	}
 
 	selectedService, err := fzf.FindOne[service](services, func(item service) string {
-		return fmt.Sprintf("%s - %s:%d", item.Hostname, item.Ip, item.Port)
+		return fmt.Sprintf("%s:%d", item.Service.Spec.ServiceRef.Name, item.Port)
 	}, fzf.WithPrompt("Select service to intercept "))
 	if err != nil {
 		return err

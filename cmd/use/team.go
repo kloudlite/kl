@@ -25,6 +25,11 @@ func UseTeam(cmd *cobra.Command) error {
 		return err
 	}
 
+	fc, err := fileclient.New()
+	if err != nil {
+		return err
+	}
+
 	teams, err := apic.ListTeams()
 	if err != nil {
 		return err
@@ -67,6 +72,14 @@ func UseTeam(cmd *cobra.Command) error {
 			IpAddress:  d.IPAddress,
 			DeviceName: d.Metadata.Name,
 		}); err != nil {
+			return fn.NewE(err)
+		}
+	}
+
+	klFile, err := fc.GetKlFile()
+	if err == nil {
+		klFile.TeamName = selectedTeam.Metadata.Name
+		if err := klFile.Save(); err != nil {
 			return fn.NewE(err)
 		}
 	}
