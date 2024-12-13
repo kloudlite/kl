@@ -31,11 +31,6 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err, text.Red("nix is not installed. Please install it before using `kl shell`"))
 	}
 
-	kshflag, ok := os.LookupEnv("KL_SHELL")
-	if ok && kshflag == "true" {
-		return fn.Errorf(text.Red("You are already in an active kl shell.\nRun `exit` before calling `kl shell` again. Shell inception is not supported."))
-	}
-
 	p, err := daemon_server.NewProxyWithService(false)
 	if err != nil {
 		return err

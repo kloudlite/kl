@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/kloudlite/kl/flags"
@@ -26,9 +27,11 @@ func createSet[T comparable](v []T) []T {
 	return result
 }
 
-func installPackage(pkgs ...string) (path string, err error) {
+func installPackage(envMap map[string]string, pkgs ...string) (path string, err error) {
 
 	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --command printenv PATH", strings.Join(pkgs, " ")))
+	c.Env = envMapToSlice(envMap)
+
 	if flags.IsVerbose {
 		fn.Log(c.String())
 	}
@@ -76,10 +79,34 @@ func envSliceToMap(env []string) map[string]string {
 	return result
 }
 
+func resetEnvs(envMap map[string]string, env []string) map[string]string {
+	if depth, ok := envMap["KL_DEPTH"]; ok {
+		i, err := strconv.Atoi(depth)
+		if err == nil {
+			envMap["KL_DEPTH"] = strconv.Itoa(i + 1)
+		} else {
+			envMap["KL_DEPTH"] = "1"
+		}
+	} else {
+		envMap["KL_DEPTH"] = "1"
+	}
+
+	for _, k := range env {
+		if s, ok := envMap[fmt.Sprintf("KL_OLD_%s", k)]; ok {
+			envMap[k] = s
+		} else {
+			envMap[fmt.Sprintf("KL_OLD_%s", k)] = envMap[k]
+		}
+	}
+
+	return envMap
+}
+
 func NixShell(ctx context.Context, args ShellArgs) error {
 	envMap := envSliceToMap(append(os.Environ(), args.EnvVars...))
+	envMap = resetEnvs(envMap, []string{"PATH", "LD_LIBRARY_PATH", "CPATH"})
 
-	path, err := installPackage(args.Packages...)
+	path, err := installPackage(envMap, args.Packages...)
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -91,6 +118,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 
 	for _, lib := range args.Libraries {
 		c := exec.CommandContext(ctx, "nix", "eval", lib, "--raw")
+		c.Env = envMapToSlice(envMap)
 		if flags.IsVerbose {
 			fn.Log(c.String())
 		}
@@ -109,6 +137,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 		}
 
 		cmd := exec.CommandContext(ctx, "nix-store", "--query", "--references", string(b))
+		cmd.Env = envMapToSlice(envMap)
 
 		if flags.IsVerbose {
 			fn.Log(cmd.String())
