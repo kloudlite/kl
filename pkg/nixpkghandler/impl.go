@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"sort"
+	"path"
 	"strings"
 
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -186,12 +186,12 @@ func (p *pkgHandler) SyncLockfile() error {
 func (p *pkgHandler) EvaluateShell(ctx context.Context, packages []string, libraries []string, envMap map[string]string) (map[string]string, error) {
 	resp := make(map[string]string)
 
-	path, err := installPackage(envMap, packages...)
+	path, err := installPackage(packages...)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
 
-	resp["PATH"] = strings.TrimSpace(path)
+	resp["KL_NIX_PATH"] = strings.TrimSpace(path)
 
 	libPaths := make([]string, 0, len(libraries))
 	var includes []string
@@ -247,9 +247,19 @@ func (p *pkgHandler) EvaluateShell(ctx context.Context, packages []string, libra
 	return resp, nil
 }
 
-func installPackage(envMap map[string]string, pkgs ...string) (path string, err error) {
-	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --command printenv PATH", strings.Join(pkgs, " ")))
-	c.Env = fn.EnvMapToSlice(envMap)
+func installPackage(pkgs ...string) (string, error) {
+	penvPath, err := exec.LookPath("printenv")
+	if err != nil {
+		return "", err
+	}
+
+	nixPath, err := exec.LookPath("nix")
+	if err != nil {
+		return "", err
+	}
+
+	c := exec.Command("sh", "-c", fmt.Sprintf("%s shell %s --command printenv PATH", nixPath, strings.Join(pkgs, " ")))
+	c.Env = []string{fmt.Sprintf("PATH=%s", path.Dir(penvPath))}
 
 	if flags.IsVerbose {
 		fn.Log(c.String())
@@ -263,13 +273,5 @@ func installPackage(envMap map[string]string, pkgs ...string) (path string, err 
 		return "", err
 	}
 
-	s := strings.Split(b.String(), ":")
-	sort.Slice(s, func(i, j int) bool {
-		if strings.HasPrefix(s[i], "/nix/store") {
-			return true
-		}
-		return false
-	})
-
-	return strings.Join(s, ":"), nil
+	return b.String(), nil
 }
