@@ -83,7 +83,6 @@ func (wc *wgClientImpl) setSearchDomain(domain string, deviceName string) error 
 	}
 
 	config.Search = newSearchDomains
-	fmt.Println(domain)
 
 	s := clientConfigToString(config)
 

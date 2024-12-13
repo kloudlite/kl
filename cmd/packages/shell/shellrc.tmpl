@@ -1,0 +1,15 @@
+{{- if .OriginalInitPath -}}
+if [ -f {{ .OriginalInitPath }} ]; then
+  . "{{ .OriginalInitPath }}"
+fi
+{{ end -}}
+
+
+if [ -z "$KL_NO_PROMPT" ]; then
+  export PS1="(kl) $PS1"
+fi
+
+working_dir="$(pwd)"
+cd "{{ .ProjectDir }}" || exit
+
+cd "$working_dir" || exit

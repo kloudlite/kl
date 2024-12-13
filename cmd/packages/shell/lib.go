@@ -27,6 +27,7 @@ func createSet[T comparable](v []T) []T {
 }
 
 func installPackage(pkgs ...string) (path string, err error) {
+
 	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --command printenv PATH", strings.Join(pkgs, " ")))
 
 	b := new(bytes.Buffer)
@@ -52,8 +53,28 @@ func pathExists(p string) bool {
 	return err == nil
 }
 
+func envMapToSlice(env map[string]string) []string {
+	var result []string
+	for k, v := range env {
+		result = append(result, fmt.Sprintf("%s=%s", k, v))
+	}
+	return result
+}
+
+func envSliceToMap(env []string) map[string]string {
+	result := make(map[string]string, len(env))
+	for _, kv := range env {
+		key, val, found := strings.Cut(kv, "=")
+		if !found {
+			return nil
+		}
+		result[key] = val
+	}
+	return result
+}
+
 func NixShell(ctx context.Context, args ShellArgs) error {
-	ev := append(os.Environ(), args.EnvVars...)
+	envMap := envSliceToMap(append(os.Environ(), args.EnvVars...))
 
 	// f := spinner.Client.UpdateMessage("setting up nix environment...")
 	path, err := installPackage(args.Packages...)
@@ -62,7 +83,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 		return fn.NewE(err)
 	}
 
-	ev = append(ev, fmt.Sprintf("PATH=%s", strings.TrimSpace(path)))
+	envMap["PATH"] = strings.TrimSpace(path)
 
 	libPaths := make([]string, 0, len(args.Libraries))
 	var includes []string
@@ -113,17 +134,24 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 	libPaths = createSet(libPaths)
 	includes = createSet(includes)
 
-	ev = append(ev, fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", strings.Join(libPaths, ":"), os.Getenv("LD_LIBRARY_PATH")))
-	ev = append(ev, fmt.Sprintf("CPATH=%s:%s", strings.Join(includes, ":"), os.Getenv("CPATH")))
-
-	ev = append(ev, "LD_LIBRARY_PATH=")
+	envMap["LD_LIBRARY_PATH"] = fmt.Sprintf("%s:%s", strings.Join(libPaths, ":"), os.Getenv("LD_LIBRARY_PATH"))
+	envMap["CPATH"] = fmt.Sprintf("%s:%s", strings.Join(includes, ":"), os.Getenv("CPATH"))
 
 	shell := args.Shell
 	if shell == "" {
 		shell = "sh"
 	}
 
-	c := exec.Command(shell)
+	extraEnv, extraArgs, err := getShellOverrides(shell)
+	if err != nil {
+		return fn.NewE(err)
+	}
+
+	for k, v := range extraEnv {
+		envMap[k] = v
+	}
+
+	c := exec.Command(shell, extraArgs...)
 	if flags.IsVerbose {
 		fn.Log(c.String())
 	}
@@ -131,7 +159,7 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Stdin = os.Stdin
-	c.Env = ev
+	c.Env = envMapToSlice(envMap)
 
 	if err := c.Run(); err != nil {
 		return fn.NewE(err)

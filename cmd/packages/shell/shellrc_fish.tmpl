@@ -1,0 +1,11 @@
+if not set -q kl_no_prompt
+    functions -c fish_prompt __kl_fish_prompt_orig
+    function fish_prompt
+        echo "(kl)" (__kl_fish_prompt_orig)
+    end
+end
+
+set workingDir (pwd)
+cd "{{ .ProjectDir }}" || exit
+
+cd "$workingDir" || exit

@@ -11,7 +11,6 @@ import (
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/nixpkghandler"
-	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
 )
@@ -42,14 +41,9 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	f := spinner.Client.UpdateMessage("setting up network...")
-	err = p.Start()
-	f()
-	if err != nil {
+	if err = p.Start(); err != nil {
 		return err
 	}
-
-	// p.SetDns("")
 
 	apic, err := apiclient.New()
 	if err != nil {
@@ -139,13 +133,6 @@ func Shell(cmd *cobra.Command, args []string) error {
 	}); err != nil {
 		return fn.NewE(err)
 	}
-
-	// f = spinner.Client.UpdateMessage("shutting down network...")
-	// _, err = p.Stop()
-	// f()
-	// if err != nil {
-	// 	return err
-	// }
 
 	return nil
 }

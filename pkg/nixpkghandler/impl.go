@@ -7,7 +7,6 @@ import (
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
-	"github.com/kloudlite/kl/pkg/ui/spinner"
 )
 
 func (p *pkgHandler) Search(query string) (*SearchResults, error) {
@@ -115,8 +114,6 @@ func (p *pkgHandler) Find(pname string) (string, string, error) {
 }
 
 func (p *pkgHandler) SyncLockfile() error {
-	defer spinner.Client.UpdateMessage("syncing lockfile...")()
-
 	type System struct {
 		AttrPaths []string `json:"attr_paths"`
 	}
