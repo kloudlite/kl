@@ -96,7 +96,7 @@ func NewProxyWithService(logResponse bool, ensureAppRunning ...bool) (*Proxy, er
 			_ = command.Start()
 
 		} else {
-			if _, err := fn.WinSudoExec(fmt.Sprintf("%s app start", flags.CliName), nil); err != nil {
+			if _, err := fn.WinSudoExec(fmt.Sprintf("%s daemon start", flags.CliName), nil); err != nil {
 				functions.PrintError(err)
 			}
 		}

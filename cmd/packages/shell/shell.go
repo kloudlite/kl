@@ -31,40 +31,42 @@ func Shell(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err, text.Red("nix is not installed. Please install it before using `kl shell`"))
 	}
 
-	p, err := daemon_server.NewProxyWithService(false)
-	if err != nil {
-		return err
-	}
-
-	if err = p.Start(); err != nil {
-		return err
-	}
-
 	apic, err := apiclient.New()
 	if err != nil {
 		return err
 	}
 
-	searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain()
-	if err != nil {
-		return err
-	}
+	isOnlyPkgMode := func() bool {
+		s := apic.GetFClient().GetDataContext()
+		_, err := s.GetSession()
+		if err != nil {
+			return false
+		}
 
-	dclient, err := daemon_server.NewProxyWithService(true, false)
-	if err != nil {
-		return err
-	}
+		fn.Warn(text.Yellow("session not found, but you can use as pure package manager"))
+		return true
+	}()
 
-	if _, err := dclient.SetSearchDomain(searchDomain); err != nil {
-		return err
-	}
+	if !isOnlyPkgMode {
+		dclient, err := daemon_server.NewProxyWithService(false)
+		if err != nil {
+			return err
+		}
 
-	kpath, err := apic.GetFClient().GetConfigPath()
-	if err != nil {
-		return err
-	}
+		if err = dclient.Start(); err != nil {
+			return err
+		}
 
-	mountpath := path.Join(path.Dir(kpath), ".kl", "mounts")
+		searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain()
+		if err != nil {
+			return err
+		}
+
+		if _, err := dclient.SetSearchDomain(searchDomain); err != nil {
+			return err
+		}
+
+	}
 
 	pc, err := nixpkghandler.New(cmd)
 	if err != nil {
@@ -97,8 +99,17 @@ func Shell(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := mount(mountMap, mountpath); err != nil {
+	kpath, err := apic.GetFClient().GetConfigPath()
+	if err != nil {
 		return err
+	}
+
+	mountpath := path.Join(path.Dir(kpath), ".kl", "mounts")
+
+	if !isOnlyPkgMode {
+		if err := mount(mountMap, mountpath); err != nil {
+			return err
+		}
 	}
 
 	if err := pc.SyncLockfile(); err != nil {
