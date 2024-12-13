@@ -1,16 +1,24 @@
 package vpn
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+)
 
 var Cmd = &cobra.Command{
-	Use:   "vpn",
-	Short: "vpn command",
-	Long:  `start/stop vpn`,
+	Hidden: true,
+	Use:    "vpn",
+	Short:  "vpn related commands",
+	// Example: Example,
+	Long: `vpn related commands
+Examples:
+	`,
 }
 
 func init() {
+	Cmd.Aliases = append(Cmd.Aliases, "dev")
 	Cmd.AddCommand(startCmd)
-	startCmd.Aliases = append(startCmd.Aliases, "connect", "up")
+	Cmd.AddCommand(startFgCmd)
+	Cmd.AddCommand(restartCmd)
 	Cmd.AddCommand(stopCmd)
-	stopCmd.Aliases = append(stopCmd.Aliases, "down", "disconnect")
+	Cmd.AddCommand(statusCmd)
 }

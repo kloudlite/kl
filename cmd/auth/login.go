@@ -2,9 +2,9 @@ package auth
 
 import (
 	"fmt"
+
 	"github.com/kloudlite/kl/constants"
-	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
@@ -14,16 +14,9 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "login to kloudlite",
 	Run: func(cmd *cobra.Command, _ []string) {
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		_, err = fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+
+		apic := clients.Api
+
 		loginId, err := apic.CreateRemoteLogin()
 		if err != nil {
 			fn.PrintError(err)
@@ -36,30 +29,12 @@ var loginCmd = &cobra.Command{
 		fn.Println(text.Colored(text.Blue(link), 21))
 		fn.Log("\n")
 
-		//go func() {
-		//	fn.Log("press enter to open link in browser")
-		//	reader, err := bufio.NewReader(os.Stdin).ReadString('\n')
-		//	if err != nil {
-		//		fn.PrintError(err)
-		//		return
-		//	}
-		//	if strings.Contains(reader, "\n") {
-		//		err := fn.OpenUrl(link)
-		//		if err != nil {
-		//			fn.PrintError(err)
-		//			return
-		//		}
-		//	} else {
-		//		fn.Log("Invalid input\n")
-		//	}
-		//}()
-
 		if err = apic.Login(loginId); err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		extraData, err := fileclient.GetExtraData()
+		extraData, err := apic.GetFClient().GetExtraData()
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -70,17 +45,10 @@ var loginCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		extraData.DnsHostSuffix = HostDNSSuffix
-		err = fileclient.SaveExtraData(extraData)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
 
-		//if err = use.UseTeam(cmd); err != nil {
-		//	fn.PrintError(err)
-		//	return
-		//}
+		if err := extraData.SetDnsHostSuffix(HostDNSSuffix); err != nil {
+			fn.PrintError(err)
+		}
 
 		fn.Log("successfully logged in\n")
 	},

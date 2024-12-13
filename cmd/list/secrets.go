@@ -2,11 +2,11 @@ package list
 
 import (
 	"fmt"
+
 	"github.com/kloudlite/kl/pkg/ui/text"
 
-	"github.com/kloudlite/kl/domain/fileclient"
-
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 
 	// fn "github.com/kloudlite/kl/pkg/functions"
@@ -19,19 +19,10 @@ var secretsCmd = &cobra.Command{
 	Use:   "secrets",
 	Short: "Get list of secrets in selected environment",
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		fc := clients.File
+		apic := clients.Api
 
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		currentTeam, err := fc.CurrentTeamName()
+		currentTeam, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -42,13 +33,13 @@ var secretsCmd = &cobra.Command{
 			return
 		}
 
-		sec, err := apic.ListSecrets(currentTeam, currentEnv.Name)
+		sec, err := apic.ListSecrets(currentTeam, currentEnv)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		if err := printSecrets(apic, cmd, sec, currentEnv.Name); err != nil {
+		if err := printSecrets(apic, cmd, sec, currentEnv); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -62,7 +53,7 @@ func printSecrets(apic apiclient.ApiClient, cmd *cobra.Command, secrets []apicli
 	}
 
 	if len(secrets) == 0 {
-		return fn.Errorf("[#] no secrets found in environemnt: %s", text.Blue(e.Name))
+		return fn.Errorf("[#] no secrets found in environemnt: %s", text.Blue(e))
 	}
 
 	header := table.Row{

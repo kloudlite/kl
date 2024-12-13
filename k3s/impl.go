@@ -210,7 +210,7 @@ func (c *client) CreateClustersTeams(teamName string) error {
 		return fn.NewE(err, "failed to start container")
 	}
 
-	script, err := c.generateConnectionScript(clusterConfig, teamName)
+	script, err := c.generateConnectionScript(clusterConfig)
 	if err != nil {
 		return fn.NewE(err, "failed to generate connection script")
 	}
@@ -230,7 +230,7 @@ func (c *client) CreateClustersTeams(teamName string) error {
 
 }
 
-func (c *client) generateConnectionScript(clusterConfig *fileclient.TeamClusterConfig, teamName string) (string, error) {
+func (c *client) generateConnectionScript(clusterConfig *fileclient.TeamClusterConfig) (string, error) {
 	defer spinner.Client.UpdateMessage("generating connection script")()
 	t := template.New("connectionScript")
 
@@ -239,24 +239,9 @@ func (c *client) generateConnectionScript(clusterConfig *fileclient.TeamClusterC
 		return "", fn.NewE(err)
 	}
 
-	//clusterConfig.Version = flags.Version
-	//if clusterConfig.Version == "" || clusterConfig.Version == "v1.0.0-nightly" {
-	//	u := updater.NewUpdater()
-	//	info, err := u.FetchReleaseInfo()
-	//	if err != nil {
-	//		clusterConfig.Version = "v1.1.0"
-	//	}
-	//	clusterConfig.Version = info["version"]
-	//}
-
-	vpnTeamConfig, err := c.fc.GetVpnTeamConfig(teamName)
+	vpnTeamConfig, err := c.fc.GetDevice()
 	if err != nil {
-		if !os.IsNotExist(err) {
-			return "", nil
-		}
-		vpnTeamConfig = &fileclient.TeamVpnConfig{
-			IpAddress: "",
-		}
+		return "", nil
 	}
 
 	cc := struct {
@@ -404,7 +389,7 @@ func (c *client) EnsureKloudliteNetwork() error {
 	return nil
 }
 
-func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart bool) error {
+func (c *client) StartAppInterceptService(ports []apiclient.ServicePort, toStart bool) error {
 	defer spinner.Client.UpdateMessage("starting intercept service")()
 	if err := c.EnsureKloudliteNetwork(); err != nil {
 		return fn.NewE(err)
@@ -445,13 +430,13 @@ func (c *client) StartAppInterceptService(ports []apiclient.AppPort, toStart boo
 
 		newPorts = append(newPorts,
 			fileclient.Port{
-				Name:       fmt.Sprintf("udp-%d", p.AppPort),
+				Name:       fmt.Sprintf("udp-%d", p.ServicePort),
 				Port:       p.DevicePort,
 				Protocol:   "UDP",
 				TargetPort: p.DevicePort,
 			},
 			fileclient.Port{
-				Name:       fmt.Sprintf("tcp-%d", p.AppPort),
+				Name:       fmt.Sprintf("tcp-%d", p.ServicePort),
 				Port:       p.DevicePort,
 				Protocol:   "TCP",
 				TargetPort: p.DevicePort,

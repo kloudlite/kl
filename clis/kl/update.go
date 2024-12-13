@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/flags"
@@ -51,6 +52,8 @@ func ExecUpdateCmd(version string) error {
 	var cmd *exec.Cmd
 	curlAvailable := isCommandAvailable("curl")
 	wgetAvailable := isCommandAvailable("wget")
+	*uurl = strings.Trim(*uurl, " ")
+	*uurl = strings.Trim(*uurl, "\n")
 	if curlAvailable {
 		cmd = exec.Command("bash", "-c", fmt.Sprintf("curl %s%s!?select=%s | bash", *uurl, version, flags.CliName))
 	} else if wgetAvailable {

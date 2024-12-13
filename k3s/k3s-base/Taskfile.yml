@@ -73,7 +73,7 @@ tasks:
 
   container:build:
     cmds:
-      - task download:images tag=v1.0.8-nightly
+      - task download:images tag=v1.1.4-nightly
       - docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION=v1.0.0-nightly -t {{.ImageBase}}/k3s:v1.0.0-nightly .
 
   container:push:
@@ -81,5 +81,5 @@ tasks:
       - sh: '[[ -n "{{.tag}}" ]]'
         msg: "var tag must have a value, of format 'v1.0.0-nightly'"
     cmds:
-      - task download:images tag=v1.0.8-nightly
+      - task download:images tag=v1.1.4-nightly
       - docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION={{.tag}} -t {{.ImageBase}}/k3s:{{.tag}} . --push

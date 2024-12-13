@@ -3,22 +3,22 @@ package add
 import (
 	"bufio"
 	"fmt"
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
+	"os"
+	"path"
+	"strings"
+
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
-	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
-	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 var mountCommand = &cobra.Command{
-	Use:   "config-mount [path]",
+	Use:   "mount [path]",
 	Short: "add file mount to your kl-config file by selection from the all the [ config | secret ] available in current environemnt",
 	Long: `
 	This command will help you to add mounts to your kl-config file.
@@ -29,31 +29,15 @@ var mountCommand = &cobra.Command{
   kl add config-mount [path] --secret=<secret_name>	# add secret from secret.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
+		apic := clients.Api
+
+		klFile, err := apic.GetFClient().GetKlFile()
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		filePath := fn.ParseKlFile(cmd)
-
-		if filePath == "" {
-			filePath = "/home/kl/workspace/kl.yml"
-		}
-
-		klFile, err := fc.GetKlFile(filePath)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		err = selectConfigMount(apic, fc, *klFile, cmd, args)
+		err = selectConfigMount(apic, *klFile, cmd, args)
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -61,7 +45,7 @@ var mountCommand = &cobra.Command{
 	},
 }
 
-func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFile fileclient.KLFileType, cmd *cobra.Command, args []string) error {
+func selectConfigMount(apic apiclient.ApiClient, klFile fileclient.KLFileType, cmd *cobra.Command, args []string) error {
 
 	//TODO: add changes to the klbox-hash file
 	c := cmd.Flag("config").Value.String()
@@ -99,7 +83,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 
 	items := make([]apiclient.ConfigORSecret, 0)
 	if cOrs == fileclient.ConfigType {
-		currentTeam, err := fc.CurrentTeamName()
+		currentTeam, err := apic.GetFClient().GetDataContext().GetWsTeam()
 		if err != nil {
 			return err
 		}
@@ -108,7 +92,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 			fn.PrintError(err)
 			return err
 		}
-		configs, e := apic.ListConfigs(currentTeam, currentEnv.Name)
+		configs, e := apic.ListConfigs(currentTeam, currentEnv)
 
 		if e != nil {
 			return e
@@ -122,7 +106,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 		}
 
 	} else {
-		currentTeam, err := fc.CurrentTeamName()
+		currentTeam, err := apic.GetFClient().GetDataContext().GetWsTeam()
 		if err != nil {
 			return err
 		}
@@ -131,7 +115,7 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 			fn.PrintError(err)
 			return err
 		}
-		secrets, e := apic.ListSecrets(currentTeam, currentEnv.Name)
+		secrets, e := apic.ListSecrets(currentTeam, currentEnv)
 
 		if e != nil {
 			return e
@@ -198,17 +182,25 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 	}
 
 	spinner.Client.Pause()
-	fn.Printf("path of the config file, (eg: /tmp/sample): ")
-	path, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	fn.Printf("path of the config file, (eg: /tmp/sample): $kl_mounts/")
+	pth, err := bufio.NewReader(os.Stdin).ReadString('\n')
 	if err != nil {
 		fn.PrintError(err)
 	}
-	path = strings.TrimSpace(path)
+	pth = strings.TrimSpace(pth)
 	defer spinner.Client.Resume()
+
+	if pth == "" {
+		pth = "/tmp/sample"
+	}
+
+	if !strings.HasPrefix(pth, "$kl_mounts") {
+		pth = path.Join("$kl_mounts", pth)
+	}
 
 	matchedIndex := -1
 	for i, fe := range klFile.Mounts {
-		if fe.Path == path {
+		if fe.Path == pth {
 			matchedIndex = i
 		}
 	}
@@ -218,43 +210,25 @@ func selectConfigMount(apic apiclient.ApiClient, fc fileclient.FileClient, klFil
 	if matchedIndex == -1 {
 		fe = append(fe, fileclient.FileEntry{
 			Type: cOrs,
-			Path: path,
+			Path: pth,
 			Name: selectedItem.Name,
 			Key:  *key,
 		})
 	} else {
 		fe[matchedIndex] = fileclient.FileEntry{
 			Type: cOrs,
-			Path: path,
+			Path: pth,
 			Name: selectedItem.Name,
 			Key:  *key,
 		}
 	}
 
 	klFile.Mounts.AddMounts(fe)
-	if err := fc.WriteKLFile(klFile); err != nil {
+	if err := klFile.Save(); err != nil {
 		return fn.NewE(err)
 	}
 
 	fn.Log("added mount to your kl-file")
-
-	wpath, err := os.Getwd()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err = hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return fn.NewE(err)
-	}
-
-	cl, err := boxpkg.NewClient(cmd, nil)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	if err := cl.ConfirmBoxRestart(); err != nil {
-		return functions.NewE(err)
-	}
 
 	return nil
 }

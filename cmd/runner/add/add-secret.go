@@ -2,12 +2,10 @@ package add
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -34,15 +32,8 @@ var secCmd = &cobra.Command{
 }
 
 func selectAndAddSecret(cmd *cobra.Command, args []string) error {
-	fc, err := fileclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	apic, err := apiclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
+	fc := clients.File
+	apic := clients.Api
 
 	//TODO: add changes to the klbox-hash file
 	// m := fn.ParseStringFlag(cmd, "map")
@@ -57,12 +48,12 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 		filePath = "/home/kl/workspace/kl.yml"
 	}
 
-	klFile, err := fc.GetKlFile(filePath)
+	klFile, err := fc.GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
 
-	currentTeam, err := fc.CurrentTeamName()
+	currentTeam, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -71,7 +62,7 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	secrets, err := apic.ListSecrets(currentTeam, currentEnv.Name)
+	secrets, err := apic.ListSecrets(currentTeam, currentEnv)
 	if err != nil {
 		return functions.NewE(err)
 	}
@@ -213,44 +204,16 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 	}
 
 	klFile.EnvVars.AddResTypes(currSecs, fileclient.Res_secret)
-	err = fc.WriteKLFile(*klFile)
-	if err != nil {
+	if err = klFile.Save(); err != nil {
 		return functions.NewE(err)
 	}
 
 	fn.Log(fmt.Sprintf("added secret %s/%s to your kl-file", selectedSecretGroup.Metadata.Name, selectedSecretKey.Key))
 
-	wpath, err := os.Getwd()
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return functions.NewE(err)
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return functions.NewE(err)
-	}
-
-	//if err := apiclient.SyncDevboxJsonFile(); err != nil {
-	//	return functions.NewE(err)
-	//}
-	//
-	//if err := fileclient.SyncDevboxShellEnvFile(cmd); err != nil {
-	//	return functions.NewE(err)
-	//}
 	return nil
 }
 
 func init() {
-	// secCmd.Flags().StringP("map", "m", "", "secret_key=your_var_key")
-
 	secCmd.Aliases = append(secCmd.Aliases, "sec")
 	fn.WithKlFile(secCmd)
 }

@@ -2,16 +2,15 @@ package clone
 
 import (
 	"fmt"
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
+	"time"
+
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
-	"os"
-	"time"
 )
 
 var cloneCmd = &cobra.Command{
@@ -31,17 +30,17 @@ func envClone(cmd *cobra.Command, args []string) error {
 	}
 	envName := args[0]
 
-	fc, err := fileclient.New()
+	fc := clients.File
 	if err != nil {
 		return err
 	}
 
-	apic, err := apiclient.New()
+	apic := clients.Api
 	if err != nil {
 		return err
 	}
 
-	klFile, err := fc.GetKlFile("")
+	klFile, err := fc.GetKlFile()
 	if err != nil {
 		return err
 	}
@@ -66,7 +65,7 @@ func envClone(cmd *cobra.Command, args []string) error {
 
 	if klFile.DefaultEnv == "" {
 		klFile.DefaultEnv = env.Metadata.Name
-		if err := fc.WriteKLFile(*klFile); err != nil {
+		if err := klFile.Save(); err != nil {
 			return err
 		}
 	}
@@ -74,27 +73,11 @@ func envClone(cmd *cobra.Command, args []string) error {
 		text.Blue(fmt.Sprintf("\n%s (%s)", env.DisplayName, env.Metadata.Name)),
 	)
 
-	wpath, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return err
-	}
-
-	c, err := boxpkg.NewClient(cmd, nil)
-	if err != nil {
-		return err
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return err
-	}
 	return nil
 }
 
 func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName string, clusterName string) (*apiclient.Env, error) {
-	currentTeam, err := fc.CurrentTeamName()
+	activeTeam, err := fc.GetWsTeam()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -104,7 +87,7 @@ func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName str
 		return nil, fn.NewE(err)
 	}
 
-	env, err := apic.CloneEnv(currentTeam, oldEnv.Name, newEnvName, clusterName)
+	env, err := apic.CloneEnv(activeTeam, oldEnv, newEnvName, clusterName)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -114,15 +97,7 @@ func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName str
 		return nil, fn.NewE(err)
 	}
 
-	//k3sClient, err := k3s.NewClient()
-	//if err != nil {
-	//	return nil, fn.NewE(err)
-	//}
-	//if err = k3sClient.RemoveAllIntercepts(); err != nil {
-	//	return nil, fn.NewE(err)
-	//}
-
-	persistSelectedEnv := func(e fileclient.Env) error {
+	persistSelectedEnv := func(e string) error {
 		err := fc.SelectEnv(e)
 		if err != nil {
 			return fn.NewE(err)
@@ -130,27 +105,19 @@ func cloneEnv(apic apiclient.ApiClient, fc fileclient.FileClient, newEnvName str
 		return nil
 	}
 
-	if err := persistSelectedEnv(fileclient.Env{
-		Name: env.Metadata.Name,
-		SSHPort: func() int {
-			if oldEnv == nil {
-				return 0
-			}
-			return oldEnv.SSHPort
-		}(),
-	}); err != nil {
+	if err := persistSelectedEnv(env.Metadata.Name); err != nil {
 		return nil, fn.NewE(err)
 	}
 	return env, nil
 }
 
 func selectCluster(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclient.Cluster, error) {
-	currentTeam, err := fc.CurrentTeamName()
+	activeTeam, err := fc.GetTeam()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
 
-	c, err := apic.GetClustersOfTeam(currentTeam)
+	c, err := apic.GetClustersOfTeam(activeTeam)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -184,7 +151,7 @@ func selectCluster(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclie
 }
 
 func checkEnvNameAvailability(apic apiclient.ApiClient, fc fileclient.FileClient, envName string) (bool, error) {
-	currentTeam, err := fc.CurrentTeamName()
+	currentTeam, err := fc.GetTeam()
 	if err != nil {
 		return false, fn.NewE(err)
 	}

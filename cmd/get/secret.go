@@ -2,10 +2,11 @@ package get
 
 import (
 	"encoding/json"
-	"github.com/kloudlite/kl/domain/fileclient"
+
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -19,17 +20,8 @@ var secretCmd = &cobra.Command{
 	Short: "list secrets entries",
 	Long:  "use this command to list the entries of specific secret",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
+		fc := clients.File
 
 		secName := ""
 
@@ -38,7 +30,7 @@ var secretCmd = &cobra.Command{
 		}
 
 		if secName == "" {
-			currentTeam, err := fc.CurrentTeamName()
+			currentTeam, err := fc.GetDataContext().GetWsTeam()
 			if err != nil {
 				fn.PrintError(err)
 				return
@@ -48,7 +40,7 @@ var secretCmd = &cobra.Command{
 				fn.PrintError(err)
 				return
 			}
-			secrets, err := apic.ListSecrets(currentTeam, currentEnv.Name)
+			secrets, err := apic.ListSecrets(currentTeam, currentEnv)
 			if err != nil {
 				fn.PrintError(err)
 				return
@@ -67,7 +59,7 @@ var secretCmd = &cobra.Command{
 			secName = selectedSecret.Metadata.Name
 		}
 
-		currentTeam, err := fc.CurrentTeamName()
+		currentTeam, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

@@ -1,12 +1,10 @@
 package expose
 
 import (
-	"os"
 	"slices"
 	"strconv"
 
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -31,17 +29,12 @@ This command will add ports to your kl-config file.
 }
 
 func exposePorts(cmd *cobra.Command, args []string) error {
-	fc, err := fileclient.New()
+	fc := clients.File
 	if err != nil {
 		return functions.NewE(err)
 	}
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	klFile, err := fc.GetKlFile("")
+	klFile, err := fc.GetKlFile()
 	if err != nil {
 		return functions.NewE(err)
 	}
@@ -60,25 +53,8 @@ func exposePorts(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := fc.WriteKLFile(*klFile); err != nil {
+	if err := klFile.Save(); err != nil {
 		return functions.NewE(err)
-	}
-
-	containerWorkspacePath := cwd
-	if val, ok := os.LookupEnv("KL_WORKSPACE"); ok {
-		containerWorkspacePath = val
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	if err = c.SyncProxy(boxpkg.ProxyConfig{
-		ExposedPorts:        klFile.Ports,
-		TargetContainerPath: containerWorkspacePath,
-	}); err != nil {
-		return fn.NewE(err)
 	}
 
 	return nil

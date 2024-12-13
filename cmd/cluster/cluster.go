@@ -1,7 +1,6 @@
 package cluster
 
 import (
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/spf13/cobra"
 )
 
@@ -18,9 +17,6 @@ func init() {
 	downCmd.Aliases = append(downCmd.Aliases, "stop", "disconnect")
 	cleanCmd.Aliases = append(cleanCmd.Aliases, "delete", "clean")
 
-	fileclient.OnlyOutsideBox(upCmd)
-	fileclient.OnlyOutsideBox(downCmd)
-	fileclient.OnlyOutsideBox(cleanCmd)
 	Cmd.AddCommand(downCmd)
 	Cmd.AddCommand(upCmd)
 	Cmd.AddCommand(cleanCmd)

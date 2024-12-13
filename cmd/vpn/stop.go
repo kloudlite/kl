@@ -1,54 +1,100 @@
 package vpn
 
 import (
+	"os"
+
+	"github.com/kloudlite/kl/domain/clients"
+	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
+	"github.com/kloudlite/kl/pkg/wg_vpn/wgc"
 	"github.com/spf13/cobra"
-	"runtime"
 )
 
 var stopCmd = &cobra.Command{
 	Use:   "stop",
-	Short: "stop vpn",
-	Long:  `stop vpn`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := stopVPN(); err != nil {
+	Short: "stop vpn device",
+	Long: `This command let you stop running vpn device.
+Example:
+  # stop vpn device
+  sudo kl vpn stop
+	`,
+	Run: func(cmd *cobra.Command, _ []string) {
+
+		verbose := fn.ParseBoolFlag(cmd, "verbose")
+
+		// if runtime.GOOS == constants.RuntimeWindows {
+		// 	if err := disconnect(verbose); err != nil {
+		// 		fn.Notify("Error:", err.Error())
+		// 		fn.PrintError(err)
+		// 	}
+		// 	return
+		// }
+
+		if euid := os.Geteuid(); euid != 0 {
+			if os.Getenv("KL_APP") != "true" {
+				if err := func() error {
+
+					p, err := daemon_server.NewProxyWithService(true)
+					if err != nil {
+						return err
+					}
+
+					out, err := p.Stop()
+					if err != nil {
+						return err
+					}
+
+					fn.Log(string(out))
+					return nil
+				}(); err != nil {
+					fn.PrintError(err)
+					return
+				}
+
+				return
+			}
+		}
+
+		wgInterface, err := wgc.Show(&wgc.WgShowOptions{
+			Interface: "interfaces",
+		})
+
+		if err != nil {
 			fn.PrintError(err)
 			return
 		}
+
+		if len(wgInterface) == 0 {
+			fn.Log(text.Colored("[#] no device connected yet", 209))
+			return
+		}
+
+		err = disconnect(verbose)
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		apic := clients.Api
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
+
+		dev, err := apic.EnsureDevice()
+		if err != nil {
+			fn.Logf(text.Bold("\n [#] disconnected device"))
+			fn.PrintError(err)
+			return
+		}
+
+		fn.Logf(text.Bold("\n[#] disconnected device %s"), text.Blue(dev.DeviceName))
 	},
 }
 
-func stopVPN() error {
+func init() {
+	stopCmd.Flags().BoolP("verbose", "v", false, "run in debug mode")
 
-	if runtime.GOOS != "linux" {
-		fn.Log(text.Green("stop vpn from your wireguard client"))
-		return nil
-	}
-
-	//current, err := user.Current()
-	//if err != nil {
-	//	return fn.NewE(err)
-	//}
-	//
-	//if current.Uid != "0" {
-	//	return fn.Errorf("root permission required")
-	//}
-	//
-	//var errBuf strings.Builder
-	//cmd := exec.Command("wg-quick", "down", "kl")
-	//cmd.Stderr = &errBuf
-	//
-	//err = cmd.Run()
-	//if err != nil {
-	//	return fn.Errorf(errBuf.String())
-	//}
-
-	if err := startWireguard("", true); err != nil {
-		return err
-	}
-
-	fn.Log(text.Green("kloudlite vpn has been stopped"))
-
-	return nil
+	stopCmd.Aliases = append(stopCmd.Aliases, "disconnect")
 }

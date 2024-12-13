@@ -3,6 +3,7 @@ package k3s
 import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/spf13/cobra"
 )
@@ -10,7 +11,7 @@ import (
 type K3sClient interface {
 	CreateClustersTeams(name string) error
 	EnsureKloudliteNetwork() error
-	StartAppInterceptService(ports []apiclient.AppPort, toStart bool) error
+	StartAppInterceptService(ports []apiclient.ServicePort, toStart bool) error
 	EnsureImage(i string) error
 	RestartWgProxyContainer() error
 	RemoveAllIntercepts() error
@@ -29,14 +30,7 @@ type client struct {
 }
 
 func NewClient(cmd *cobra.Command) (K3sClient, error) {
-	apiClient, err := apiclient.New()
-	if err != nil {
-		return nil, err
-	}
-	fc, err := fileclient.New()
-	if err != nil {
-		return nil, err
-	}
+	ac := clients.Api
 
 	c, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
 	if err != nil {
@@ -44,8 +38,8 @@ func NewClient(cmd *cobra.Command) (K3sClient, error) {
 	}
 	return &client{
 		c:    c,
-		apic: apiClient,
-		fc:   fc,
+		apic: ac,
+		fc:   ac.GetFClient(),
 		cmd:  cmd,
 	}, nil
 }

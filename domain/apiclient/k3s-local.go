@@ -43,7 +43,7 @@ func (apic *apiClient) GetClustersOfTeam(team string) ([]Cluster, error) {
 		return nil, fn.NewE(err)
 	}
 	fetch, err := klFetch("cli_listAccountClusters", map[string]any{
-		"pagination": PaginationDefault,
+		"pagination": paginationDefault,
 	}, &cookie)
 	if err != nil {
 		return nil, fn.NewE(err)
@@ -124,7 +124,7 @@ func getClusterName(clusterName, team string) (*CheckName, error) {
 		return nil, fn.NewE(err)
 	}
 
-	if fromResp, err := GetFromResp[CheckName](respData); err != nil {
+	if fromResp, err := getFromResp[CheckName](respData); err != nil {
 		return nil, fn.NewE(err)
 	} else {
 		return fromResp, nil
@@ -145,7 +145,7 @@ func (apic *apiClient) enrichClusterWithInstructions(team string, d *Cluster) er
 		return fn.NewE(err)
 	}
 
-	instruction, err := GetFromResp[InstallCommand](respData)
+	instruction, err := getFromResp[InstallCommand](respData)
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -201,7 +201,7 @@ func (apic *apiClient) createCluster(hostName, team string) (*Cluster, error) {
 	if err != nil {
 		return nil, fn.Errorf("failed to create vpn: %s", err.Error())
 	}
-	d, err := GetFromResp[Cluster](respData)
+	d, err := getFromResp[Cluster](respData)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -254,7 +254,7 @@ func (apic *apiClient) GetCluster(team, clusterName string) (*Cluster, error) {
 		return nil, fn.NewE(err)
 	}
 
-	fromResp, err := GetFromResp[Cluster](respData)
+	fromResp, err := getFromResp[Cluster](respData)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

@@ -1,0 +1,17 @@
+if not set -q kl_no_prompt
+    functions -c fish_prompt __kl_fish_prompt_orig
+    if test "1" != "$KL_DEPTH"
+      set var1 " - $KL_DEPTH"
+    end
+
+    function fish_prompt
+        echo "(kl$var1)" (__kl_fish_prompt_orig)
+    end
+end
+
+set workingDir (pwd)
+cd "{{ .ProjectDir }}" || exit
+
+cd "$workingDir" || exit
+
+set -gx PATH $KL_NIX_PATH $PATH

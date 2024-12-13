@@ -31,7 +31,7 @@ package del
 
 // func removeSecret() error {
 
-// 	klFile, err := fileclient.GetKlFile("")
+// 	klFile, err := fileclient.GetKlFile()
 // 	if err != nil {
 // 		fn.PrintError(err)
 // 		es := "please run 'kl init' if you are not initialized the file already"

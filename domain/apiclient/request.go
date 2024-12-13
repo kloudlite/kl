@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"io"
 	"net"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 
 	"github.com/kloudlite/kl/constants"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -60,7 +61,6 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 		},
 	}
 	req, err := http.NewRequest(http.MethodPost, url, payload)
-
 	if err != nil {
 		return nil, fn.NewE(err, fmt.Sprintf("failed to create request while making apiclient request on method %s", method))
 	}
@@ -73,9 +73,9 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 		req.Header.Add("cookie", *cookie)
 	}
 
-	//f := spinner.Client.UpdateMessage("loading please wait")
+	// f := spinner.Client.UpdateMessage("loading please wait")
 	res, err := client.Do(req)
-	//f()
+	// f()
 	if err != nil || res.StatusCode != 200 {
 		if err != nil {
 			return nil, fn.NewE(err, fmt.Sprintf("failed while making apiclient request to server with method %s", method))
@@ -109,7 +109,7 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 	var respData RespData
 	err = json.Unmarshal(body, &respData)
 	if err != nil {
-		//fn.PrintError(fn.Errorf("some issue with apiclient:\n%s", string(body)))
+		// fn.PrintError(fn.Errorf("some issue with apiclient:\n%s", string(body)))
 		return nil, fn.NewE(err, fmt.Sprintf("failed to unmarshal apiclient response to server with method %s and response %q", method, string(body)))
 	}
 
@@ -126,7 +126,6 @@ func klFetch(method string, variables map[string]any, cookie *string, verbose ..
 	}
 
 	return body, nil
-
 }
 
 func (apic *apiClient) GetHostDNSSuffix() (string, error) {
@@ -138,7 +137,7 @@ func (apic *apiClient) GetHostDNSSuffix() (string, error) {
 	if err != nil {
 		return "", fn.NewE(err)
 	}
-	hostDNSSuffix, err := GetFromResp[string](respData)
+	hostDNSSuffix, err := getFromResp[string](respData)
 	if err != nil {
 		return "", fn.NewE(err)
 	}

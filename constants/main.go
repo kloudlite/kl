@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kloudlite/kl/flags"
-
 	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/flags"
+	// "github.com/kloudlite/kl/domain/fileclient"
 )
 
 const (
@@ -51,14 +51,22 @@ func GetBoxImageName() string {
 var (
 	BaseURL = func() string {
 		baseUrl := flags.DefaultBaseURL
-
-		s, err := fileclient.GetBaseURL()
-		if err == nil && s != "" {
-			baseUrl = s
+		if s := os.Getenv("KL_BASE_URL"); s != "" {
+			return s
 		}
 
-		if s := os.Getenv("KL_BASE_URL"); s != "" {
-			baseUrl = s
+		fc, err := fileclient.New()
+		if err != nil {
+			return baseUrl
+		}
+
+		s, err := fc.GetBaseURL()
+		if err != nil {
+			return baseUrl
+		}
+
+		if s != "" {
+			return s
 		}
 
 		return baseUrl
@@ -67,6 +75,7 @@ var (
 	LoginUrl = func() string {
 		return fmt.Sprintf("%s/cli-login", BaseURL)
 	}()
+
 	ServerURL = func() string {
 		return fmt.Sprintf("%s/api/", BaseURL)
 	}()
@@ -78,4 +87,15 @@ var (
 
 var (
 	CoreCliName = "kl"
+)
+
+// Temporary Constants
+const (
+	NetworkService = "Wi-Fi"
+	// LocalSearchDomains = "local-search-domains"
+)
+
+// new constants kl-v2
+const (
+	KL_CONTAINER_MARK = "kl-container-mark"
 )

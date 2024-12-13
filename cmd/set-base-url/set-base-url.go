@@ -2,7 +2,7 @@ package set_base_url
 
 import (
 	"github.com/kloudlite/kl/constants"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/flags"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -15,9 +15,9 @@ var Cmd = &cobra.Command{
 	Short:  "set base url for the cli",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		if b := functions.ParseBoolFlag(cmd, "reset"); b {
-			if err := fileclient.SaveBaseURL(flags.DefaultBaseURL); err != nil {
+		fc := clients.File
+		if b := fn.ParseBoolFlag(cmd, "reset"); b {
+			if err := fc.SaveBaseURL(flags.DefaultBaseURL); err != nil {
 				fn.PrintError(err)
 			} else {
 				fn.Log("Base url reset successfully")
@@ -37,7 +37,7 @@ var Cmd = &cobra.Command{
 			return
 		}
 
-		if err := fileclient.SaveBaseURL(args[0]); err != nil {
+		if err := fc.SaveBaseURL(args[0]); err != nil {
 			fn.PrintError(err)
 		} else {
 			fn.Log("Base url set successfully")

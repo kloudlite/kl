@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/spf13/cobra"
 )
 
@@ -12,8 +11,6 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	fileclient.OnlyOutsideBox(loginCmd)
-	fileclient.OnlyOutsideBox(logoutCmd)
 	Cmd.AddCommand(loginCmd)
 	Cmd.AddCommand(logoutCmd)
 	Cmd.AddCommand(authStatusCmd)

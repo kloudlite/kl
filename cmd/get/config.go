@@ -2,10 +2,11 @@ package get
 
 import (
 	"encoding/json"
-	"github.com/kloudlite/kl/domain/fileclient"
+
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
@@ -19,17 +20,7 @@ var configCmd = &cobra.Command{
 	Short: "list config entries",
 	Long:  "use this command to list entries of specific config",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
 
 		configName := ""
 
@@ -38,7 +29,7 @@ var configCmd = &cobra.Command{
 		}
 
 		if configName == "" {
-			currentTeam, err := fc.CurrentTeamName()
+			currentTeam, err := apic.GetFClient().GetDataContext().GetWsTeam()
 			if err != nil {
 				fn.PrintError(err)
 				return
@@ -48,7 +39,7 @@ var configCmd = &cobra.Command{
 				fn.PrintError(err)
 				return
 			}
-			configs, err := apic.ListConfigs(currentTeam, currentEnv.Name)
+			configs, err := apic.ListConfigs(currentTeam, currentEnv)
 			if err != nil {
 				fn.PrintError(err)
 				return
@@ -67,7 +58,7 @@ var configCmd = &cobra.Command{
 			configName = selectedConfig.Metadata.Name
 		}
 
-		currentTeamName, err := fc.CurrentTeamName()
+		currentTeamName, err := apic.GetFClient().GetDataContext().GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -78,7 +69,7 @@ var configCmd = &cobra.Command{
 			return
 		}
 
-		config, err := apic.GetConfig(currentTeamName, currentEnvName.Name, configName)
+		config, err := apic.GetConfig(currentTeamName, currentEnvName, configName)
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -134,4 +125,5 @@ func printConfig(config *apiclient.Config, cmd *cobra.Command) error {
 
 func init() {
 	configCmd.Flags().StringP("output", "o", "table", "json | yaml")
+	configCmd.Aliases = append(configCmd.Aliases, "conf")
 }

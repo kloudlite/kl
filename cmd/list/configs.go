@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/domain/apiclient"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/clients"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 
@@ -18,18 +18,10 @@ var configsCmd = &cobra.Command{
 	Use:   "configs",
 	Short: "Get list of configs in selected environment",
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		fc := clients.File
+		apic := clients.Api
 
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		currentTeam, err := fc.CurrentTeamName()
+		currentTeam, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -39,14 +31,14 @@ var configsCmd = &cobra.Command{
 			fn.PrintError(err)
 			return
 		}
-		config, err := apic.ListConfigs(currentTeam, currentEnv.Name)
+		config, err := apic.ListConfigs(currentTeam, currentEnv)
 
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		if err := printConfigs(apic, cmd, config, currentEnv.Name); err != nil {
+		if err := printConfigs(apic, cmd, config, currentEnv); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -60,7 +52,7 @@ func printConfigs(apic apiclient.ApiClient, cmd *cobra.Command, configs []apicli
 	}
 
 	if len(configs) == 0 {
-		return fn.Errorf("[#] no configs found in environemnt: %s", text.Blue(e.Name))
+		return fn.Errorf("[#] no configs found in environemnt: %s", text.Blue(e))
 	}
 
 	header := table.Row{

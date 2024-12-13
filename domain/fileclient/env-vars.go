@@ -60,7 +60,6 @@ const (
 )
 
 func (e *EnvVars) getReses(res resType) []ResType {
-
 	resp := make([]ResType, 0)
 	if e == nil {
 		return resp

@@ -7,7 +7,6 @@ import (
 
 	"time"
 
-	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/miekg/dns"
 
@@ -49,6 +48,37 @@ type DeviceList struct {
 	Edges Edges[Env] `json:"edges"`
 }
 
+func (apic *apiClient) EnsureDevice() (*fileclient.DeviceData, error) {
+	dctx := apic.GetFClient().GetDataContext()
+
+	dev, err := dctx.GetDevice()
+	if err == nil {
+		return dev, nil
+	}
+
+	st, err := dctx.GetTeam()
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	d, err := apic.CreateVpnForTeam(st)
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	dev = &fileclient.DeviceData{
+		WGconf:     d.WireguardConfig.Value,
+		IpAddress:  d.IPAddress,
+		DeviceName: d.Metadata.Name,
+	}
+
+	if err := dctx.SetDevice(*dev); err != nil {
+		return nil, fn.NewE(err)
+	}
+
+	return dev, nil
+}
+
 func (apic *apiClient) GetVPNDevice(teamName string, devName string) (*Device, error) {
 	cookie, err := getCookie(fn.MakeOption("teamName", teamName))
 	if err != nil {
@@ -63,7 +93,7 @@ func (apic *apiClient) GetVPNDevice(teamName string, devName string) (*Device, e
 		return nil, fn.NewE(err)
 	}
 
-	return GetFromResp[Device](respData)
+	return getFromResp[Device](respData)
 }
 
 func (apic *apiClient) CreateDevice(devName, displayName, team string) (*Device, error) {
@@ -116,7 +146,7 @@ func (apic *apiClient) CreateDevice(devName, displayName, team string) (*Device,
 		return nil, fn.Errorf("failed to create vpn: %s", err.Error())
 	}
 
-	d, err := GetFromResp[Device](respData)
+	d, err := getFromResp[Device](respData)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -135,10 +165,6 @@ const (
 )
 
 func (apic *apiClient) CheckDeviceStatus() bool {
-	if !envclient.InsideBox() {
-		return false
-	}
-
 	verbose := false
 	logF := func(format string, v ...interface{}) {
 		if verbose {
@@ -190,7 +216,7 @@ func getDeviceName(devName, team string) (*CheckName, error) {
 		return nil, fn.NewE(err)
 	}
 
-	if fromResp, err := GetFromResp[CheckName](respData); err != nil {
+	if fromResp, err := getFromResp[CheckName](respData); err != nil {
 		return nil, fn.NewE(err)
 	} else {
 		return fromResp, nil
@@ -241,29 +267,16 @@ func (apic *apiClient) CreateVpnForTeam(team string) (*Device, error) {
 	return device, nil
 }
 
-func (apic *apiClient) GetAccVPNConfig(team string) (*fileclient.TeamVpnConfig, error) {
+func (apic *apiClient) GetAccVPNConfig(team string) (*fileclient.DeviceData, error) {
+	dctx := apic.fc.GetDataContext()
 
-	avc, err := apic.fc.GetVpnTeamConfig(team)
-
-	if err != nil && os.IsNotExist(err) {
-		dev, err := apic.CreateVpnForTeam(team)
-		if err != nil {
-			return nil, fn.NewE(err)
-		}
-		teamVpnConfig := fileclient.TeamVpnConfig{
-			WGconf:     dev.WireguardConfig.Value,
-			DeviceName: dev.Metadata.Name,
-			IpAddress:  dev.IPAddress,
-		}
-
-		if err := apic.fc.SetVpnTeamConfig(team, &teamVpnConfig); err != nil {
-			return nil, fn.NewE(err)
-		}
-	} else if err != nil {
+	avc, err := dctx.GetDevice()
+	if err != nil {
 		return nil, fn.NewE(err)
 	}
+
 	if avc == nil {
-		avc, err = apic.fc.GetVpnTeamConfig(team)
+		avc, err = dctx.GetDevice()
 		if err != nil {
 			return nil, fn.NewE(err)
 		}
@@ -276,9 +289,7 @@ func (apic *apiClient) GetAccVPNConfig(team string) (*fileclient.TeamVpnConfig, 
 
 		avc.WGconf = d.WireguardConfig.Value
 
-		if err := apic.fc.SetVpnTeamConfig(team, avc); err != nil {
-			return nil, fn.NewE(err)
-		}
+		dctx.SetDevice(*avc)
 	}
 
 	return avc, nil
@@ -292,7 +303,7 @@ func (apic *apiClient) ListVpnDevices(team string) ([]Device, error) {
 
 	respData, err := klFetch("cli_listVPNDevices", map[string]any{
 		"gvpn":       Default_GVPN,
-		"pagination": PaginationDefault,
+		"pagination": paginationDefault,
 	}, &cookie)
 	if err != nil {
 		return nil, fn.NewE(err)

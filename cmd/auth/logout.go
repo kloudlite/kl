@@ -6,8 +6,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/constants"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/spf13/cobra"
@@ -19,12 +19,8 @@ var logoutCmd = &cobra.Command{
 	Example: `# Logout from kloudlite
 {cmd} auth logout`,
 	Run: func(cmd *cobra.Command, _ []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		err = stopAllContainers(cmd)
+		fc := clients.File
+		err := stopAllContainers(cmd)
 		if err != nil {
 			fn.PrintError(err)
 			return
@@ -45,7 +41,7 @@ func stopAllContainers(cmd *cobra.Command) error {
 
 	crlist, err := cli.ContainerList(cmd.Context(), container.ListOptions{
 		Filters: filters.NewArgs(
-			filters.KeyValuePair{Key: "label", Value: fmt.Sprintf("%s=%s", boxpkg.CONT_MARK_KEY, "true")},
+			filters.KeyValuePair{Key: "label", Value: fmt.Sprintf("%s=%s", constants.KL_CONTAINER_MARK, "true")},
 		),
 		All: true,
 	})

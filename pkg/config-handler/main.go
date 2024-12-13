@@ -3,18 +3,53 @@ package confighandler
 import (
 	"io/fs"
 	"os"
+	"path"
 
 	fn "github.com/kloudlite/kl/pkg/functions"
 	yaml "gopkg.in/yaml.v2"
 )
 
-var ErrKlFileNotExists = fn.Error("please ensure kl.yaml file by running \"kl init\" command in your workspace root.")
+type Config[T any] interface {
+	Read() (*T, error)
+	Write() error
+}
+
+type config[T any] struct {
+	data *T
+	path string
+}
+
+func (c *config[T]) Read() (*T, error) {
+	if err := os.MkdirAll(path.Dir(c.path), 0o644); err != nil {
+		return c.data, err
+	}
+
+	t, err := ReadConfig[T](c.path)
+	if err != nil {
+		return c.data, err
+	}
+
+	c.data = t
+	return t, nil
+}
+
+func (c *config[T]) Write() error {
+	return WriteConfig(c.path, c.data, 0o644)
+}
+
+func GetHandler[T any](path string) Config[T] {
+	data := new(T)
+	return &config[T]{
+		path: path,
+		data: data,
+	}
+}
 
 func ReadConfig[T any](path string) (*T, error) {
 	var v T
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return nil, ErrKlFileNotExists
+		return nil, err
 	}
 	if err := yaml.Unmarshal(b, &v); err != nil {
 		return nil, fn.NewE(err)

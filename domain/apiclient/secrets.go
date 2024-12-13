@@ -16,11 +16,6 @@ type Secret struct {
 
 func (apic *apiClient) ListSecrets(teamName string, envName string) ([]Secret, error) {
 
-	// env, err := EnsureEnv(nil, options...)
-	// if err != nil {
-	// 	return nil, functions.NewE(err)
-	// }
-
 	cookie, err := getCookie(fn.MakeOption("teamName", teamName))
 	if err != nil {
 		return nil, fn.NewE(err)
@@ -51,56 +46,6 @@ func (apic *apiClient) ListSecrets(teamName string, envName string) ([]Secret, e
 	}
 }
 
-// func SelectSecret(options ...fn.Option) (*Secret, error) {
-// 	e, err := EnsureEnv(nil, options...)
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-
-// 	if e.Name == "" {
-// 		return nil, functions.Error("no environment selected")
-// 	}
-
-// 	secrets, err := ListSecrets(options...)
-
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-
-// 	if len(secrets) == 0 {
-// 		return nil, functions.Error("no secret found")
-// 	}
-
-// 	secret, err := fzf.FindOne(
-// 		secrets,
-// 		func(sec Secret) string {
-// 			return sec.DisplayName
-// 		},
-// 	)
-
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-
-// 	return secret, nil
-// }
-
-// func EnsureSecret(options ...fn.Option) (*Secret, error) {
-// 	secName := fn.GetOption(options, "secretName")
-
-// 	if secName != "" {
-// 		return GetSecret(options...)
-// 	}
-
-// 	secret, err := SelectSecret(options...)
-
-// 	if err != nil {
-// 		return nil, functions.NewE(err)
-// 	}
-
-// 	return secret, nil
-// }
-
 func (apic *apiClient) GetSecret(teamName string, secretName string) (*Secret, error) {
 
 	cookie, err := getCookie(fn.MakeOption("teamName", teamName))
@@ -115,14 +60,14 @@ func (apic *apiClient) GetSecret(teamName string, secretName string) (*Secret, e
 
 	respData, err := klFetch("cli_getSecret", map[string]any{
 		"name":    secretName,
-		"envName": strings.TrimSpace(currentEnv.Name),
+		"envName": strings.TrimSpace(currentEnv),
 	}, &cookie)
 
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
 
-	if fromResp, err := GetFromResp[Secret](respData); err != nil {
+	if fromResp, err := getFromResp[Secret](respData); err != nil {
 		return nil, fn.NewE(err)
 	} else {
 		return fromResp, nil

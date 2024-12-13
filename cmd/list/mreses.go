@@ -3,9 +3,8 @@ package list
 import (
 	"github.com/kloudlite/kl/pkg/ui/text"
 
-	"github.com/kloudlite/kl/domain/fileclient"
-
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/table"
 
@@ -16,17 +15,8 @@ var mresCmd = &cobra.Command{
 	Use:   "mreses",
 	Short: "Get list of managed resources in selected environment",
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		fc := clients.File
+		apic := clients.Api
 
 		currentEnv, err := apic.EnsureEnv()
 		if err != nil {
@@ -34,19 +24,19 @@ var mresCmd = &cobra.Command{
 			return
 		}
 
-		currentTeam, err := fc.CurrentTeamName()
+		currentTeam, err := fc.GetDataContext().GetWsTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		mres, err := apic.ListMreses(currentTeam, currentEnv.Name)
+		mres, err := apic.ListMreses(currentTeam, currentEnv)
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		if err := printMres(apic, cmd, mres, currentEnv.Name); err != nil {
+		if err := printMres(apic, cmd, mres, currentEnv); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -59,7 +49,7 @@ func printMres(apic apiclient.ApiClient, cmd *cobra.Command, mres []apiclient.Mr
 		return fn.NewE(err)
 	}
 	if len(mres) == 0 {
-		return fn.Errorf("[#] no managed resources found in environemnt: %s", text.Blue(e.Name))
+		return fn.Errorf("[#] no managed resources found in environemnt: %s", text.Blue(e))
 	}
 
 	header := table.Row{

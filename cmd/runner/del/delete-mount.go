@@ -22,7 +22,7 @@ package del
 
 // func removeConfigMount() {
 
-// 	klFile, err := fileclient.GetKlFile("")
+// 	klFile, err := fileclient.GetKlFile()
 
 // 	if err != nil {
 // 		common_util.PrintError(err)

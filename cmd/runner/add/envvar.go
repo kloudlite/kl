@@ -2,15 +2,13 @@ package add
 
 import (
 	"fmt"
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
-	"github.com/kloudlite/kl/domain/apiclient"
+	"strings"
+
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
 //kl add envvar key=value
@@ -42,17 +40,9 @@ func addEnvvar(cmd *cobra.Command, args []string) error {
 		filePath = "/home/kl/workspace/kl.yml"
 	}
 
-	fc, err := fileclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
+	fc := clients.File
 
-	apic, err := apiclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	kt, err := fc.GetKlFile("")
+	kt, err := fc.GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -78,29 +68,11 @@ func addEnvvar(cmd *cobra.Command, args []string) error {
 		kt.EnvVars = append(kt.EnvVars, newEnv)
 	}
 
-	if err = fc.WriteKLFile(*kt); err != nil {
+	if err = kt.Save(); err != nil {
 		return fn.NewE(err)
 	}
 
 	fn.Log(text.Green(fmt.Sprintf("added envvar %s=%s to your kl-file", key, value)))
-
-	wpath, err := os.Getwd()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return fn.NewE(err)
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return fn.NewE(err)
-	}
 
 	return nil
 }

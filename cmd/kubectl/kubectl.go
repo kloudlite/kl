@@ -12,6 +12,7 @@ import (
 var KubectlCmd = &cobra.Command{
 	Use:                "kubectl",
 	Short:              "kubectl is a command line tool for controlling Kubernetes clusters",
+	Hidden:             true,
 	DisableFlagParsing: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		kconfPath, err := GetPath(cmd)

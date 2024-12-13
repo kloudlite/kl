@@ -30,7 +30,7 @@ package del
 
 // func removeMreses() error {
 
-// 	klFile, err := fileclient.GetKlFile("")
+// 	klFile, err := fileclient.GetKlFile()
 
 // 	if err != nil {
 // 		fn.PrintError(err)

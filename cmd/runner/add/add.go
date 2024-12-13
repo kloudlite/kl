@@ -1,7 +1,6 @@
 package add
 
 import (
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/spf13/cobra"
 )
 
@@ -12,11 +11,11 @@ var Command = &cobra.Command{
 }
 
 func init() {
-	fileclient.OnlyInsideBox(confCmd)
-	fileclient.OnlyInsideBox(mresCmd)
-	fileclient.OnlyInsideBox(secCmd)
-	fileclient.OnlyInsideBox(mountCommand)
-	fileclient.OnlyInsideBox(envvarCommand)
+	// fileclient.OnlyInsideBox(confCmd)
+	// 	fileclient.OnlyInsideBox(mresCmd)
+	// 	fileclient.OnlyInsideBox(secCmd)
+	// 	fileclient.OnlyInsideBox(mountCommand)
+	// 	fileclient.OnlyInsideBox(envvarCommand)
 
 	Command.AddCommand(confCmd)
 	Command.AddCommand(mresCmd)

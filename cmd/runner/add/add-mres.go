@@ -2,11 +2,9 @@ package add
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 
@@ -26,18 +24,9 @@ This command will add secret entry of managed resource references from current e
   kl add  mres [name] # add specific mres secret entry to your kl-config as env var by providing mres name
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fc, err := fileclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		apic := clients.Api
 
-		apic, err := apiclient.New()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-		if err := AddMres(apic, fc, cmd, args); err != nil {
+		if err := AddMres(apic, cmd, args); err != nil {
 			fn.PrintError(err)
 			return
 		}
@@ -45,13 +34,13 @@ This command will add secret entry of managed resource references from current e
 	},
 }
 
-func AddMres(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Command, args []string) error {
+func AddMres(apic apiclient.ApiClient, cmd *cobra.Command, args []string) error {
 
 	filePath := fn.ParseKlFile(cmd)
 	if filePath == "" {
 		filePath = "/home/kl/workspace/kl.yml"
 	}
-	kt, err := fc.GetKlFile(filePath)
+	kt, err := apic.GetFClient().GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -59,13 +48,13 @@ func AddMres(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Comm
 	//TODO: add changes to the klbox-hash file
 	// mresName := fn.ParseStringFlag(cmd, "resource")
 
-	mres, err := selectMres(apic, fc)
+	mres, err := selectMres(apic, apic.GetFClient())
 
 	if err != nil {
 		return fn.NewE(err)
 	}
 
-	mresKey, err := selectMresKey(apic, fc, mres.SecretRefName.Name)
+	mresKey, err := selectMresKey(apic, apic.GetFClient(), mres.SecretRefName.Name)
 
 	if err != nil {
 		return fn.NewE(err)
@@ -114,29 +103,11 @@ func AddMres(apic apiclient.ApiClient, fc fileclient.FileClient, cmd *cobra.Comm
 	}
 
 	kt.EnvVars.AddResTypes(currMreses, fileclient.Res_mres)
-	if err := fc.WriteKLFile(*kt); err != nil {
+	if err := kt.Save(); err != nil {
 		return fn.NewE(err)
 	}
 
 	fn.Log(fmt.Sprintf("added mres %s/%s to your kl-file", mres.SecretRefName.Name, *mresKey))
-
-	wpath, err := os.Getwd()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return fn.NewE(err)
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return err
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return fn.NewE(err)
-	}
 
 	return nil
 }
@@ -146,11 +117,11 @@ func selectMres(apic apiclient.ApiClient, fc fileclient.FileClient) (*apiclient.
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	currentTeam, err := fc.CurrentTeamName()
+	currentTeam, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
-	m, err := apic.ListMreses(currentTeam, currentEnv.Name)
+	m, err := apic.ListMreses(currentTeam, currentEnv)
 	if err != nil {
 		return nil, fn.NewE(err)
 	}
@@ -171,7 +142,7 @@ func init() {
 }
 
 func selectMresKey(apic apiclient.ApiClient, fc fileclient.FileClient, secretName string) (*string, error) {
-	selectedTeam, err := fc.CurrentTeamName()
+	selectedTeam, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {
 		return nil, fn.NewE(err)
 	}

@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/cmd/packages/lib"
+	"github.com/kloudlite/kl/cmd/packages/pkg"
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/nixpkghandler"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/table"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -13,9 +15,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var searchCmd = &cobra.Command{
+var SearchCmd = &cobra.Command{
 	Use:   "search [name]",
-	Short: "search for a package",
+	Short: "search for a package|library",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := searchPackages(cmd, args); err != nil {
 			fn.PrintError(err)
@@ -31,14 +33,19 @@ func searchPackages(cmd *cobra.Command, args []string) error {
 	}
 
 	if name == "" {
-		return functions.Error("name is required")
+		return fn.Error("name is required")
 	}
 
 	defer spinner.Client.UpdateMessage(fmt.Sprintf("searching for package %s", name))()
 
-	sr, err := Search(cmd.Context(), name)
+	pc, err := nixpkghandler.New(cmd)
 	if err != nil {
-		return functions.NewE(err)
+		return fn.NewE(err)
+	}
+
+	sr, err := pc.Search(name)
+	if err != nil {
+		return fn.NewE(err)
 	}
 
 	spinner.Client.Pause()
@@ -69,6 +76,11 @@ func searchPackages(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	searchCmd.Flags().StringP("name", "n", "", "name of the package to remove")
-	searchCmd.Flags().BoolP("show-all", "a", false, "list all matching packages")
+	SearchCmd.Flags().StringP("name", "n", "", "name of the package to remove")
+
+	lib.Cmd.AddCommand(SearchCmd)
+	pkg.Cmd.AddCommand(SearchCmd)
+
+	// TODO: add show-all flag
+	// searchCmd.Flags().BoolP("show-all", "a", false, "list all matching packages")
 }

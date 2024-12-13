@@ -24,7 +24,7 @@ func getCookie(options ...functions.Option) (string, error) {
 			return "", functions.NewE(err)
 		}
 
-		accName, err = fc.CurrentTeamName()
+		accName, err = fc.GetDataContext().GetTeam()
 		if err == nil {
 			options = append(options, functions.MakeOption("teamName", accName))
 		}
@@ -38,12 +38,12 @@ type Response[T any] struct {
 	Errors []error `json:"errors"`
 }
 
-func GetFromResp[T any](respData []byte) (*T, error) {
+func getFromResp[T any](respData []byte) (*T, error) {
 	var resp Response[T]
-	err := json.Unmarshal(respData, &resp)
-	if err != nil {
+	if err := json.Unmarshal(respData, &resp); err != nil {
 		return nil, functions.NewE(err, fmt.Sprintf("failed to unmarshal api response %q", string(respData)))
 	}
+
 	if len(resp.Errors) > 0 {
 		return nil, resp.Errors[0]
 	}
@@ -55,7 +55,7 @@ type ItemList[T any] struct {
 }
 
 func GetFromRespForEdge[T any](respData []byte) ([]T, error) {
-	resp, err := GetFromResp[ItemList[T]](respData)
+	resp, err := getFromResp[ItemList[T]](respData)
 	if err != nil {
 		return nil, functions.NewE(err)
 	}

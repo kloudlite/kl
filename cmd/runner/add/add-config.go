@@ -2,13 +2,11 @@ package add
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
-	"github.com/kloudlite/kl/cmd/box/boxpkg"
-	"github.com/kloudlite/kl/cmd/box/boxpkg/hashctrl"
 	"github.com/kloudlite/kl/domain/apiclient"
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -37,33 +35,20 @@ This command will add config entry references from current environment to your k
 }
 
 func selectAndAddConfig(cmd *cobra.Command, args []string) error {
-	fc, err := fileclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	apic, err := apiclient.New()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	filePath := fn.ParseKlFile(cmd)
+	fc := clients.File
+	apic := clients.Api
 
 	name := ""
 	if len(args) >= 1 {
 		name = args[0]
 	}
 
-	if filePath == "" {
-		filePath = "/home/kl/workspace/kl.yml"
-	}
-
-	klFile, err := fc.GetKlFile(filePath)
+	klFile, err := fc.GetKlFile()
 	if err != nil {
 		return fn.NewE(err)
 	}
 
-	currentTeam, err := fc.CurrentTeamName()
+	currentTeam, err := fc.GetDataContext().GetWsTeam()
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -73,7 +58,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	configs, err := apic.ListConfigs(currentTeam, currentEnv.Name)
+	configs, err := apic.ListConfigs(currentTeam, currentEnv)
 	if err != nil {
 		return fn.NewE(err)
 	}
@@ -189,7 +174,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 	//	if err != nil {
 	//		return functions.NewE(err)
 	//	}
-	//	klFile, err = fileclient.GetKlFile("")
+	//	klFile, err = fileclient.GetKlFile()
 	//	if err != nil {
 	//		return functions.NewE(err)
 	//	}
@@ -237,30 +222,12 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 
 	klFile.EnvVars.AddResTypes(currConfigs, fileclient.Res_config)
 
-	err = fc.WriteKLFile(*klFile)
+	err = klFile.Save()
 	if err != nil {
 		return fn.NewE(err)
 	}
 
 	fn.Log(fmt.Sprintf("added config %s/%s to your kl-file", selectedConfigGroup.Metadata.Name, selectedConfigKey.Key))
-
-	wpath, err := os.Getwd()
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := hashctrl.SyncBoxHash(apic, fc, wpath); err != nil {
-		return fn.NewE(err)
-	}
-
-	c, err := boxpkg.NewClient(cmd, args)
-	if err != nil {
-		return fn.NewE(err)
-	}
-
-	if err := c.ConfirmBoxRestart(); err != nil {
-		return fn.NewE(err)
-	}
 
 	return nil
 }

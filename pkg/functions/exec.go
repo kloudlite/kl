@@ -1,10 +1,13 @@
 package functions
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -95,4 +98,79 @@ func WinSudoExec(cmdString string, env map[string]string) ([]byte, error) {
 	quotedArgs := strings.Join(cmdArr[1:], ",")
 
 	return Exec(fmt.Sprintf("powershell -Command Start-Process -WindowStyle Hidden -FilePath %s -ArgumentList %q -Verb RunAs", cmd.Path, quotedArgs), map[string]string{"PATH": os.Getenv("PATH")})
+}
+
+func StreamOutput(ctx context.Context, cmdString string, env map[string]string, writer io.Writer, errCh chan<- error) error {
+	defer close(errCh)
+	r := csv.NewReader(strings.NewReader(cmdString))
+	r.Comma = ' '
+	cmdArr, err := r.Read()
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.CommandContext(ctx, cmdArr[0], cmdArr[1:]...)
+
+	cmd.Env = os.Environ()
+	cmd.Stderr = writer
+	cmd.Stdout = writer
+
+	for k, v := range env {
+		cmd.Env = append(cmd.Env, k+"="+v)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetUidNGid() (int, int, error) {
+
+	uidstr, ok := os.LookupEnv("SUDO_UID")
+	if !ok {
+		return 0, 0, Error("failed to get sudo uid")
+	}
+
+	gidstr, ok := os.LookupEnv("SUDO_GID")
+	if !ok {
+		return 0, 0, Error("failed to get sudo gid")
+	}
+
+	uid, err := strconv.Atoi(uidstr)
+	if err != nil {
+		return 0, 0, NewE(err, "failed to get sudo uid")
+	}
+
+	gid, err := strconv.Atoi(gidstr)
+	if err != nil {
+		return 0, 0, NewE(err, "failed to get sudo gid")
+	}
+
+	return uid, gid, nil
+}
+
+func EnvMapToSlice(env map[string]string) []string {
+	var result []string
+	for k, v := range env {
+		result = append(result, fmt.Sprintf("%s=%s", k, v))
+	}
+	return result
+}
+
+func EnvSliceToMap(env []string) map[string]string {
+	result := make(map[string]string, len(env))
+	for _, kv := range env {
+		key, val, found := strings.Cut(kv, "=")
+		if !found {
+			return nil
+		}
+		result[key] = val
+	}
+	return result
 }

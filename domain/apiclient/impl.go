@@ -10,11 +10,12 @@ type apiClient struct {
 }
 
 type ApiClient interface {
+	GetFClient() fileclient.FileClient
 	ListTeams() ([]Team, error)
 	GetHostDNSSuffix() (string, error)
 
-	ListApps(teamName string, envName string) ([]App, error)
-	InterceptApp(app *App, status bool, ports []AppPort, envName string, options ...fn.Option) (err error)
+	ListServices(teamName string, envName string) ([]Service, error)
+	InterceptService(app *Service, status bool, ports []ServicePort, envName string, options ...fn.Option) (err error)
 
 	CreateRemoteLogin() (loginId string, err error)
 	GetCurrentUser() (*User, error)
@@ -25,7 +26,7 @@ type ApiClient interface {
 
 	GetVPNDevice(teamName string, devName string) (*Device, error)
 	CheckDeviceStatus() bool
-	GetAccVPNConfig(team string) (*fileclient.TeamVpnConfig, error)
+	GetAccVPNConfig(team string) (*fileclient.DeviceData, error)
 	CreateVpnForTeam(team string) (*Device, error)
 	CreateDevice(devName, displayName, team string) (*Device, error)
 
@@ -33,13 +34,16 @@ type ApiClient interface {
 
 	ListEnvs(teamName string) ([]Env, error)
 	GetEnvironment(teamName, envName string) (*Env, error)
-	EnsureEnv() (*fileclient.Env, error)
+
+	EnsureEnv() (string, error)
+	EnsureDevice() (*fileclient.DeviceData, error)
+
 	CloneEnv(teamName, envName, newEnvName, clusterName string) (*Env, error)
 	UpdateEnvironment(teamName string, env *Env, isSuspend bool) error
 	CheckEnvName(teamName, envName string) (bool, error)
 	GetLoadMaps() (map[string]string, MountMap, error)
 
-	//ListBYOKClusters(teamName string) ([]BYOKCluster, error)
+	// ListBYOKClusters(teamName string) ([]BYOKCluster, error)
 	GetClustersOfTeam(team string) ([]Cluster, error)
 	DeleteCluster(team, clusterName string) error
 	GetCluster(team, clusterName string) (*Cluster, error)
@@ -53,11 +57,13 @@ type ApiClient interface {
 	RemoveAllIntercepts(options ...fn.Option) error
 }
 
+func (a *apiClient) GetFClient() fileclient.FileClient {
+	return a.fc
+}
+
 func New() (ApiClient, error) {
-	fc, err := fileclient.New()
-	if err != nil {
-		return nil, fn.NewE(err)
-	}
+	fc := fileclient.File
+
 	return &apiClient{
 		fc: fc,
 	}, nil

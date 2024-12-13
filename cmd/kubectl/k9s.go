@@ -14,6 +14,7 @@ import (
 var K9sCmd = &cobra.Command{
 	Use:                "k9s",
 	Short:              "k9s is a terminal UI for Kubernetes",
+	Hidden:             true,
 	DisableFlagParsing: true,
 	Run: func(cmd *cobra.Command, args []string) {
 
