@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sort"
 	"strings"
 
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -247,7 +248,7 @@ func (p *pkgHandler) EvaluateShell(ctx context.Context, packages []string, libra
 }
 
 func installPackage(envMap map[string]string, pkgs ...string) (path string, err error) {
-	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --ignore-environment --keep printenv --command printenv PATH", strings.Join(pkgs, " ")))
+	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --command printenv PATH", strings.Join(pkgs, " ")))
 	c.Env = fn.EnvMapToSlice(envMap)
 
 	if flags.IsVerbose {
@@ -262,6 +263,13 @@ func installPackage(envMap map[string]string, pkgs ...string) (path string, err 
 		return "", err
 	}
 
-	opath := envMap["PATH"]
-	return fmt.Sprintf("%s:%s", strings.TrimSpace(b.String()), strings.TrimSpace(opath)), nil
+	s := strings.Split(b.String(), ":")
+	sort.Slice(s, func(i, j int) bool {
+		if strings.HasPrefix(s[i], "/nix/store") {
+			return true
+		}
+		return false
+	})
+
+	return strings.Join(s, ":"), nil
 }

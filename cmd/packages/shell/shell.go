@@ -87,10 +87,12 @@ func Shell(cmd *cobra.Command, args []string) error {
 			mountMap = make(map[string]string)
 		}
 
-		if err := setCache(&fileclient.CacheKLConfig{
+		ck = &fileclient.CacheKLConfig{
 			Mounts:  mountMap,
 			EnvVars: envMap,
-		}); err != nil {
+		}
+
+		if err := setCache(ck); err != nil {
 			return err
 		}
 	}

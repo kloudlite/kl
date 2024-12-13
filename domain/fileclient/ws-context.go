@@ -64,7 +64,7 @@ type WsContext interface {
 
 func (w wsContext) GetEnv() (string, error) {
 	if w.EnvName == "" {
-		return "", fn.Errorf("env not found")
+		return "", fn.Errorf("no environment selected")
 	}
 
 	s, err := getCtxData()
