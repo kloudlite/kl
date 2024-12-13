@@ -10,7 +10,8 @@ if [ -z "$KL_NO_PROMPT" ]; then
   if [ "1" != "$KL_DEPTH" ]; then
     var1=" - $KL_DEPTH"
   fi
-  export PS1="(kl$var1) $PS1"
+  export PS1="
+(kl$var1) $PS1"
 fi
 
 working_dir="$(pwd)"
