@@ -29,6 +29,9 @@ func createSet[T comparable](v []T) []T {
 func installPackage(pkgs ...string) (path string, err error) {
 
 	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --command printenv PATH", strings.Join(pkgs, " ")))
+	if flags.IsVerbose {
+		fn.Log(c.String())
+	}
 
 	b := new(bytes.Buffer)
 	c.Stdout = b
@@ -90,6 +93,10 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 
 	for _, lib := range args.Libraries {
 		c := exec.CommandContext(ctx, "nix", "eval", lib, "--raw")
+		if flags.IsVerbose {
+			fn.Log(c.String())
+		}
+
 		b, err := c.CombinedOutput()
 		if err != nil {
 			return fn.NewE(err)
@@ -104,7 +111,6 @@ func NixShell(ctx context.Context, args ShellArgs) error {
 		}
 
 		cmd := exec.CommandContext(ctx, "nix-store", "--query", "--references", string(b))
-
 		if flags.IsVerbose {
 			fn.Log(cmd.String())
 		}

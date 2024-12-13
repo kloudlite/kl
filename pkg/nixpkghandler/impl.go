@@ -129,10 +129,16 @@ func (p *pkgHandler) SyncLockfile() error {
 		return fn.NewE(err)
 	}
 
+	lfcheck, err := kf.GetChecksum()
+
 	newLock := fileclient.HashData{}
 	lf, err := p.fc.GetLockfile()
 	if err != nil {
 		return fn.NewE(err)
+	}
+
+	if lf.Checksum == lfcheck {
+		return nil
 	}
 
 	for _, v := range kf.Packages {
@@ -164,7 +170,9 @@ func (p *pkgHandler) SyncLockfile() error {
 
 		newLock[v] = pkgHash
 	}
+
 	lf.Libraries = newLock
+	lf.Checksum = lfcheck
 
 	return lf.Save()
 }

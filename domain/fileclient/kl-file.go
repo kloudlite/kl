@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	confighandler "github.com/kloudlite/kl/pkg/config-handler"
+	"github.com/kloudlite/kl/pkg/egob"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
@@ -29,8 +30,25 @@ type KLFileType struct {
 type HashData map[string]string
 
 type Lockfile struct {
+	Checksum  string   `json:"checksum" yaml:"checksum"`
 	Packages  HashData `json:"packages" yaml:"packages"`
 	Libraries HashData `json:"libraries" yaml:"libraries"`
+}
+
+func (k *KLFileType) GetChecksum() (string, error) {
+	libStr, err := egob.Marshal(k.Libraries)
+	if err != nil {
+		return "", err
+	}
+
+	pkgStr, err := egob.Marshal(k.Packages)
+	if err != nil {
+		return "", err
+	}
+
+	hash := sha256.Sum256([]byte(fmt.Sprintf("%s%s", libStr, pkgStr)))
+
+	return fmt.Sprintf("%x", hash), nil
 }
 
 func (k *Lockfile) Save() error {
