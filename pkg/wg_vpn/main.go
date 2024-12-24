@@ -20,8 +20,8 @@ type WgClient interface {
 	StartService(devName string, verbose bool) error
 	startService(devName string, verbose bool) error
 
-	StopService(verbose bool) error
-	stopService(verbose bool) error
+	StopService(devName string, verbose bool) error
+	stopService(devName string, verbose bool) error
 
 	Configure(configuration []byte, interfaceName string, verbose bool) error
 
@@ -182,6 +182,6 @@ func (c *wgClientImpl) StartService(devName string, verbose bool) error {
 	return c.startService(devName, verbose)
 }
 
-func (c *wgClientImpl) StopService(verbose bool) error {
-	return c.stopService(verbose)
+func (c *wgClientImpl) StopService(devName string, verbose bool) error {
+	return c.stopService(devName, verbose)
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Fa1k3n/resolvconf"
+	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/wg_vpn/wgc"
@@ -20,7 +21,7 @@ const (
 )
 
 const (
-	ifName = "kl"
+	ifName = constants.InterfaceName
 )
 
 func (wc *wgClientImpl) resetSearchDomain(devName string) error {
@@ -190,7 +191,7 @@ func (wc *wgClientImpl) ipRouteAdd(ip string, _ string, devName string, _ bool) 
 	return nil
 }
 
-func (wc *wgClientImpl) stopService(verbose bool) error {
+func (wc *wgClientImpl) stopService(devName string, verbose bool) error {
 	wgInterface, err := wgc.Show(&wgc.WgShowOptions{
 		Interface: "interfaces",
 	})
@@ -203,12 +204,12 @@ func (wc *wgClientImpl) stopService(verbose bool) error {
 	}
 	for _, v := range wgInterface {
 
-		if verbose {
-			fn.Log("[#] disconnecting from ", v)
+		if strings.TrimSpace(v) == "" || v != devName {
+			continue
 		}
 
-		if strings.TrimSpace(v) == "" {
-			continue
+		if verbose {
+			fn.Log("[#] disconnecting from ", v)
 		}
 
 		link, err := netlink.LinkByName(strings.TrimSpace(v))

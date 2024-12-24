@@ -239,7 +239,7 @@ func (c *client) generateConnectionScript(clusterConfig *fileclient.TeamClusterC
 		return "", fn.NewE(err)
 	}
 
-	vpnTeamConfig, err := c.fc.GetDevice()
+	vpnTeamConfig, err := c.fc.GetDataContext().GetDevice()
 	if err != nil {
 		return "", nil
 	}

@@ -3,6 +3,7 @@ package vpn
 import (
 	"fmt"
 
+	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	ifName string = "utun2464"
+	ifName string = constants.InterfaceName
 )
 
 func connect(verbose bool, options ...fn.Option) error {
@@ -19,7 +20,7 @@ func connect(verbose bool, options ...fn.Option) error {
 
 	defer func() {
 		if !success {
-			_ = wc.StopService(verbose)
+			_ = wc.StopService(ifName, verbose)
 		}
 	}()
 
@@ -44,7 +45,7 @@ func connect(verbose bool, options ...fn.Option) error {
 func disconnect(verbose bool) error {
 	wc := wg_vpn.NewWgClient()
 
-	if err := wc.StopService(verbose); err != nil {
+	if err := wc.StopService(ifName, verbose); err != nil {
 		return err
 	}
 

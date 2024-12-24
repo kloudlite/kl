@@ -78,12 +78,14 @@ func GetUserHomeDir() (string, error) {
 	if euid := os.Geteuid(); euid == 0 {
 		username, ok := os.LookupEnv("SUDO_USER")
 		if !ok {
-			return "", functions.Error("failed to get sudo user name")
+			fn.Debug("failed to get sudo user name")
+			return "", ErrNotFound
 		}
 
 		oldPwd, err := os.Getwd()
 		if err != nil {
-			return "", functions.NewE(err, "failed to get current working directory")
+			fn.Debug("failed to get current working directory")
+			return "", ErrNotFound
 		}
 
 		sp := strings.Split(oldPwd, "/")
@@ -94,12 +96,14 @@ func GetUserHomeDir() (string, error) {
 			}
 		}
 
-		return "", functions.Error("failed to get home path of sudo user")
+		fn.Debug("failed to get home path of sudo user")
+		return "", ErrNotFound
 	}
 
 	userHome, ok := os.LookupEnv("HOME")
 	if !ok {
-		return "", functions.Error("failed to get home path of user")
+		fn.Debug("failed to get home path of user")
+		return "", ErrNotFound
 	}
 
 	return userHome, nil
@@ -115,7 +119,8 @@ func GetConfigFolder() (configFolder string, err error) {
 
 	// ensuring the dir is present
 	if err := os.MkdirAll(configPath, os.ModePerm); err != nil {
-		return "", functions.NewE(err, "failed to create config folder")
+		fn.Debug("failed to create config folder")
+		return "", ErrNotFound
 	}
 
 	// ensuring user permission on created dir
@@ -126,7 +131,8 @@ func GetConfigFolder() (configFolder string, err error) {
 		}
 
 		if err := os.Chown(configPath, uid, gid); err != nil {
-			return "", functions.NewE(err, "failed to change user permission on config folder")
+			fn.Debug("failed to change user permission on config folder")
+			return "", ErrNotFound
 		}
 	}
 
@@ -149,51 +155,6 @@ func (fc *fclient) GetBaseURL() (string, error) {
 	}
 
 	return extraData.GetBaseUrl(), nil
-}
-
-func (fc *fclient) SetDevice(device *DeviceData) error {
-	file, err := yaml.Marshal(device)
-	if err != nil {
-		return functions.NewE(err, "failed to marshal device context")
-	}
-
-	return writeOnUserScope(DeviceFileName, file)
-}
-
-func (fc *fclient) GetDevice() (*DeviceData, error) {
-	dData, err := fc.GetDataContext().GetDevice()
-	if err != nil {
-		return nil, err
-	}
-
-	return dData, nil
-}
-
-func (c *fclient) GetHostWgConfig() (string, error) {
-	config, err := c.GetWGConfig()
-	if err != nil {
-		return "", fn.NewE(err, "failed to get wg config")
-	}
-
-	wgConfig := fmt.Sprintf(`[Interface]
-PrivateKey = %s
-Address = %s/32
-
-[Peer]
-PublicKey = %s
-AllowedIPs = 198.18.0.0/16, %s/32, %s
-PersistentKeepalive = 25
-Endpoint = %s:33820
-`, config.Host.PrivateKey, KLHostIp, config.Proxy.PublicKey, KLWGProxyIp, KLWGAllowedIp, LocalHostIP)
-	return wgConfig, nil
-}
-
-func (fc *fclient) SetWGConfig(config string) error {
-	if err := writeOnUserScope("kl-host-wg.conf", []byte(config)); err != nil {
-		return fn.NewE(err, "failed to write wg config")
-	}
-
-	return nil
 }
 
 func (fc *fclient) generateWGConfig(config *WGConfig) string {

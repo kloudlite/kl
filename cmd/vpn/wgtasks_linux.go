@@ -3,13 +3,14 @@ package vpn
 import (
 	"fmt"
 
+	"github.com/kloudlite/kl/constants"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/kloudlite/kl/pkg/wg_vpn"
 )
 
 const (
-	ifName string = "kl"
+	ifName string = constants.InterfaceName
 )
 
 func connect(verbose bool, options ...fn.Option) error {
@@ -18,7 +19,7 @@ func connect(verbose bool, options ...fn.Option) error {
 
 	defer func() {
 		if !success {
-			_ = wc.StopService(verbose)
+			_ = wc.StopService(ifName, verbose)
 		}
 	}()
 
@@ -38,7 +39,7 @@ func connect(verbose bool, options ...fn.Option) error {
 func disconnect(verbose bool) error {
 	wc := wg_vpn.NewWgClient()
 
-	if err := wc.StopService(verbose); err != nil {
+	if err := wc.StopService(ifName, verbose); err != nil {
 		return err
 	}
 

@@ -11,7 +11,8 @@ import (
 func getCtxData() (*sed, error) {
 	dir, err := GetConfigFolder()
 	if err != nil {
-		return nil, fn.NewE(err, "failed to get config folder")
+		fn.Debug("failed to get config folder")
+		return nil, ErrNotFound
 	}
 
 	chandler := confighandler.GetHandler[SessionData](path.Join(dir, SessionFileName))

@@ -39,6 +39,6 @@ func (wc *wgClientImpl) startService(devName string, _ bool) error {
 	return notSupportedInWindows
 }
 
-func (wc *wgClientImpl) stopService(verbose bool) error {
+func (wc *wgClientImpl) stopService(devName string, verbose bool) error {
 	return notSupportedInWindows
 }

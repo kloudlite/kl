@@ -78,7 +78,7 @@ func (wc *wgClientImpl) ipRouteAdd(ip string, interfaceIp string, devName string
 	return ExecCmd(fmt.Sprintf("route -n add -net %s %s", ip, interfaceIp), verbose)
 }
 
-func (wc *wgClientImpl) stopService(verbose bool) error {
+func (wc *wgClientImpl) stopService(devName string, verbose bool) error {
 
 	cmd := exec.Command("pgrep", "-f", fmt.Sprintf("%s %s", flags.CliName, "vpn start-fg"))
 	output, err := cmd.Output()
@@ -142,9 +142,6 @@ func getCurrentDns(verbose bool) ([]string, error) {
 		return nil, err
 	}
 
-	if err != nil {
-		return nil, err
-	}
 	lines := strings.Split(string(output), "\n")
 	var dnsServers []string
 	for _, line := range lines {
@@ -187,7 +184,7 @@ func (wc *wgClientImpl) startService(_ string, verbose bool) error {
 	uapi, err := ipc.UAPIListen(ifName, fileUAPI)
 	if err != nil {
 		logger.Errorf("Failed to listen on uapi socket: %v", err)
-		os.Exit(1)
+		return err
 	}
 	go func() {
 		for {

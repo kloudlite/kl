@@ -7,7 +7,6 @@ import (
 
 	confighandler "github.com/kloudlite/kl/pkg/config-handler"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
 type ShellData struct {
@@ -64,7 +63,7 @@ type WsContext interface {
 
 func (w wsContext) GetEnv() (string, error) {
 	if w.EnvName == "" {
-		return "", fn.Errorf("no environment selected")
+		return "", ErrEnvNotSelected
 	}
 
 	s, err := getCtxData()
@@ -78,7 +77,7 @@ func (w wsContext) GetEnv() (string, error) {
 	}
 
 	if menv != w.EnvName {
-		return "", fn.Errorf("selected env %s is not same as current working directory env %s, please change selected env using %s", text.Yellow(menv), text.Yellow(w.EnvName), text.Blue("kl use env"))
+		return "", ErrEnvMismatch
 	}
 
 	return w.EnvName, nil

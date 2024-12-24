@@ -97,13 +97,13 @@ func NewProxyWithService(logResponse bool, ensureAppRunning ...bool) (*Proxy, er
 				return nil, err
 			}
 
-			command := exec.Command("sudo", klpath, "daemon", "start")
+			command := exec.Command("sudo", klpath, "daemon", "up", "-v")
 			if err = command.Start(); err != nil {
 				fn.Warn(err)
 			}
 
 		} else {
-			if _, err := fn.WinSudoExec(fmt.Sprintf("%s daemon start", flags.CliName), nil); err != nil {
+			if _, err := fn.WinSudoExec(fmt.Sprintf("%s daemon up -v", flags.CliName), nil); err != nil {
 				fn.PrintError(err)
 			}
 		}

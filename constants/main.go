@@ -85,10 +85,6 @@ var (
 	}()
 )
 
-var (
-	CoreCliName = "kl"
-)
-
 // Temporary Constants
 const (
 	NetworkService = "Wi-Fi"

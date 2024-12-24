@@ -13,21 +13,9 @@ type FileClient interface {
 	SaveBaseURL(url string) error
 	GetBaseURL() (string, error)
 
-	GetExtraData() (Extra, error)
-
-	GetHostWgConfig() (string, error)
-	GetWGConfig() (*WGConfig, error)
-	SetWGConfig(config string) error
-
-	Logout() error
-
-	GetK3sTracker() (*K3sTracker, error)
-	GetClusterConfig(team string) (*TeamClusterConfig, error)
-	SetClusterConfig(team string, accClusterConfig *TeamClusterConfig) error
-	DeleteClusterData(team string) error
-	GetDevice() (*DeviceData, error)
-	SetDevice(device *DeviceData) error
 	GetDataContext() Session
+	GetExtraData() (Extra, error)
+	GetWsContext() (WsContext, error)
 
 	GetKlFile() (*KLFileType, error)
 
@@ -37,9 +25,16 @@ type FileClient interface {
 	CurrentEnv() (string, error)
 
 	GetConfigPath() (string, error)
-	GetWsContext() (WsContext, error)
-
 	GetKlFileHash() ([]byte, error)
+
+	Logout() error
+
+	GetK3sTracker() (*K3sTracker, error)
+	GetClusterConfig(team string) (*TeamClusterConfig, error)
+	SetClusterConfig(team string, accClusterConfig *TeamClusterConfig) error
+	DeleteClusterData(team string) error
+
+	GetWGConfig() (*WGConfig, error)
 }
 
 func (c *fclient) GetWsContext() (WsContext, error) {

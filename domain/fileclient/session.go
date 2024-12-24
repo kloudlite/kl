@@ -7,7 +7,6 @@ import (
 
 	confighandler "github.com/kloudlite/kl/pkg/config-handler"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
 type Session interface {
@@ -123,7 +122,7 @@ func (s *sed) GetDevice() (*DeviceData, error) {
 	}
 
 	if s.TeamsData[team] == nil {
-		return nil, fn.Errorf("device not found")
+		return nil, ErrDeviceNotFound
 	}
 
 	return s.TeamsData[team], nil
@@ -131,7 +130,7 @@ func (s *sed) GetDevice() (*DeviceData, error) {
 
 func (s *sed) GetWsTeam() (string, error) {
 	if s.Team == "" {
-		return "", fn.Errorf("team not found")
+		return "", ErrTeamNotFound
 	}
 
 	kt, err := getKlFile()
@@ -147,7 +146,7 @@ func (s *sed) GetWsTeam() (string, error) {
 			}
 			return s.Team, nil
 		}
-		return "", fn.Errorf("selected team is not same as current working directory, please change selected team using %s", text.Blue("kl use team"))
+		return "", ErrTeamMismatch
 	}
 
 	return s.Team, nil
@@ -155,7 +154,7 @@ func (s *sed) GetWsTeam() (string, error) {
 
 func (s *sed) GetTeam() (string, error) {
 	if s.Team == "" {
-		return "", fn.Errorf("team not found")
+		return "", ErrTeamNotFound
 	}
 
 	return s.Team, nil
@@ -163,7 +162,7 @@ func (s *sed) GetTeam() (string, error) {
 
 func (s *sed) GetSession() (string, error) {
 	if s.Session == "" {
-		return "", fn.Errorf("session not found")
+		return "", ErrSessionNotFound
 	}
 
 	return s.Session, nil
@@ -171,7 +170,7 @@ func (s *sed) GetSession() (string, error) {
 
 func (s *sed) GetEnv() (string, error) {
 	if s.Env == "" {
-		return "", fn.Errorf("env not found, please run `kl use env` to select an environment")
+		return "", ErrEnvNotFound
 	}
 	return s.Env, nil
 }

@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path"
 
+	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -15,7 +16,7 @@ import (
 )
 
 const (
-	ifName string = "utun2464"
+	ifName string = constants.InterfaceName
 )
 
 func connect(verbose bool, options ...fn.Option) error {

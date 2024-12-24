@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/kloudlite/kl/constants"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/wg_vpn"
 )
@@ -91,7 +92,7 @@ func (s *Server) Start(ctx context.Context) error {
 			}
 
 			if body.Dns == "" {
-				if err := wc.SetDnsServers([]net.IP{}, "kl", true); err != nil {
+				if err := wc.SetDnsServers([]net.IP{}, constants.InterfaceName, true); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -108,7 +109,7 @@ func (s *Server) Start(ctx context.Context) error {
 				ips = append(ips, ip)
 			}
 
-			if err := wc.SetDnsServers(ips, "kl", true); err != nil {
+			if err := wc.SetDnsServers(ips, constants.InterfaceName, true); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}

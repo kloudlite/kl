@@ -53,15 +53,17 @@ var rootCmd = &cobra.Command{
 			flags.IsQuiet = quiet
 		}
 
-		sigChan := make(chan os.Signal, 1)
+		if !flags.IsVerbose {
+			sigChan := make(chan os.Signal, 1)
 
-		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-		go func() {
-			<-sigChan
+			signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+			go func() {
+				<-sigChan
 
-			spinner.Client.Stop()
-			os.Exit(1)
-		}()
+				spinner.Client.Stop()
+				os.Exit(1)
+			}()
+		}
 	},
 
 	PersistentPostRun: func(*cobra.Command, []string) {
