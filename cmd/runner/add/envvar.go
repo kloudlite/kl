@@ -74,6 +74,7 @@ func addEnvvar(cmd *cobra.Command, args []string) error {
 
 	fn.Log(text.Green(fmt.Sprintf("added envvar %s=%s to your kl-file", key, value)))
 
+	fn.WarnReload()
 	return nil
 }
 

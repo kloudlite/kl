@@ -38,6 +38,7 @@ func resetEnvs(envMap map[string]string, env []string) map[string]string {
 }
 
 type ShellArgs struct {
+	OnlyPrint bool
 	ShellData *fileclient.ShellData
 	Shell     string
 	EnvVars   []string
@@ -54,10 +55,13 @@ func NixShell(cmd *cobra.Command, args ShellArgs) error {
 	envMap := fn.EnvSliceToMap(append(os.Environ(), args.EnvVars...))
 	envMap = resetEnvs(envMap, []string{"PATH", "LD_LIBRARY_PATH", "CPATH"})
 
+	newenvs := make(map[string]string)
+
 	if args.ShellData != nil {
 		m := args.ShellData.Envs
 		for k, v := range m {
 			envMap[k] = v
+			newenvs[k] = v
 		}
 	}
 
@@ -66,14 +70,13 @@ func NixShell(cmd *cobra.Command, args ShellArgs) error {
 		if err != nil {
 			return fn.NewE(err)
 		}
+
 		for k, v := range m {
 			envMap[k] = v
+			newenvs[k] = v
 		}
 
 		fc := clients.File
-		if err != nil {
-			return fn.NewE(err)
-		}
 
 		wc, err := fc.GetWsContext()
 		if err != nil {
@@ -100,6 +103,22 @@ func NixShell(cmd *cobra.Command, args ShellArgs) error {
 
 	for k, v := range extraEnv {
 		envMap[k] = v
+	}
+
+	if args.OnlyPrint {
+
+		output := ""
+
+		for k, v := range newenvs {
+			// fmt.Println("export", k, v)
+			output += fmt.Sprintf("export %s=%q\n", k, v)
+		}
+
+		output += fmt.Sprintf("export PATH=%s:%s\n", newenvs["KL_NIX_PATH"], envMap["KL_OLD_PATH"])
+
+		fmt.Println(output)
+
+		return nil
 	}
 
 	c := exec.Command(shell, extraArgs...)

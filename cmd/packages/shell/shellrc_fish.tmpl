@@ -15,3 +15,6 @@ cd "{{ .ProjectDir }}" || exit
 cd "$workingDir" || exit
 
 set -gx PATH $KL_NIX_PATH $PATH
+
+
+alias reload 'eval "$(kl shell --onlyprint)"'

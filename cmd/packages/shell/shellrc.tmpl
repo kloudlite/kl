@@ -22,3 +22,5 @@ cd "{{ .ProjectDir }}" || exit
 cd "$working_dir" || exit
 
 export PATH="$KL_NIX_PATH:$PATH"
+
+alias reload='eval "$(kl shell --onlyprint)"'

@@ -180,6 +180,7 @@ func (p *pkgHandler) SyncLockfile() error {
 	lf.Libraries = newLock
 	lf.Checksum = lfcheck
 
+	fn.WarnReload()
 	return lf.Save()
 }
 
@@ -241,8 +242,8 @@ func (p *pkgHandler) EvaluateShell(ctx context.Context, packages []string, libra
 	libPaths = createSet(libPaths)
 	includes = createSet(includes)
 
-	resp["LD_LIBRARY_PATH"] = fmt.Sprintf("%s:%s", strings.Join(libPaths, ":"), os.Getenv("LD_LIBRARY_PATH"))
-	resp["CPATH"] = fmt.Sprintf("%s:%s", strings.Join(includes, ":"), os.Getenv("CPATH"))
+	resp["LD_LIBRARY_PATH"] = strings.ReplaceAll(fmt.Sprintf("%s:%s", strings.Join(libPaths, ":"), os.Getenv("LD_LIBRARY_PATH")), "::", ":")
+	resp["CPATH"] = strings.ReplaceAll(fmt.Sprintf("%s:%s", strings.Join(includes, ":"), os.Getenv("CPATH")), "::", ":")
 
 	return resp, nil
 }

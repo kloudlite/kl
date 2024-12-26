@@ -230,6 +230,7 @@ func selectConfigMount(apic apiclient.ApiClient, klFile fileclient.KLFileType, c
 
 	fn.Log("added mount to your kl-file")
 
+	fn.WarnReload()
 	return nil
 }
 

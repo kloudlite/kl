@@ -109,6 +109,7 @@ func AddMres(apic apiclient.ApiClient, cmd *cobra.Command, args []string) error 
 
 	fn.Log(fmt.Sprintf("added mres %s/%s to your kl-file", mres.SecretRefName.Name, *mresKey))
 
+	fn.WarnReload()
 	return nil
 }
 

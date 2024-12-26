@@ -229,6 +229,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 
 	fn.Log(fmt.Sprintf("added config %s/%s to your kl-file", selectedConfigGroup.Metadata.Name, selectedConfigKey.Key))
 
+	fn.WarnReload()
 	return nil
 }
 

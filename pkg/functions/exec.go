@@ -9,6 +9,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
 func ExecCmd(cmdString string, env map[string]string, verbose bool) error {
@@ -173,4 +175,10 @@ func EnvSliceToMap(env []string) map[string]string {
 		result[key] = val
 	}
 	return result
+}
+
+func WarnReload() {
+	if _, ok := os.LookupEnv("KL_SHELL"); ok {
+		Warn(text.Yellow("environment variables are updated, please run `reload` to reflect changes to your current shell"))
+	}
 }

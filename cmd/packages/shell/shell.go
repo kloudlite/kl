@@ -125,15 +125,22 @@ func Shell(cmd *cobra.Command, args []string) error {
 		envs = append(envs, fmt.Sprintf("%s=%s", k, v))
 	}
 
+	onlyPrint := fn.ParseBoolFlag(cmd, "onlyprint")
+
 	if err := NixShell(cmd, ShellArgs{
 		Shell:     os.Getenv("SHELL"),
 		EnvVars:   append(envs, "KL_SHELL=true", fmt.Sprintf("kl_mounts=%s", mountpath)),
 		Packages:  pkgs,
 		Libraries: libs,
 		ShellData: ck.ShellData,
+		OnlyPrint: onlyPrint,
 	}); err != nil {
 		return fn.NewE(err)
 	}
 
 	return nil
+}
+
+func init() {
+	Cmd.Flags().BoolP("onlyprint", "p", false, "print vars export command")
 }

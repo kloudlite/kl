@@ -210,6 +210,8 @@ func selectAndAddSecret(cmd *cobra.Command, args []string) error {
 
 	fn.Log(fmt.Sprintf("added secret %s/%s to your kl-file", selectedSecretGroup.Metadata.Name, selectedSecretKey.Key))
 
+	fn.WarnReload()
+
 	return nil
 }
 
