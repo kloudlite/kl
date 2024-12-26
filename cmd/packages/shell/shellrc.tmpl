@@ -12,8 +12,7 @@ if [ -z "$KL_NO_PROMPT" ]; then
   fi
   KL_PROMPT="(kl$var1)"
 
-  export PS1="
-$KL_PROMPT $PS1"
+  export PS1='$(kl checkchanges)'"$PS1"
 fi
 
 working_dir="$(pwd)"

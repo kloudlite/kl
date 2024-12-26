@@ -6,6 +6,8 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
+var ErrHashMismatch = fn.Errorf("hash mismatch")
+
 func getCache() (*fileclient.CacheKLConfig, error) {
 	fc := clients.File
 
@@ -25,7 +27,7 @@ func getCache() (*fileclient.CacheKLConfig, error) {
 	}
 
 	if ck.Hash != string(b) {
-		return nil, fn.Errorf("hash mismatch")
+		return nil, ErrHashMismatch
 	}
 
 	return ck, nil

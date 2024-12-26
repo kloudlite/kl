@@ -219,6 +219,14 @@ func (c *fclient) GetKlFileHash() ([]byte, error) {
 		return nil, fn.NewE(err)
 	}
 
+	wc, err := c.GetWsContext()
+	if err == nil {
+		s, err := wc.GetEnv()
+		if err == nil {
+			b = append(b, []byte(s)...)
+		}
+	}
+
 	hash := sha256.Sum256(b)
 	return []byte(fmt.Sprintf("%x", hash)), nil
 }

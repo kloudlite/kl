@@ -5,7 +5,7 @@ if not set -q kl_no_prompt
     end
 
     function fish_prompt
-        echo "(kl$var1)" (__kl_fish_prompt_orig)
+        echo "$(kl checkchanges)" (__kl_fish_prompt_orig)
     end
 end
 

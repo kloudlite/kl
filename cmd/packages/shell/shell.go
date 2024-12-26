@@ -33,9 +33,6 @@ func Shell(cmd *cobra.Command, args []string) error {
 	}
 
 	apic := clients.Api
-	if err != nil {
-		return err
-	}
 
 	isOnlyPkgMode := utils.IsOnlyPkgMode()
 
@@ -57,7 +54,6 @@ func Shell(cmd *cobra.Command, args []string) error {
 		if _, err := dclient.SetSearchDomain(searchDomain); err != nil {
 			return err
 		}
-
 	}
 
 	pc, err := nixpkghandler.New(cmd)
@@ -68,11 +64,13 @@ func Shell(cmd *cobra.Command, args []string) error {
 	var envMap, mountMap map[string]string
 
 	ck, err := getCache()
+
 	if err == nil {
 		envMap = ck.EnvVars
 		mountMap = ck.Mounts
 	} else {
-		fn.Warn(text.Yellow("cache not found, refetching"))
+
+		fn.Warn(text.Yellow("cache is outdated, refetching"))
 		envMap, mountMap, err = apic.GetLoadMaps()
 		if err != nil {
 			fn.Warn(err)

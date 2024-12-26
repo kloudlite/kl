@@ -37,6 +37,7 @@ func init() {
 		rootCmd.AddCommand(DocsCmd)
 	}
 
+	rootCmd.AddCommand(shell.CheckCmd)
 	rootCmd.AddCommand(auth.Cmd)
 	rootCmd.AddCommand(UpdateCmd)
 	rootCmd.AddCommand(set_base_url.Cmd)
