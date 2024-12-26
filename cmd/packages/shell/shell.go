@@ -126,8 +126,10 @@ func Shell(cmd *cobra.Command, args []string) error {
 	onlyPrint := fn.ParseBoolFlag(cmd, "onlyprint")
 
 	if err := NixShell(cmd, ShellArgs{
-		Shell:     os.Getenv("SHELL"),
-		EnvVars:   append(envs, "KL_SHELL=true", fmt.Sprintf("kl_mounts=%s", mountpath)),
+		Shell: os.Getenv("SHELL"),
+		EnvVars: append(envs, "KL_SHELL=true", fmt.Sprintf("kl_mounts=%s", mountpath),
+			fmt.Sprintf("KL_HASH=%s", ck.Hash),
+		),
 		Packages:  pkgs,
 		Libraries: libs,
 		ShellData: ck.ShellData,

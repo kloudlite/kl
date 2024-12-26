@@ -14,8 +14,8 @@ var CheckCmd = &cobra.Command{
 	Use:    "checkchanges",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := getCache()
-		if err != nil {
+		ck, err := getCache()
+		if err != nil || ck.Hash != os.Getenv("KL_HASH") {
 			fmt.Printf("(kl - %s)", text.Yellow("reload needed"))
 			return
 		}

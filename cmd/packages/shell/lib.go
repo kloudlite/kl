@@ -114,6 +114,7 @@ func NixShell(cmd *cobra.Command, args ShellArgs) error {
 			output += fmt.Sprintf("export %s=%q\n", k, v)
 		}
 
+		output += fmt.Sprintf("export KL_HASH=%s\n", envMap["KL_HASH"])
 		output += fmt.Sprintf("export PATH=%s:%s\n", newenvs["KL_NIX_PATH"], envMap["KL_OLD_PATH"])
 
 		fmt.Println(output)
