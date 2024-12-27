@@ -17,6 +17,7 @@ import (
 	"github.com/kloudlite/kl/daemon/server"
 	"github.com/kloudlite/kl/flags"
 	fn "github.com/kloudlite/kl/pkg/functions"
+	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/kloudlite/kl/pkg/ui/text"
 )
 
@@ -109,11 +110,13 @@ func NewProxyWithService(logResponse bool, ensureAppRunning ...bool) (*Proxy, er
 		}
 
 		count++
-		if count >= 2 {
+		if count >= 4 {
 			return nil, fn.Errorf("failed to start daemon server")
 		}
 
-		time.Sleep(2 * time.Second)
+		f := spinner.Client.UpdateMessage("starting daemon server...")
+		time.Sleep(1 * time.Second)
+		f()
 	}
 
 }

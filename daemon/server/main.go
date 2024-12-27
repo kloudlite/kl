@@ -80,6 +80,11 @@ func (s *Server) Start(ctx context.Context) error {
 			return
 
 		case "exit":
+			if err := wc.StopService(constants.InterfaceName, true); err != nil {
+				fn.Debug(err)
+				ch <- err
+			}
+
 			w.WriteHeader(http.StatusOK)
 			ch <- nil
 			return
