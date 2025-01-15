@@ -45,7 +45,7 @@ func init() {
 					packages = append(packages, args[i])
 				}
 
-				c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --command echo downloaded", strings.Join(packages, " ")))
+				c := exec.Command("sh", "-c", fmt.Sprintf("nix --extra-experimental-features nix-command --extra-experimental-features flakes shell %s --command echo downloaded", strings.Join(packages, " ")))
 
 				c.Stdout = os.Stdout
 				c.Stderr = os.Stderr

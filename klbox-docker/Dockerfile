@@ -65,12 +65,16 @@ RUN chsh -s /bin/zsh kl
 
 COPY ./start.sh /start.sh
 COPY ./entrypoint.sh /entrypoint.sh
-COPY ./docker-socket.sh /docker-socket.sh
 
 RUN mkdir /kl-tmp && chown -R kl:kl /kl-tmp
 
-RUN chmod +x /start.sh /entrypoint.sh /docker-socket.sh
+RUN chmod +x /start.sh /entrypoint.sh
+RUN chown -R 1000:1000 /home/kl
 
 COPY --from=builder /kl-app/bin/kl /usr/local/bin/kl
+
+USER kl
+
+WORKDIR /home/kl
 
 ENTRYPOINT ["/entrypoint.sh"]

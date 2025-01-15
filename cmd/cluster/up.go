@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/clients"
@@ -18,6 +17,7 @@ var upCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Starts the k3s server",
 	Long:  `Starts the k3s server`,
+	Hidden: true,
 	Run: func(cmd *cobra.Command, _ []string) {
 		if err := startK3sServer(cmd); err != nil {
 			functions.PrintError(err)
@@ -30,14 +30,7 @@ func startK3sServer(cmd *cobra.Command) error {
 	defer spinner.Client.UpdateMessage("starting k3s server")()
 
 	fc := clients.File
-	if err != nil {
-		return functions.NewE(err)
-	}
-
 	apic := clients.Api
-	if err != nil {
-		return functions.NewE(err)
-	}
 
 	k, err := k3s.NewClient(cmd)
 	if err != nil {
@@ -49,26 +42,9 @@ func startK3sServer(cmd *cobra.Command) error {
 		return functions.NewE(err)
 	}
 
-	sd, err := fc.GetSessionData()
+	team, err := fc.GetDataContext().GetTeam()
+
 	if err != nil {
-		return err
-	}
-
-	if (err != nil && os.IsNotExist(err)) || sd.Team == "" {
-		currentTeam, err := fc.CurrentTeamName()
-		if err != nil {
-			return functions.NewE(err)
-		}
-		sd.Team = currentTeam
-		if err := sd.Save(); err != nil {
-			return functions.NewE(err)
-		}
-	} else if err != nil {
-		return functions.NewE(err)
-	}
-
-	if sd.Team == "" {
-
 		teams, err := apic.ListTeams()
 		if err != nil {
 			return functions.NewE(err)
@@ -89,22 +65,14 @@ func startK3sServer(cmd *cobra.Command) error {
 			}
 		}
 
-		//if selectedTeam.Metadata.Name != extraData.SelectedTeam && extraData.SelectedTeam != "" {
-		//	if err := StopK3sServer(cmd); err != nil {
-		//		return functions.NewE(err)
-		//	}
-		//}
-
-		sd.Team = selectedTeam.Metadata.Name
-
-		if err := sd.Save(); err != nil {
+		if err := fc.GetDataContext().SetTeam(selectedTeam.Metadata.Name); err != nil {
 			return functions.NewE(err)
 		}
 
 	}
 
-	if sd.Team != teamName && teamName != "" && sd.Team != "" {
-		functions.Logf(text.Yellow(fmt.Sprintf("[#] local cluster is already running for team %s, do you want to stop it and start a new cluster for team %s? [y/N] ", teamName, sd.Team)))
+	if team != teamName && teamName != "" && team != "" {
+		functions.Logf(text.Yellow(fmt.Sprintf("[#] local cluster is already running for team %s, do you want to stop it and start a new cluster for team %s? [y/N] ", teamName, team)))
 		if !functions.Confirm("Y", "N") {
 			return nil
 		}
@@ -113,12 +81,12 @@ func startK3sServer(cmd *cobra.Command) error {
 		}
 	}
 
-	_, err = apic.GetClusterConfig(sd.Team)
+	_, err = apic.GetClusterConfig(team)
 	if err != nil {
 		return err
 	}
 
-	if err = k.CreateClustersTeams(sd.Team); err != nil {
+	if err = k.CreateClustersTeams(team); err != nil {
 		return functions.NewE(err)
 	}
 	functions.Log("k3s server started. It will usually take a minute to come online")

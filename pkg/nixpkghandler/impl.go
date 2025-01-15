@@ -259,7 +259,7 @@ func installPackage(pkgs ...string) (string, error) {
 		return "", err
 	}
 
-	c := exec.Command("sh", "-c", fmt.Sprintf("%s shell %s --command printenv PATH", nixPath, strings.Join(pkgs, " ")))
+	c := exec.Command("sh", "-c", fmt.Sprintf("%s --extra-experimental-features nix-command --extra-experimental-features flakes shell %s --command printenv PATH", nixPath, strings.Join(pkgs, " ")))
 	c.Env = []string{fmt.Sprintf("PATH=%s", path.Dir(penvPath))}
 
 	if flags.IsVerbose {

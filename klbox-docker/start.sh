@@ -158,6 +158,7 @@ sudo sh -c "echo \"search $KL_SEARCH_DOMAIN\" >> $RESOLV_FILE"
 #  chmod 600 /home/kl/.ssh/authorized_keys
 #  echo "successfully copied ssh credentials"
 #fi
+
 chown -R kl /home/kl/.check-online
 bash /home/kl/.check-online >/dev/null 2>&1 &
 trap - EXIT SIGTERM SIGINT

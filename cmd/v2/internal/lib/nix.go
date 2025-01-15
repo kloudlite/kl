@@ -10,7 +10,7 @@ import (
 )
 
 func installPackage(pkgs ...string) (path string, err error) {
-	c := exec.Command("sh", "-c", fmt.Sprintf("nix shell %s --command printenv PATH", strings.Join(pkgs, " ")))
+	c := exec.Command("sh", "-c", fmt.Sprintf("nix --extra-experimental-features nix-command --extra-experimental-features flakes shell %s --command printenv PATH", strings.Join(pkgs, " ")))
 
 	b := new(bytes.Buffer)
 	c.Stdout = b
