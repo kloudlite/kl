@@ -10,6 +10,7 @@ var (
 	ErrNotFound       = fn.Errorf("not found")
 	ErrDeviceNotFound = fn.Errorf("device not found")
 	ErrTeamNotFound   = fn.Errorf("team not found")
+	ErrK3sPortNotFound = fn.Errorf("k3s port not found")
 	ErrTeamMismatch   = fn.Errorf("selected team is not same as current working directory, please change selected team using %s", text.Blue("kl use team"))
 
 	ErrSessionNotFound = fn.Errorf("session not found")

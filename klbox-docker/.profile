@@ -14,9 +14,7 @@
 # source $HOME/.nix-profile/etc/profile.d/nix.sh
 export PATH=$PATH:/home/kl/.nix-profile/bin
 
-KL_LOCK_PATH=/home/kl/workspace/kl.lock
 [ -f /kl-tmp/env ] && source /kl-tmp/env
-
 
 if [ -n "$BASH_VERSION" ]; then
   # include .bashrc if it exists
@@ -39,4 +37,5 @@ if [ -f "/kl-tmp/global-profile" ]; then
   source /kl-tmp/global-profile
 fi
 
+mkdir -p /home/kl/workspace
 cd /home/kl/workspace || return

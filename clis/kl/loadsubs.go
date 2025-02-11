@@ -24,11 +24,14 @@ import (
 	"github.com/kloudlite/kl/cmd/use"
 	"github.com/kloudlite/kl/cmd/vpn"
 	"github.com/kloudlite/kl/constants"
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/flags"
 	"github.com/spf13/cobra"
 )
 
 func init() {
+	isBoxMode := fileclient.IsBoxMode()
+
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 	rootCmd.SetHelpCommand(&cobra.Command{
 		Hidden: true,
@@ -39,16 +42,23 @@ func init() {
 	}
 
 	rootCmd.AddCommand(shell.CheckCmd)
-	rootCmd.AddCommand(auth.Cmd)
-	rootCmd.AddCommand(UpdateCmd)
-	rootCmd.AddCommand(set_base_url.Cmd)
-	rootCmd.AddCommand(initp.InitCommand)
 
+	if !isBoxMode {
+		rootCmd.AddCommand(auth.Cmd)
+		rootCmd.AddCommand(UpdateCmd)
+
+		rootCmd.AddCommand(set_base_url.Cmd)
+	}
+
+	rootCmd.AddCommand(initp.InitCommand)
 	rootCmd.AddCommand(use.Cmd)
 	rootCmd.AddCommand(list.Cmd)
 	rootCmd.AddCommand(get.Cmd)
 	rootCmd.AddCommand(vpn.Cmd)
-	rootCmd.AddCommand(daemon_cmd.Cmd)
+
+	if !isBoxMode {
+		rootCmd.AddCommand(daemon_cmd.Cmd)
+	}
 
 	if runtime.GOOS == constants.RuntimeWindows {
 		return
@@ -65,32 +75,23 @@ func init() {
 
 	rootCmd.AddCommand(status.Cmd)
 
-	// Not Required for now
-	// rootCmd.AddCommand(env.Cmd)
-	// rootCmd.AddCommand(clone.Cmd)
-
 	if runtime.GOOS == constants.RuntimeDarwin {
 		return
 	}
 
-	// rootCmd.AddCommand(box.BoxCmd)
+	if !fileclient.IsBoxMode() {
+		rootCmd.AddCommand(cluster.Cmd)
 
-	// rootCmd.AddCommand(runner.AttachCommand)
-	//
-	//
-	rootCmd.AddCommand(cluster.Cmd)
-	//
-	// rootCmd.AddCommand(connect.Command)
-	// rootCmd.AddCommand(v2Shell.Command)
-	// rootCmd.AddCommand(v2Add.Command)
-	// rootCmd.AddCommand(v2Pkg.Command)
-	// rootCmd.AddCommand(v2Lib.Command)
+		if _, err := exec.LookPath("helm"); err == nil {
+			rootCmd.AddCommand(kubectl.HelmCmd)
+		}
 
-	if _, err := exec.LookPath("k9s"); err == nil {
-		rootCmd.AddCommand(kubectl.K9sCmd)
-	}
+		if _, err := exec.LookPath("k9s"); err == nil {
+			rootCmd.AddCommand(kubectl.K9sCmd)
+		}
 
-	if _, err := exec.LookPath("kubectl"); err == nil {
-		rootCmd.AddCommand(kubectl.KubectlCmd)
+		if _, err := exec.LookPath("kubectl"); err == nil {
+			rootCmd.AddCommand(kubectl.KubectlCmd)
+		}
 	}
 }

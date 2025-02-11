@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 
 	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -120,6 +121,12 @@ func NixShell(cmd *cobra.Command, args ShellArgs) error {
 		fmt.Println(output)
 
 		return nil
+	}
+
+	if exc := fn.ParseStringFlag(cmd, "exec"); exc != "" {
+		s := strings.Split(exc, " ")
+		shell = s[0]
+		extraArgs = s[1:]
 	}
 
 	c := exec.Command(shell, extraArgs...)

@@ -24,6 +24,7 @@ var Cmd = &cobra.Command{
 	Short: "get status of your current context (user, team, environment, vpn status)",
 	Run: func(cmd *cobra.Command, _ []string) {
 		apic := clients.Api
+		fc := clients.File
 
 		if u, err := apic.GetCurrentUser(); err == nil {
 			fn.Logf("\nLogged in as %s (%s)\n",
@@ -32,23 +33,15 @@ var Cmd = &cobra.Command{
 			)
 		}
 
-		fc := clients.File
-
-		k3sClient, err := k3s.NewClient(cmd)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
 		var team string
 
-		team, err = fc.GetDataContext().GetTeam()
+		team, err := fc.GetDataContext().GetTeam()
 		if err == nil {
 			fn.Log(fmt.Sprint(text.Bold(text.Blue("Team: ")), team))
 		}
 
 		func() {
-			if team != "" {
+			if team == "" {
 				return
 			}
 
@@ -83,6 +76,14 @@ var Cmd = &cobra.Command{
 				fn.Log(text.Bold(text.Blue("Environment: ")), selectedEnv)
 			}
 		}()
+
+		return
+
+		k3sClient, err := k3s.NewClient(cmd)
+		if err != nil {
+			fn.PrintError(err)
+			return
+		}
 
 		func() {
 			if team == "" {

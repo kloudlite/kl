@@ -23,6 +23,8 @@ var cleanCmd = &cobra.Command{
 
 func cleanCluster(cmd *cobra.Command) error {
 	fc := clients.File
+	apic := clients.Api
+
 	k3sClient, err := k3s.NewClient(cmd)
 	if err != nil {
 		return err
@@ -38,8 +40,28 @@ func cleanCluster(cmd *cobra.Command) error {
 		return nil
 	}
 
-	if err = k3sClient.RemoveClusterVolume(team); err != nil {
+	clusters, err := apic.GetClustersOfTeam(team)
+	if err != nil {
 		return fn.NewE(err)
+	}
+	wgConfig, err := fc.GetWGConfig()
+	if err != nil {
+		return fn.NewE(err)
+	}
+	for _, c := range clusters {
+		if c.Metadata.Labels["kloudlite.io/local-uuid"] == wgConfig.UUID {
+			if err := apic.DeleteCluster(team, c.Metadata.Name); err != nil {
+				return fn.NewE(err)
+			}
+			if err = fc.DeleteClusterData(team); err != nil {
+				return fn.NewE(err)
+			}
+			if err = k3sClient.RemoveClusterVolume(c.Metadata.Name); err != nil {
+				return fn.NewE(err)
+			}
+			fn.Log(fmt.Sprintf("cluster %s of team %s deleted", c.Metadata.Name, team))
+			break
+		}
 	}
 	return nil
 }

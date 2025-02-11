@@ -22,6 +22,7 @@ var teamCmd = &cobra.Command{
 
 func UseTeam(cmd *cobra.Command) error {
 	apic := clients.Api
+	fc := clients.File
 
 	teams, err := apic.ListTeams()
 	if err != nil {
@@ -49,23 +50,31 @@ func UseTeam(cmd *cobra.Command) error {
 		return err
 	}
 
-	if _, err = dctx.GetDevice(); err != nil {
-		st, err := dctx.GetTeam()
-		if err != nil {
-			return fn.NewE(err)
-		}
+	kt, err := fc.GetKlFile()
+	kt.TeamName = selectedTeam.Metadata.Name
+	if err := kt.Save(); err != nil {
+		return err
+	}
 
-		d, err := apic.CreateVpnForTeam(st)
-		if err != nil {
-			return fn.NewE(err)
-		}
+	if !fileclient.IsBoxMode() {
+		if _, err = dctx.GetDevice(); err != nil {
+			st, err := dctx.GetTeam()
+			if err != nil {
+				return fn.NewE(err)
+			}
 
-		if err := dctx.SetDevice(fileclient.DeviceData{
-			WGconf:     d.WireguardConfig.Value,
-			IpAddress:  d.IPAddress,
-			DeviceName: d.Metadata.Name,
-		}); err != nil {
-			return fn.NewE(err)
+			d, err := apic.CreateVpnForTeam(st)
+			if err != nil {
+				return fn.NewE(err)
+			}
+
+			if err := dctx.SetDevice(fileclient.DeviceData{
+				WGconf:     d.WireguardConfig.Value,
+				IpAddress:  d.IPAddress,
+				DeviceName: d.Metadata.Name,
+			}); err != nil {
+				return fn.NewE(err)
+			}
 		}
 	}
 

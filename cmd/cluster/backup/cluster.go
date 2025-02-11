@@ -20,5 +20,4 @@ func init() {
 	Cmd.AddCommand(downCmd)
 	Cmd.AddCommand(upCmd)
 	Cmd.AddCommand(cleanCmd)
-	Cmd.AddCommand(listCmd)
 }

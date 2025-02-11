@@ -14,6 +14,10 @@ import (
 	fn "github.com/kloudlite/kl/pkg/functions"
 )
 
+var (
+	KLYamlNotFound = fn.Errorf("can't find kl.yaml file in the working directory, please run `kl init` to initialize kl.yaml")
+)
+
 type KLFileType struct {
 	Version    string `json:"version" yaml:"version"`
 	DefaultEnv string `json:"defaultEnv,omitempty" yaml:"defaultEnv,omitempty"`
@@ -105,7 +109,7 @@ func (k *KLFileType) Save() error {
 	}
 
 	if err := confighandler.WriteConfig(cpath, *k, 0o644); err != nil {
-		return functions.NewE(err)
+		return functions.NewE(err, fmt.Sprintf("failed while writing %q", cpath))
 	}
 
 	return nil
@@ -149,7 +153,7 @@ func GetKlPath() (string, error) {
 func assertConfigPath() (string, error) {
 	cpath, err := getConfigPath()
 	if err != nil {
-		return "", fn.Errorf("can't find kl.yaml file in the working directory, please run `kl init` to initialize kl.yaml")
+		return "", KLYamlNotFound
 	}
 
 	if _, err := os.Stat(cpath); os.IsNotExist(err) {

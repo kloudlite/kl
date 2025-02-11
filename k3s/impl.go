@@ -30,6 +30,9 @@ import (
 
 const (
 	CONT_MARK_KEY = "kl.container"
+	TEAM_NAME_KEY = "kl.team"
+	K3S_MARK_KEY  = "kl.k3s"
+	NET_MARK_KEY  = "kl.network"
 )
 
 //go:embed scripts/startup-script.sh.tmpl
@@ -44,6 +47,8 @@ func (c *client) CreateClustersTeams(teamName string) error {
 		All: true,
 		Filters: filters.NewArgs(
 			filters.Arg("label", fmt.Sprintf("%s=%s", CONT_MARK_KEY, "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", TEAM_NAME_KEY, teamName)),
+			filters.Arg("label", fmt.Sprintf("%s=%s", K3S_MARK_KEY, "true")),
 		),
 	})
 	if err != nil {
@@ -77,7 +82,8 @@ func (c *client) CreateClustersTeams(teamName string) error {
 		All: true,
 		Filters: filters.NewArgs(
 			filters.Arg("label", fmt.Sprintf("%s=%s", CONT_MARK_KEY, "true")),
-			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", K3S_MARK_KEY, "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", TEAM_NAME_KEY, teamName)),
 		),
 	})
 	if err != nil {
@@ -93,131 +99,88 @@ func (c *client) CreateClustersTeams(teamName string) error {
 		return nil
 	}
 
+	networkName := fmt.Sprintf("kloudlite-%s", teamName)
+
 	if err := c.EnsureKloudliteNetwork(); err != nil {
 		return fn.NewE(err)
 	}
 
-	clusterConfig, err := c.apic.GetClusterConfig(teamName)
-	if err != nil {
-		return fn.NewE(err)
-	}
+	// clusterConfig, err := c.apic.GetClusterConfig(teamName)
+	// if err != nil {
+	// 	return fn.NewE(err)
+	// }
 
 	configFolder, err := fileclient.GetConfigFolder()
 	if err != nil {
 		return fn.NewE(err)
 	}
 
-	createdConatiner := container.CreateResponse{}
-	if flags.IsDev() {
-		createdConatiner, err = c.c.ContainerCreate(c.cmd.Context(), &container.Config{
-			Labels: map[string]string{
-				CONT_MARK_KEY: "true",
-				"kl-k3s":      "true",
-				"kl-team":     teamName,
-			},
-			Image: constants.GetK3SImageName(),
-			Cmd: []string{
-				"server",
-				"--disable", "traefik",
-				"--node-name", clusterConfig.ClusterName,
-			},
-			ExposedPorts: nat.PortSet{
-				"33820/udp": struct{}{},
-				"6443/tcp":  struct{}{},
-			},
-		}, &container.HostConfig{
-			Privileged:  true,
-			NetworkMode: "kloudlite",
-			RestartPolicy: container.RestartPolicy{
-				Name: "always",
-			},
-			Binds: []string{
-				fmt.Sprintf("kl-k3s-%s-cache:/var/lib/rancher/k3s", clusterConfig.ClusterName),
-				fmt.Sprintf("%s:/.cache/kl", configFolder),
-			},
-			PortBindings: map[nat.Port][]nat.PortBinding{
-				"6443/tcp": {
-					{
-						HostPort: "6443",
-					},
-				},
-				"33820/udp": {
-					{
-						HostPort: "33820",
-					},
-				},
-			},
-		}, &network.NetworkingConfig{
-			EndpointsConfig: map[string]*network.EndpointSettings{
-				"kloudlite": {
-					IPAMConfig: &network.EndpointIPAMConfig{
-						IPv4Address: constants.K3sServerIp,
-					},
-				},
-			},
-		}, nil, "")
-		if err != nil {
-			return fn.NewE(err, "failed to create container")
-		}
-	} else {
-		createdConatiner, err = c.c.ContainerCreate(c.cmd.Context(), &container.Config{
-			Labels: map[string]string{
-				CONT_MARK_KEY: "true",
-				"kl-k3s":      "true",
-				"kl-team":     teamName,
-			},
-			Image: constants.GetK3SImageName(),
-			Cmd: []string{
-				"server",
-				"--disable", "traefik",
-				"--node-name", clusterConfig.ClusterName,
-			},
-			ExposedPorts: nat.PortSet{
-				"33820/udp": struct{}{},
-			},
-		}, &container.HostConfig{
-			Privileged:  true,
-			NetworkMode: "kloudlite",
-			RestartPolicy: container.RestartPolicy{
-				Name: "always",
-			},
-			Binds: []string{
-				fmt.Sprintf("kl-k3s-%s-cache:/var/lib/rancher/k3s", clusterConfig.ClusterName),
-				fmt.Sprintf("%s:/.cache/kl", configFolder),
-			},
-			PortBindings: map[nat.Port][]nat.PortBinding{
-				"33820/udp": {
-					{
-						HostPort: "33820",
-					},
-				},
-			},
-		}, &network.NetworkingConfig{
-			EndpointsConfig: map[string]*network.EndpointSettings{
-				"kloudlite": {
-					IPAMConfig: &network.EndpointIPAMConfig{
-						IPv4Address: constants.K3sServerIp,
-					},
-				},
-			},
-		}, nil, "")
-		if err != nil {
-			return fn.NewE(err, "failed to create container")
-		}
+	kubeport, err := c.fc.GetDataContext().GetK3sPort()
+	if err != nil {
+		return fn.NewE(err)
 	}
 
+	createdConatiner := container.CreateResponse{}
+
+	createdConatiner, err = c.c.ContainerCreate(c.cmd.Context(), &container.Config{
+		Labels: map[string]string{
+			CONT_MARK_KEY: "true",
+			K3S_MARK_KEY:  "true",
+			TEAM_NAME_KEY: teamName,
+		},
+		Image: constants.GetK3SImageName(),
+		Cmd: []string{
+			"server",
+			"--disable", "traefik",
+			// "--node-name", clusterConfig.ClusterName,
+			"--node-name", teamName,
+		},
+		ExposedPorts: nat.PortSet{
+			// "33820/udp": struct{}{},
+			"6443/tcp": struct{}{},
+		},
+	}, &container.HostConfig{
+		Privileged:  true,
+		NetworkMode: container.NetworkMode(networkName),
+		RestartPolicy: container.RestartPolicy{
+			Name: "always",
+		},
+		Binds: []string{
+			// fmt.Sprintf("kl-k3s-%s-cache:/var/lib/rancher/k3s", clusterConfig.ClusterName),
+			fmt.Sprintf("kl-k3s-%s-cache:/var/lib/rancher/k3s", teamName),
+			fmt.Sprintf("%s:/.cache/kl", configFolder),
+		},
+		PortBindings: map[nat.Port][]nat.PortBinding{
+			"6443/tcp": {
+				{
+					HostPort: *kubeport,
+				},
+			},
+		},
+	}, &network.NetworkingConfig{
+		// EndpointsConfig: map[string]*network.EndpointSettings{
+		// 	networkName: {
+		// 		IPAMConfig: &network.EndpointIPAMConfig{
+		// 			IPv4Address: constants.K3sServerIp,
+		// 		},
+		// 	},
+		// },
+	}, nil, fmt.Sprintf("kl-k3s-%s-cluster", teamName))
+	if err != nil {
+		return fn.NewE(err, "failed to create container")
+	}
 	if err := c.c.ContainerStart(c.cmd.Context(), createdConatiner.ID, container.StartOptions{}); err != nil {
 		return fn.NewE(err, "failed to start container")
 	}
 
-	script, err := c.generateConnectionScript(clusterConfig)
-	if err != nil {
-		return fn.NewE(err, "failed to generate connection script")
-	}
+	// script, err := c.generateConnectionScript(clusterConfig)
+	// if err != nil {
+	// 	return fn.NewE(err, "failed to generate connection script")
+	// }
 
-	if err = c.runScriptInContainer(script); err != nil {
-		return fn.NewE(err, "failed to run script")
-	}
+	// if err = c.runScriptInContainer(script); err != nil {
+	// 	return fn.NewE(err, "failed to run script")
+	// }
 
 	start := time.Now()
 	defer func() {
@@ -281,7 +244,6 @@ func (c *client) generateConnectionScript(clusterConfig *fileclient.TeamClusterC
 func (c *client) DeletePods() error {
 	defer spinner.Client.UpdateMessage("deleting pods")()
 	script := `
-kubectl taint nodes --all shutdown=true:NoExecute	
 kubectl delete pods --all -n kl-gateway --force --grace-period=0
 `
 	return c.runScriptInContainer(script)
@@ -356,9 +318,12 @@ func (c *client) EnsureImage(i string) error {
 func (c *client) EnsureKloudliteNetwork() error {
 	defer spinner.Client.UpdateMessage("ensuring kloudlite network")()
 
+	networkName := fmt.Sprintf("kloudlite-%s", c.teamName)
+
 	networks, err := c.c.NetworkList(c.cmd.Context(), network.ListOptions{
 		Filters: filters.NewArgs(
-			filters.Arg("label", fmt.Sprintf("%s=%s", "kloudlite", "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", NET_MARK_KEY, "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", TEAM_NAME_KEY, c.teamName)),
 		),
 	})
 	if err != nil {
@@ -366,19 +331,19 @@ func (c *client) EnsureKloudliteNetwork() error {
 	}
 
 	if len(networks) == 0 {
-		_, err := c.c.NetworkCreate(c.cmd.Context(), "kloudlite", network.CreateOptions{
+		_, err := c.c.NetworkCreate(c.cmd.Context(), networkName, network.CreateOptions{
 			Driver: "bridge",
 			Labels: map[string]string{
-				"kloudlite": "true",
+				NET_MARK_KEY:  "true",
+				TEAM_NAME_KEY: c.teamName,
 			},
-			IPAM: &network.IPAM{
-				Config: []network.IPAMConfig{
-					{
-						Subnet: "172.18.0.0/16",
-					},
-				},
-			},
-
+			// IPAM: &network.IPAM{
+			// 	Config: []network.IPAMConfig{
+			// 		{
+			// 			Subnet: "172.18.0.0/16",
+			// 		},
+			// 	},
+			// },
 			Internal: false,
 		})
 		if err != nil {
@@ -522,7 +487,8 @@ func (c *client) Exec(script string) ([]byte, error) {
 		All: true,
 		Filters: filters.NewArgs(
 			filters.Arg("label", fmt.Sprintf("%s=%s", CONT_MARK_KEY, "true")),
-			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", K3S_MARK_KEY, "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", TEAM_NAME_KEY, c.teamName)),
 		),
 	})
 
@@ -571,7 +537,8 @@ func (c *client) runScriptInContainer(script string) error {
 		All: true,
 		Filters: filters.NewArgs(
 			filters.Arg("label", fmt.Sprintf("%s=%s", CONT_MARK_KEY, "true")),
-			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", K3S_MARK_KEY, "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", TEAM_NAME_KEY, c.teamName)),
 		),
 	})
 
@@ -663,7 +630,8 @@ func (c *client) CheckK3sRunningLocally() (bool, error) {
 		All: true,
 		Filters: filters.NewArgs(
 			filters.Arg("label", fmt.Sprintf("%s=%s", CONT_MARK_KEY, "true")),
-			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", K3S_MARK_KEY, "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", TEAM_NAME_KEY, c.teamName)),
 		),
 	})
 
@@ -688,7 +656,8 @@ func (c *client) RemoveClusterVolume(clusterName string) error {
 			All: true,
 			Filters: filters.NewArgs(
 				filters.Arg("label", fmt.Sprintf("%s=%s", CONT_MARK_KEY, "true")),
-				filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
+				filters.Arg("label", fmt.Sprintf("%s=%s", K3S_MARK_KEY, "true")),
+				filters.Arg("label", fmt.Sprintf("%s=%s", TEAM_NAME_KEY, c.teamName)),
 			),
 		})
 		if err != nil {
@@ -711,7 +680,8 @@ func (c *client) CheckK3sServerRunning() (string, error) {
 	crlist, err := c.c.ContainerList(c.cmd.Context(), container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("label", fmt.Sprintf("%s=%s", CONT_MARK_KEY, "true")),
-			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", K3S_MARK_KEY, "true")),
+			filters.Arg("label", fmt.Sprintf("%s=%s", TEAM_NAME_KEY, c.teamName)),
 		),
 		All: true,
 	})

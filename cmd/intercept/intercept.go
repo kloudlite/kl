@@ -30,7 +30,7 @@ var Cmd = &cobra.Command{
 
 func startIntercept(apic apiclient.ApiClient) error {
 
-	team, err := apic.GetFClient().GetDataContext().GetWsTeam()
+	team, err := apic.GetFClient().GetDataContext().GetTeam()
 	if err != nil {
 		return err
 	}
@@ -100,14 +100,6 @@ func startIntercept(apic apiclient.ApiClient) error {
 		ServicePort: selectedService.Port,
 		DevicePort:  devicePort,
 	})
-
-	//k3sClient, err := k3s.NewClient()
-	//if err != nil {
-	//	return err
-	//}
-	//if err = k3sClient.StartAppInterceptService(ports, true); err != nil {
-	//	return err
-	//}
 
 	if err = apic.InterceptService(selectedService.Service, true, ports, currentEnv, []fn.Option{
 		fn.MakeOption("serviceName", selectedService.Hostname),

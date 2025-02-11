@@ -143,4 +143,5 @@ func Shell(cmd *cobra.Command, args []string) error {
 
 func init() {
 	Cmd.Flags().BoolP("onlyprint", "p", false, "print vars export command")
+	Cmd.Flags().StringP("exec", "e", "", "print vars export command")
 }

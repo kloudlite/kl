@@ -1,0 +1,8 @@
+version: v1
+packages:
+- vim
+- git
+libraries: []
+envVars: []
+mounts: []
+ports: []

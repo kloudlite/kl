@@ -1,11 +1,13 @@
 package kubectl
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
 
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/k3s"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
@@ -55,6 +57,13 @@ func GetPath(cmd *cobra.Command) ([]byte, error) {
 	}
 
 	kconfPath := path.Join(td, "k3s.yaml")
+
+	k3sPort, err := fileclient.File.GetDataContext().GetK3sPort()
+	if err != nil {
+		return nil, err
+	}
+
+	out = bytes.Replace(out, []byte("127.0.0.1:6443"), []byte(fmt.Sprintf("127.0.0.1:%s", *k3sPort)), 1)
 
 	if err := os.WriteFile(kconfPath, out, 0644); err != nil {
 		return nil, err

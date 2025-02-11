@@ -2,6 +2,7 @@ package fileclient
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"path"
 
@@ -10,6 +11,9 @@ import (
 )
 
 type Session interface {
+	GetK3sPort() (*string, error)
+	SetK3sPort(port string) error
+
 	GetDevice() (*DeviceData, error)
 	SetDevice(dev DeviceData) error
 
@@ -34,6 +38,11 @@ func (c *fclient) GetDataContext() Session {
 	return c.session
 }
 
+type TeamData struct {
+	Device  *DeviceData `json:"device"`
+	K3sPort *string     `json:"k3sPort"`
+}
+
 type DeviceData struct {
 	WGconf     string `json:"wg"`
 	IpAddress  string `json:"ip"`
@@ -47,10 +56,10 @@ type EnvData struct {
 }
 
 type SessionData struct {
-	Session   string                 `json:"session"`
-	Team      string                 `json:"team,omitempty"`
-	Env       string                 `json:"env,omitempty"`
-	TeamsData map[string]*DeviceData `json:"teamsData,omitempty"`
+	Session   string               `json:"session"`
+	Team      string               `json:"team,omitempty"`
+	Env       string               `json:"env,omitempty"`
+	TeamsData map[string]*TeamData `json:"teamsData,omitempty"`
 }
 
 type sed struct {
@@ -97,6 +106,57 @@ func (c *sed) Clear() error {
 	return c.handler.Write()
 }
 
+func (s *sed) SetK3sPort(port string) error {
+	team, err := s.GetTeam()
+	if err != nil {
+		return err
+	}
+
+	if s.TeamsData == nil {
+		s.TeamsData = make(map[string]*TeamData)
+	}
+
+	if s.TeamsData[team] == nil {
+		s.TeamsData[team] = &TeamData{}
+	}
+
+	s.TeamsData[team].K3sPort = &port
+	return s.Save()
+}
+
+func (s *sed) GetK3sPort() (*string, error) {
+	team, err := s.GetTeam()
+	if err != nil {
+		return nil, err
+	}
+
+	if s.TeamsData[team] == nil {
+		s.TeamsData[team] = &TeamData{}
+	}
+
+	if s.TeamsData[team].K3sPort == nil {
+
+		count := 0
+		for {
+			count++
+			if count > 10 {
+				return nil, ErrK3sPortNotFound
+			}
+
+			i := rand.Intn(100) + 33000
+			if fn.IsPortFree(fmt.Sprintf("%d", i)) {
+				if err := s.SetK3sPort(fmt.Sprintf("%d", i)); err != nil {
+					return nil, err
+				}
+
+				return s.GetK3sPort()
+			}
+		}
+	}
+
+	return s.TeamsData[team].K3sPort, nil
+}
+
 func (s *sed) SetDevice(dev DeviceData) error {
 	team, err := s.GetTeam()
 	if err != nil {
@@ -104,14 +164,14 @@ func (s *sed) SetDevice(dev DeviceData) error {
 	}
 
 	if s.TeamsData == nil {
-		s.TeamsData = make(map[string]*DeviceData)
+		s.TeamsData = make(map[string]*TeamData)
 	}
 
 	if s.TeamsData[team] == nil {
-		s.TeamsData[team] = &DeviceData{}
+		s.TeamsData[team] = &TeamData{}
 	}
 
-	s.TeamsData[team] = &dev
+	s.TeamsData[team].Device = &dev
 	return s.Save()
 }
 
@@ -122,10 +182,13 @@ func (s *sed) GetDevice() (*DeviceData, error) {
 	}
 
 	if s.TeamsData[team] == nil {
+		return nil, ErrTeamNotFound
+	}
+	if s.TeamsData[team].Device == nil {
 		return nil, ErrDeviceNotFound
 	}
 
-	return s.TeamsData[team], nil
+	return s.TeamsData[team].Device, nil
 }
 
 func (s *sed) GetWsTeam() (string, error) {

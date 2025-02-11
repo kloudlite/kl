@@ -5,6 +5,7 @@ import (
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
+	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
 )
 
@@ -23,10 +24,11 @@ type K3sClient interface {
 }
 
 type client struct {
-	c    *dockerclient.Client
-	apic apiclient.ApiClient
-	fc   fileclient.FileClient
-	cmd  *cobra.Command
+	c        *dockerclient.Client
+	apic     apiclient.ApiClient
+	fc       fileclient.FileClient
+	cmd      *cobra.Command
+	teamName string
 }
 
 func NewClient(cmd *cobra.Command) (K3sClient, error) {
@@ -36,10 +38,17 @@ func NewClient(cmd *cobra.Command) (K3sClient, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	teamName, err := ac.GetFClient().GetDataContext().GetTeam()
+	if err != nil {
+		return nil, fn.NewE(err)
+	}
+
 	return &client{
-		c:    c,
-		apic: ac,
-		fc:   ac.GetFClient(),
-		cmd:  cmd,
+		teamName: teamName,
+		c:        c,
+		apic:     ac,
+		fc:       ac.GetFClient(),
+		cmd:      cmd,
 	}, nil
 }

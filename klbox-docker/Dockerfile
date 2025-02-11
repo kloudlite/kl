@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM --platform=$TARGETPLATFORM golang:1.21 as builder
+FROM --platform=$TARGETPLATFORM golang:1.23.5 as builder
 
 COPY --from=project ./go.sum ./go.mod /kl-app/
 
@@ -52,6 +52,8 @@ RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting.git  "/usr/sh
 
 USER root
 
+RUN curl -fsSL https://code-server.dev/install.sh | sh
+
 RUN cp /etc/ssl/certs/ca-certificates.crt /no-cert-file.crt
 
 RUN chmod -x /etc/update-motd.d/*
@@ -65,6 +67,7 @@ RUN chsh -s /bin/zsh kl
 
 COPY ./start.sh /start.sh
 COPY ./entrypoint.sh /entrypoint.sh
+COPY ./kl.yaml /home/kl/workspace/kl.yaml
 
 RUN mkdir /kl-tmp && chown -R kl:kl /kl-tmp
 
@@ -74,6 +77,12 @@ RUN chown -R 1000:1000 /home/kl
 COPY --from=builder /kl-app/bin/kl /usr/local/bin/kl
 
 USER kl
+
+RUN mkdir -p /home/kl/.config/nix
+
+RUN cat > /home/kl/.config/nix/nix.conf <<'EOF'
+experimental-features = nix-command flakes
+EOF
 
 WORKDIR /home/kl
 

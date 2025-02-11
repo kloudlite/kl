@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"strconv"
@@ -181,4 +182,14 @@ func WarnReload() {
 	if _, ok := os.LookupEnv("KL_SHELL"); ok {
 		Warn(text.Yellow("environment variables are updated, please run `reload` to reflect changes to your current shell"))
 	}
+}
+
+func IsPortFree(port string) bool {
+	address := fmt.Sprintf(":%s", port)
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		return false
+	}
+	defer listener.Close()
+	return true
 }

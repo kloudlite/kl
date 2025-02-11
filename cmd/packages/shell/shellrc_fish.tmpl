@@ -16,5 +16,8 @@ cd "$workingDir" || exit
 
 set -gx PATH $KL_NIX_PATH $PATH
 
-
 alias reload 'eval "$(kl shell --onlyprint)"'
+
+if test "$KL_BOX_MODE" = "true"
+    alias reload="pkill node"
+end

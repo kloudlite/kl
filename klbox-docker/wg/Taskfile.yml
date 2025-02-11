@@ -1,0 +1,13 @@
+version: 3
+
+
+vars:
+  ImageBase: "ghcr.io/abdheshnayak"
+
+tasks:
+  container:push:
+    preconditions:
+      - sh: '[[ -n "{{.tag}}" ]]'
+        msg: "var tag must have a value, of format 'v1.0.0-nightly'"
+    cmds:
+      - docker buildx build --platform linux/amd64 --build-arg VERSION={{.tag}} -t {{.ImageBase}}/wg:{{.tag}} . --output=type=image,compression=zstd,force-compression=true,compression-level=12,push=true --build-context project=..

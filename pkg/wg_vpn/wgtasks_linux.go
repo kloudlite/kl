@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Fa1k3n/resolvconf"
+	"github.com/abdheshnayak/resolvconf"
 	"github.com/kloudlite/kl/constants"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"

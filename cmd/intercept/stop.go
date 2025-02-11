@@ -21,7 +21,7 @@ Examples:
 		apic := clients.Api
 		fc := clients.File
 
-		currentAcc, err := fc.GetDataContext().GetWsTeam()
+		currentAcc, err := fc.GetDataContext().GetTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

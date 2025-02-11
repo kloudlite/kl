@@ -2,16 +2,14 @@ package cluster
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/k3s"
 	"github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
 	"github.com/spf13/cobra"
+	"time"
 )
 
 var downCmd = &cobra.Command{
@@ -19,21 +17,16 @@ var downCmd = &cobra.Command{
 	Short: "Stops the k3s server",
 	Long:  `Stops the k3s server`,
 	Run: func(cmd *cobra.Command, _ []string) {
-		if err := stopK3sServer(cmd); err != nil {
+		if err := StopK3sServer(cmd); err != nil {
 			functions.PrintError(err)
 			return
 		}
 	},
 }
 
-func stopK3sServer(cmd *cobra.Command) error {
+func StopK3sServer(cmd *cobra.Command) error {
 	defer spinner.Client.UpdateMessage("stopping k3s server")()
 	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
-	if err != nil {
-		return err
-	}
-
-	teamName, err := fileclient.File.GetDataContext().GetTeam()
 	if err != nil {
 		return err
 	}
@@ -41,8 +34,7 @@ func stopK3sServer(cmd *cobra.Command) error {
 	crlist, err := cli.ContainerList(cmd.Context(), container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("label", fmt.Sprintf("%s=%s", k3s.CONT_MARK_KEY, "true")),
-			filters.Arg("label", fmt.Sprintf("%s=%s", k3s.K3S_MARK_KEY, "true")),
-			filters.Arg("label", fmt.Sprintf("%s=%s", k3s.TEAM_NAME_KEY, teamName)),
+			filters.Arg("label", fmt.Sprintf("%s=%s", "kl-k3s", "true")),
 		),
 		All: true,
 	})

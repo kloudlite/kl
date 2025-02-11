@@ -37,6 +37,7 @@ func New(binName string) *Server {
 		bin: binName,
 	}
 }
+
 func portAvailable(port string) bool {
 	address := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp", address)

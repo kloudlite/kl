@@ -77,7 +77,7 @@ func (apic *apiClient) InterceptService(service *Service, status bool, ports []S
 	devName := fn.GetOption(options, "deviceName")
 	fc := apic.GetFClient()
 
-	teamName, err := fc.GetDataContext().GetWsTeam()
+	teamName, err := fc.GetDataContext().GetTeam()
 	if err != nil {
 		return functions.NewE(err)
 	}

@@ -23,3 +23,7 @@ cd "$working_dir" || exit
 export PATH="$KL_NIX_PATH:$PATH"
 
 alias reload='eval "$(kl shell --onlyprint)"'
+
+if [ "$KL_BOX_MODE" = "true" ]; then
+  alias reload="pkill node"
+fi

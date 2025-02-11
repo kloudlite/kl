@@ -61,7 +61,6 @@ type Proxy struct {
 }
 
 func NewProxyWithService(logResponse bool, ensureAppRunning ...bool) (*Proxy, error) {
-
 	p := &Proxy{
 		logResponse: logResponse,
 	}

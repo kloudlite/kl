@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
 )
@@ -16,6 +17,10 @@ var CheckCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ck, err := getCache()
 		if err != nil || ck.Hash != os.Getenv("KL_HASH") {
+			if err == fileclient.KLYamlNotFound {
+				fmt.Printf("(kl - %s)", text.Yellow("outside"))
+				return
+			}
 			fmt.Printf("(kl - %s)", text.Yellow("reload needed"))
 			return
 		}
