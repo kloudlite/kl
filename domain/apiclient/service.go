@@ -3,6 +3,7 @@ package apiclient
 import (
 	"fmt"
 
+	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -77,14 +78,24 @@ func (apic *apiClient) InterceptService(service *Service, status bool, ports []S
 	devName := fn.GetOption(options, "deviceName")
 	fc := apic.GetFClient()
 
-	teamName, err := fc.GetDataContext().GetTeam()
+	teamName, err := fc.GetDirTeam()
 	if err != nil {
 		return functions.NewE(err)
 	}
 
 	options = append(options, fn.MakeOption("teamName", teamName))
 
+checkDev:
 	if devName == "" {
+		if envclient.IsBoxMode() {
+			if s, err := envclient.GetDeviceNameFromEnv(); err == nil {
+				devName = s
+				goto checkDev
+			} else {
+				return fn.Errorf("device name is required")
+			}
+		}
+
 		avc, err := fc.GetDataContext().GetDevice()
 		if err != nil {
 			return functions.NewE(err)
@@ -171,7 +182,17 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 		options = append(options, fn.MakeOption("teamName", teamName))
 	}
 
+checkDev:
 	if devName == "" {
+		if envclient.IsBoxMode() {
+			if s, err := envclient.GetDeviceNameFromEnv(); err == nil {
+				devName = s
+				goto checkDev
+			} else {
+				return fn.Errorf("device name is required")
+			}
+		}
+
 		avc, err := fc.GetDataContext().GetDevice()
 		if err != nil {
 			return functions.NewE(err)

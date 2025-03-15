@@ -30,7 +30,7 @@ func cleanCluster(cmd *cobra.Command) error {
 		return err
 	}
 
-	team, err := fc.GetDataContext().GetTeam()
+  team, err := fc.GetDirTeam()
 	if err != nil {
 		return fn.NewE(err)
 	}

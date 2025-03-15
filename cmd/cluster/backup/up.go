@@ -14,9 +14,9 @@ import (
 )
 
 var upCmd = &cobra.Command{
-	Use:   "up",
-	Short: "Starts the k3s server",
-	Long:  `Starts the k3s server`,
+	Use:    "up",
+	Short:  "Starts the k3s server",
+	Long:   `Starts the k3s server`,
 	Hidden: true,
 	Run: func(cmd *cobra.Command, _ []string) {
 		if err := startK3sServer(cmd); err != nil {
@@ -42,8 +42,7 @@ func startK3sServer(cmd *cobra.Command) error {
 		return functions.NewE(err)
 	}
 
-	team, err := fc.GetDataContext().GetTeam()
-
+	team, err := fc.GetDirTeam()
 	if err != nil {
 		teams, err := apic.ListTeams()
 		if err != nil {

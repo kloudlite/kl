@@ -55,11 +55,32 @@ func (f *fclient) GetTeam() (string, error) {
 	return sd.GetTeam()
 }
 
-func (f *fclient) GetWsTeam() (string, error) {
+func (f *fclient) GetDirTeam() (string, error) {
 	sd, err := getCtxData()
 	if err != nil {
 		return "", fn.NewE(err)
 	}
 
-	return sd.GetWsTeam()
+	dirTeam, err := sd.GetWsTeam()
+	if err != nil {
+		if err == ErrTeamNotFound {
+			fn.Warn("failed to directory team, trying to get context team")
+			return sd.GetTeam()
+		}
+		return "", fn.NewE(err)
+	}
+
+	ctxTeam, err := sd.GetTeam()
+	if err != nil {
+		if err == ErrNotFound {
+			fn.Warn("failed to get context team")
+		}
+	}
+
+	if ctxTeam != dirTeam {
+		fn.Warnf("context team %s is different from directory team %s", ctxTeam, dirTeam)
+		fn.Warn("using directory team")
+	}
+
+	return dirTeam, nil
 }

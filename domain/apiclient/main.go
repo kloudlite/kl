@@ -24,9 +24,9 @@ func getCookie(options ...functions.Option) (string, error) {
 			return "", functions.NewE(err)
 		}
 
-		accName, err = fc.GetDataContext().GetTeam()
+		teamName, err := fc.GetDirTeam()
 		if err == nil {
-			options = append(options, functions.MakeOption("teamName", accName))
+			options = append(options, functions.MakeOption("teamName", teamName))
 		}
 	}
 

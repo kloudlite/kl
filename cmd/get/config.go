@@ -29,7 +29,7 @@ var configCmd = &cobra.Command{
 		}
 
 		if configName == "" {
-			currentTeam, err := apic.GetFClient().GetDataContext().GetWsTeam()
+			currentTeam, err := apic.GetFClient().GetDirTeam()
 			if err != nil {
 				fn.PrintError(err)
 				return
@@ -58,7 +58,7 @@ var configCmd = &cobra.Command{
 			configName = selectedConfig.Metadata.Name
 		}
 
-		currentTeamName, err := apic.GetFClient().GetDataContext().GetWsTeam()
+		currentTeamName, err := apic.GetFClient().GetDirTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

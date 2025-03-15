@@ -11,12 +11,6 @@ var Command = &cobra.Command{
 }
 
 func init() {
-	// fileclient.OnlyInsideBox(confCmd)
-	// 	fileclient.OnlyInsideBox(mresCmd)
-	// 	fileclient.OnlyInsideBox(secCmd)
-	// 	fileclient.OnlyInsideBox(mountCommand)
-	// 	fileclient.OnlyInsideBox(envvarCommand)
-
 	Command.AddCommand(confCmd)
 	Command.AddCommand(mresCmd)
 	Command.AddCommand(secCmd)

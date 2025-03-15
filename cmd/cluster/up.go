@@ -38,7 +38,7 @@ func startK3sServer(cmd *cobra.Command) error {
 		return functions.NewE(err)
 	}
 
-	team, err := fc.GetDataContext().GetTeam()
+	team, err := fc.GetDirTeam()
 	if err != nil {
 		return functions.NewE(err)
 	}

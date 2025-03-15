@@ -29,7 +29,7 @@ func listEnvironments(cmd *cobra.Command, args []string) error {
 	fc := clients.File
 	apic := clients.Api
 
-	currentTeam, err := fc.GetDataContext().GetTeam()
+	currentTeam, err := fc.GetDirTeam()
 	if err != nil {
 		return functions.NewE(err)
 	}

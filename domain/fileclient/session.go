@@ -182,8 +182,12 @@ func (s *sed) GetDevice() (*DeviceData, error) {
 	}
 
 	if s.TeamsData[team] == nil {
-		return nil, ErrTeamNotFound
+		s.TeamsData[team] = &TeamData{}
+		if err := s.Save(); err != nil {
+			return nil, err
+		}
 	}
+
 	if s.TeamsData[team].Device == nil {
 		return nil, ErrDeviceNotFound
 	}
@@ -192,27 +196,16 @@ func (s *sed) GetDevice() (*DeviceData, error) {
 }
 
 func (s *sed) GetWsTeam() (string, error) {
-	if s.Team == "" {
-		return "", ErrTeamNotFound
-	}
-
 	kt, err := getKlFile()
 	if err != nil {
 		return "", err
 	}
 
-	if kt.TeamName != s.Team {
-		if kt.TeamName == "" {
-			kt.TeamName = s.Team
-			if err := kt.Save(); err != nil {
-				return "", err
-			}
-			return s.Team, nil
-		}
-		return "", ErrTeamMismatch
+	if kt.TeamName == "" {
+		return "", ErrTeamNotFound
 	}
 
-	return s.Team, nil
+	return kt.TeamName, nil
 }
 
 func (s *sed) GetTeam() (string, error) {

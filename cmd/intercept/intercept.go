@@ -35,7 +35,7 @@ func startIntercept(apic apiclient.ApiClient) error {
 		return err
 	}
 
-	currentEnv, err := apic.GetFClient().CurrentEnv()
+	currentEnv, err := apic.GetFClient().DirEnv()
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func startIntercept(apic apiclient.ApiClient) error {
 
 	for i := range servicesList {
 		a := servicesList[i]
-		for j, _ := range a.Spec.Ports {
+		for j := range a.Spec.Ports {
 			services = append(services, service{
 				Ip:       a.Metadata.Name,
 				Hostname: a.Spec.Hostname,
@@ -70,7 +70,7 @@ func startIntercept(apic apiclient.ApiClient) error {
 		return fn.Errorf("no services found")
 	}
 
-	selectedService, err := fzf.FindOne[service](services, func(item service) string {
+	selectedService, err := fzf.FindOne(services, func(item service) string {
 		return fmt.Sprintf("%s:%d", item.Service.Spec.ServiceRef.Name, item.Port)
 	}, fzf.WithPrompt("Select service to intercept "))
 	if err != nil {

@@ -1,6 +1,9 @@
 package use
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/kloudlite/kl/domain/envclient"
+	"github.com/spf13/cobra"
+)
 
 var Cmd = &cobra.Command{
 	Use:   "use",
@@ -10,6 +13,10 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Aliases = append(Cmd.Aliases, "select")
 	Cmd.AddCommand(switchCmd)
-	Cmd.AddCommand(teamCmd)
+
+	if !envclient.IsBoxMode() {
+		Cmd.AddCommand(teamCmd)
+	}
+
 	teamCmd.Aliases = append(teamCmd.Aliases, "teams")
 }

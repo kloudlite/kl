@@ -12,7 +12,6 @@ var authStatusCmd = &cobra.Command{
 	Short: "get the current user's name and email",
 	Run: func(_ *cobra.Command, _ []string) {
 		apic := clients.Api
-
 		if u, err := apic.GetCurrentUser(); err != nil {
 			fn.PrintError(err)
 			return

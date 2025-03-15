@@ -21,7 +21,7 @@ var configsCmd = &cobra.Command{
 		fc := clients.File
 		apic := clients.Api
 
-		currentTeam, err := fc.GetDataContext().GetWsTeam()
+		currentTeam, err := fc.GetDirTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

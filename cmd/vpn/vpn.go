@@ -1,7 +1,7 @@
 package vpn
 
 import (
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +18,7 @@ Examples:
 func init() {
 	Cmd.Aliases = append(Cmd.Aliases, "dev")
 
-	if !fileclient.IsBoxMode() {
+	if !envclient.IsBoxMode() {
 		Cmd.AddCommand(startCmd)
 		Cmd.AddCommand(startFgCmd)
 		Cmd.AddCommand(restartCmd)

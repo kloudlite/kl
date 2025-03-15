@@ -33,7 +33,7 @@ func stopK3sServer(cmd *cobra.Command) error {
 		return err
 	}
 
-	teamName, err := fileclient.File.GetDataContext().GetTeam()
+	teamName, err := fileclient.File.GetDirTeam()
 	if err != nil {
 		return err
 	}

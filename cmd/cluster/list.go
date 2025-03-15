@@ -52,7 +52,7 @@ func listK3sClusters(cmd *cobra.Command) error {
 		return nil
 	}
 
-	teamName, _ := fileclient.File.GetDataContext().GetTeam()
+	teamName, _ := fileclient.File.GetDirTeam()
 
 	header := table.Row{table.HeaderText("Name"), table.HeaderText("Created"), table.HeaderText("Status")}
 	rows := make([]table.Row, 0)

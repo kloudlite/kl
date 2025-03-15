@@ -1,9 +1,6 @@
 package kl
 
 import (
-
-	// "github.com/kloudlite/kl/cmd/box"
-
 	"os/exec"
 	"runtime"
 
@@ -24,13 +21,13 @@ import (
 	"github.com/kloudlite/kl/cmd/use"
 	"github.com/kloudlite/kl/cmd/vpn"
 	"github.com/kloudlite/kl/constants"
-	"github.com/kloudlite/kl/domain/fileclient"
+	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/kloudlite/kl/flags"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	isBoxMode := fileclient.IsBoxMode()
+	isBoxMode := envclient.IsBoxMode()
 
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 	rootCmd.SetHelpCommand(&cobra.Command{
@@ -71,7 +68,6 @@ func init() {
 	rootCmd.AddCommand(add.Command)
 
 	rootCmd.AddCommand(intercept.Cmd)
-	// rootCmd.AddCommand(expose.Cmd)
 
 	rootCmd.AddCommand(status.Cmd)
 
@@ -79,7 +75,7 @@ func init() {
 		return
 	}
 
-	if !fileclient.IsBoxMode() {
+	if !isBoxMode {
 		rootCmd.AddCommand(cluster.Cmd)
 
 		if _, err := exec.LookPath("helm"); err == nil {

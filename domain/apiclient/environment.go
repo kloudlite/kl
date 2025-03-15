@@ -72,25 +72,25 @@ func (apic *apiClient) GetEnvironment(teamName, envName string) (*Env, error) {
 }
 
 func (apic *apiClient) EnsureEnv() (string, error) {
-	CurrentEnv, err := apic.fc.CurrentEnv()
-	if err != nil {
-		return "", functions.NewE(err)
-	} else if err == nil {
-		return CurrentEnv, nil
-	}
-	kt, err := apic.fc.GetKlFile()
-	if err != nil {
-		return "", functions.NewE(err)
-	}
-	if kt.DefaultEnv == "" {
-		return "", NoDefaultEnvError
-	}
-	e, err := apic.GetEnvironment(kt.TeamName, kt.DefaultEnv)
+	dirEnv, err := apic.fc.DirEnv()
 	if err != nil {
 		return "", functions.NewE(err)
 	}
 
-	return e.Metadata.Name, nil
+	return dirEnv, nil
+	// kt, err := apic.fc.GetKlFile()
+	// if err != nil {
+	// 	return "", functions.NewE(err)
+	// }
+	// if kt.DefaultEnv == "" {
+	// 	return "", NoDefaultEnvError
+	// }
+	// e, err := apic.GetEnvironment(kt.TeamName, kt.DefaultEnv)
+	// if err != nil {
+	// 	return "", functions.NewE(err)
+	// }
+	//
+	// return e.Metadata.Name, nil
 }
 
 func (apic *apiClient) CloneEnv(teamName, envName, newEnvName, clusterName string) (*Env, error) {

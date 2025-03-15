@@ -62,11 +62,8 @@ func handleInit() error {
 
 	if !isOnlyPkgMode {
 		fc := clients.File
-		if err != nil {
-			return err
-		}
 
-		team, err = fc.GetDataContext().GetTeam()
+		team, err = fc.GetTeam()
 		if err != nil {
 			return err
 		}

@@ -48,7 +48,7 @@ func selectAndAddConfig(cmd *cobra.Command, args []string) error {
 		return fn.NewE(err)
 	}
 
-	currentTeam, err := fc.GetDataContext().GetWsTeam()
+	currentTeam, err := fc.GetDirTeam()
 	if err != nil {
 		return fn.NewE(err)
 	}

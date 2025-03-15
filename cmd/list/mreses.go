@@ -24,7 +24,7 @@ var mresCmd = &cobra.Command{
 			return
 		}
 
-		currentTeam, err := fc.GetDataContext().GetWsTeam()
+		currentTeam, err := fc.GetDirTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return

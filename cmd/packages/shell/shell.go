@@ -8,6 +8,7 @@ import (
 
 	"github.com/kloudlite/kl/domain/clients"
 	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
+	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/domain/utils"
 	fn "github.com/kloudlite/kl/pkg/functions"
@@ -17,8 +18,9 @@ import (
 )
 
 var Cmd = &cobra.Command{
-	Use:   "shell",
-	Short: "",
+	Use:    "shell",
+	Short:  "",
+	Hidden: envclient.IsBoxMode(),
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := Shell(cmd, args); err != nil {
 			fn.PrintError(err)

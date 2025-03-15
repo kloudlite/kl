@@ -2,11 +2,7 @@ package status
 
 import (
 	"fmt"
-	"os"
 	"time"
-
-	"github.com/kloudlite/kl/flags"
-	"github.com/kloudlite/kl/k3s"
 
 	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
@@ -34,8 +30,7 @@ var Cmd = &cobra.Command{
 		}
 
 		var team string
-
-		team, err := fc.GetDataContext().GetTeam()
+		team, err := fc.GetDirTeam()
 		if err == nil {
 			fn.Log(fmt.Sprint(text.Bold(text.Blue("Team: ")), team))
 		}
@@ -79,55 +74,55 @@ var Cmd = &cobra.Command{
 
 		return
 
-		k3sClient, err := k3s.NewClient(cmd)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
+		// k3sClient, err := k3s.NewClient(cmd)
+		// if err != nil {
+		// 	fn.PrintError(err)
+		// 	return
+		// }
 
-		func() {
-			if team == "" {
-				return
-			}
-
-			fn.Log(text.Bold("\nCluster Status"))
-			config, err := fc.GetClusterConfig(team)
-			if err == nil {
-				fn.Log("Name: ", text.Blue(config.ClusterName))
-
-				k3sStatus, _ := k3sClient.CheckK3sRunningLocally()
-				if k3sStatus {
-					fn.Log("Running: ", text.Green("true"))
-				} else {
-					fn.Log("Running ", text.Yellow("false"))
-				}
-
-				k3sTracker, err := fc.GetK3sTracker()
-				if err != nil {
-					if flags.IsVerbose {
-						fn.PrintError(err)
-					}
-					fn.Log("Local Cluster: ", text.Yellow("not ready"))
-					fn.Log("Edge Connection:", text.Yellow("offline"))
-				} else {
-					err = getClusterK3sStatus(k3sTracker)
-					if err != nil {
-						if flags.IsVerbose {
-							fn.PrintError(err)
-						}
-						fn.Log("Local Cluster: ", text.Yellow("not ready"))
-						fn.Log("Edge Connection:", text.Yellow("offline"))
-					}
-				}
-			}
-			if err != nil {
-				if os.IsNotExist(err) {
-					fn.Log(text.Yellow("cluster not found"))
-				} else {
-					fn.PrintError(err)
-				}
-			}
-		}()
+		// func() {
+		// 	if team == "" {
+		// 		return
+		// 	}
+		//
+		// 	fn.Log(text.Bold("\nCluster Status"))
+		// 	config, err := fc.GetClusterConfig(team)
+		// 	if err == nil {
+		// 		fn.Log("Name: ", text.Blue(config.ClusterName))
+		//
+		// 		k3sStatus, _ := k3sClient.CheckK3sRunningLocally()
+		// 		if k3sStatus {
+		// 			fn.Log("Running: ", text.Green("true"))
+		// 		} else {
+		// 			fn.Log("Running ", text.Yellow("false"))
+		// 		}
+		//
+		// 		k3sTracker, err := fc.GetK3sTracker()
+		// 		if err != nil {
+		// 			if flags.IsVerbose {
+		// 				fn.PrintError(err)
+		// 			}
+		// 			fn.Log("Local Cluster: ", text.Yellow("not ready"))
+		// 			fn.Log("Edge Connection:", text.Yellow("offline"))
+		// 		} else {
+		// 			err = getClusterK3sStatus(k3sTracker)
+		// 			if err != nil {
+		// 				if flags.IsVerbose {
+		// 					fn.PrintError(err)
+		// 				}
+		// 				fn.Log("Local Cluster: ", text.Yellow("not ready"))
+		// 				fn.Log("Edge Connection:", text.Yellow("offline"))
+		// 			}
+		// 		}
+		// 	}
+		// 	if err != nil {
+		// 		if os.IsNotExist(err) {
+		// 			fn.Log(text.Yellow("cluster not found"))
+		// 		} else {
+		// 			fn.PrintError(err)
+		// 		}
+		// 	}
+		// }()
 
 	},
 }

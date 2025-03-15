@@ -3,6 +3,7 @@ package use
 import (
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/clients"
+	"github.com/kloudlite/kl/domain/envclient"
 	"github.com/kloudlite/kl/domain/fileclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
@@ -56,7 +57,7 @@ func UseTeam(cmd *cobra.Command) error {
 		return err
 	}
 
-	if !fileclient.IsBoxMode() {
+	if !envclient.IsBoxMode() {
 		if _, err = dctx.GetDevice(); err != nil {
 			st, err := dctx.GetTeam()
 			if err != nil {

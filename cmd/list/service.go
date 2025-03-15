@@ -30,7 +30,7 @@ var serviesCmd = &cobra.Command{
 func listServices(apic apiclient.ApiClient, cmd *cobra.Command, _ []string) error {
 	fc := clients.File
 
-	currentTeamName, err := fc.GetDataContext().GetWsTeam()
+	currentTeamName, err := fc.GetDirTeam()
 	if err != nil {
 		return functions.NewE(err)
 	}

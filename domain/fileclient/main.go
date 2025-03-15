@@ -10,6 +10,9 @@ type fclient struct {
 }
 
 type FileClient interface {
+	GetDirTeam() (string, error)
+	GetTeam() (string, error)
+
 	SaveBaseURL(url string) error
 	GetBaseURL() (string, error)
 
@@ -21,8 +24,8 @@ type FileClient interface {
 
 	GetLockfile() (*Lockfile, error)
 
-	SelectEnv(ev string) error
-	CurrentEnv() (string, error)
+	WorkspaceEnv() (string, error)
+	DirEnv() (string, error)
 
 	GetConfigPath() (string, error)
 	GetKlFileHash() ([]byte, error)

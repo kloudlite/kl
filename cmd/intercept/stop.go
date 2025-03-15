@@ -21,13 +21,13 @@ Examples:
 		apic := clients.Api
 		fc := clients.File
 
-		currentAcc, err := fc.GetDataContext().GetTeam()
+		currentAcc, err := fc.GetDirTeam()
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		currentEnv, err := fc.CurrentEnv()
+		currentEnv, err := fc.DirEnv()
 		if err != nil {
 			fn.PrintError(err)
 			return
