@@ -18,7 +18,11 @@ RUN go build --tags=box -ldflags="-X github.com/kloudlite/kl/flags.Version=${VER
 
 FROM --platform=$TARGETPLATFORM ubuntu:24.04
 
-RUN apt-get update && apt-get install -y openssh-server sudo curl xz-utils jq iproute2 nano zsh git bzip2 wireguard-tools iputils-ping socat
+RUN apt update --fix-missing
+
+RUN apt-get install -y openssh-server sudo curl xz-utils jq iproute2 nano zsh git bzip2 wireguard-tools iputils-ping socat
+
+RUN apt-get install python3 python3-notebook -y
 
 RUN mkdir /var/run/sshd
 
