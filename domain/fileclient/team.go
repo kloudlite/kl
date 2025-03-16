@@ -64,7 +64,7 @@ func (f *fclient) GetDirTeam() (string, error) {
 	dirTeam, err := sd.GetWsTeam()
 	if err != nil {
 		if err == ErrTeamNotFound {
-			fn.Warn("failed to directory team, trying to get context team")
+			fn.Warn("failed to get directory team, trying to get context team")
 			return sd.GetTeam()
 		}
 		return "", fn.NewE(err)
