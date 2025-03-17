@@ -85,3 +85,8 @@ if [[ "$KL_DEPTH" == "1" ]]; then
   mkdir -p ~/workspace
   cd ~/workspace
 fi
+
+if [[ -z "$KL_DEPTH" && -n "$SSH_TTY" ]]; then
+  kl shell
+  exit
+fi

@@ -88,6 +88,10 @@ RUN cat > /home/kl/.config/nix/nix.conf <<'EOF'
 experimental-features = nix-command flakes
 EOF
 
+RUN mkdir -p /home/kl/.ssh
+RUN ssh-keygen -t rsa -b 4096 -f /home/kl/.ssh/id_rsa -N ""
+RUN sudo chown -R 1000:1000 /etc/ssh
+
 WORKDIR /home/kl
 
 ENTRYPOINT ["/entrypoint.sh"]
