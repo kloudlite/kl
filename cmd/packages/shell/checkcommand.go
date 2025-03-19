@@ -19,7 +19,7 @@ var CheckCmd = &cobra.Command{
 		s, _ := clients.File.DirEnv()
 
 		if s == "" {
-			s = text.Yellow("no env")
+			s = "no env"
 		} else {
 		}
 
