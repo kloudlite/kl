@@ -82,12 +82,12 @@ func switchEnv(*cobra.Command, []string) error {
 		return err
 	}
 
-	searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain()
-	if err != nil {
-		return err
-	}
-
 	if !envclient.IsBoxMode() {
+		searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain()
+		if err != nil {
+			return err
+		}
+
 		dclient, err := daemon_server.NewProxyWithService(true, false)
 		if err != nil {
 			return err

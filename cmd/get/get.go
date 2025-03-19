@@ -12,4 +12,5 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.AddCommand(configCmd)
 	Cmd.AddCommand(secretCmd)
+	Cmd.AddCommand(envCmd)
 }
