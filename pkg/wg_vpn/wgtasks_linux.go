@@ -202,6 +202,7 @@ func (wc *wgClientImpl) stopService(devName string, verbose bool) error {
 	if len(wgInterface) == 0 {
 		return nil
 	}
+
 	for _, v := range wgInterface {
 
 		if strings.TrimSpace(v) == "" || v != devName {

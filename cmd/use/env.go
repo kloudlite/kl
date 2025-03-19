@@ -9,7 +9,6 @@ import (
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/clients"
 	daemon_server "github.com/kloudlite/kl/domain/daemon-server"
-	"github.com/kloudlite/kl/domain/envclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/spf13/cobra"
 )
@@ -87,15 +86,13 @@ func switchEnv(*cobra.Command, []string) error {
 		return err
 	}
 
-	if !envclient.IsBoxMode() {
-		dclient, err := daemon_server.NewProxyWithService(true, false)
-		if err != nil {
-			return err
-		}
+	dclient, err := daemon_server.NewProxyWithService(true, false)
+	if err != nil {
+		return err
+	}
 
-		if _, err := dclient.SetSearchDomain(searchDomain); err != nil {
-			return err
-		}
+	if _, err := dclient.SetSearchDomain(searchDomain); err != nil {
+		return err
 	}
 
 	if klFile.DefaultEnv == "" {

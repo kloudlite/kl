@@ -29,6 +29,9 @@ var Cmd = &cobra.Command{
 }
 
 func Shell(cmd *cobra.Command, args []string) error {
+
+	rawMode := fn.ParseBoolFlag(cmd, "rawprint")
+
 	_, err := exec.LookPath("nix")
 	if err != nil {
 		return fn.NewE(err, text.Red("nix is not installed. Please install it before using `kl shell`"))
@@ -38,7 +41,7 @@ func Shell(cmd *cobra.Command, args []string) error {
 
 	isOnlyPkgMode := utils.IsOnlyPkgMode()
 
-	if !isOnlyPkgMode && !envclient.IsBoxMode() {
+	if !isOnlyPkgMode && !rawMode {
 		dclient, err := daemon_server.NewProxyWithService(false)
 		if err != nil {
 			return err
@@ -64,7 +67,6 @@ func Shell(cmd *cobra.Command, args []string) error {
 	}
 
 	var envMap, mountMap map[string]string
-
 	ck, err := getCache()
 
 	if err == nil {
@@ -125,10 +127,9 @@ func Shell(cmd *cobra.Command, args []string) error {
 	}
 
 	onlyPrint := fn.ParseBoolFlag(cmd, "onlyprint")
-	raw := fn.ParseBoolFlag(cmd, "rawprint")
 
 	if err := NixShell(cmd, ShellArgs{
-		RawExport: raw,
+		RawExport: rawMode,
 		Shell:     os.Getenv("SHELL"),
 		EnvVars: append(envs, "KL_SHELL=true", fmt.Sprintf("kl_mounts=%s", mountpath),
 			fmt.Sprintf("KL_HASH=%s", ck.Hash),
