@@ -164,9 +164,6 @@ func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
 	}
 
 	fc := fileclient.File
-	if err != nil {
-		return functions.NewE(err)
-	}
 
 	if teamName == "" {
 		kt, err := fc.GetKlFile()

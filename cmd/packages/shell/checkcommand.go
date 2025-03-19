@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kloudlite/kl/domain/clients"
 	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/ui/text"
 	"github.com/spf13/cobra"
@@ -15,13 +16,20 @@ var CheckCmd = &cobra.Command{
 	Use:    "checkchanges",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
+		s, _ := clients.File.DirEnv()
+
+		if s == "" {
+			s = text.Yellow("no env")
+		} else {
+		}
+
 		ck, err := getCache()
 		if err != nil || ck.Hash != os.Getenv("KL_HASH") {
 			if err == fileclient.KLYamlNotFound {
-				fmt.Printf("(kl - %s)", text.Yellow("outside"))
+				fmt.Printf("(%s - %s)", s, text.Yellow("outside"))
 				return
 			}
-			fmt.Printf("(kl - %s)", text.Yellow("reload needed"))
+			fmt.Printf("(%s - %s)", s, text.Yellow("reload needed"))
 			return
 		}
 
@@ -34,11 +42,11 @@ var CheckCmd = &cobra.Command{
 			}
 		}
 		if depth > 1 {
-			fmt.Printf("%s%s%s", text.Blue("(kl"), text.Yellow(strings.Repeat(">", depth-1)), text.Blue(")"))
+			fmt.Printf("%s%s%s", text.Blue(fmt.Sprintf("(%s", s)), text.Yellow(strings.Repeat(">", depth-1)), text.Blue(")"))
 			return
 		}
 
-		fmt.Printf(text.Blue("(kl)"))
+		fmt.Printf(text.Blue(fmt.Sprintf("(%s)", s)))
 		return
 	},
 }
