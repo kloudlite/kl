@@ -38,7 +38,7 @@ func Shell(cmd *cobra.Command, args []string) error {
 
 	isOnlyPkgMode := utils.IsOnlyPkgMode()
 
-	if !isOnlyPkgMode {
+	if !isOnlyPkgMode && !envclient.IsBoxMode() {
 		dclient, err := daemon_server.NewProxyWithService(false)
 		if err != nil {
 			return err
@@ -71,7 +71,6 @@ func Shell(cmd *cobra.Command, args []string) error {
 		envMap = ck.EnvVars
 		mountMap = ck.Mounts
 	} else {
-
 		fn.Warn(text.Yellow("cache is outdated, refetching"))
 		envMap, mountMap, err = apic.GetLoadMaps()
 		if err != nil {
