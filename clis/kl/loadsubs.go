@@ -45,13 +45,13 @@ func init() {
 		rootCmd.AddCommand(UpdateCmd)
 
 		rootCmd.AddCommand(set_base_url.Cmd)
+		rootCmd.AddCommand(vpn.Cmd)
 	}
 
 	rootCmd.AddCommand(initp.InitCommand)
 	rootCmd.AddCommand(use.Cmd)
 	rootCmd.AddCommand(list.Cmd)
 	rootCmd.AddCommand(get.Cmd)
-	rootCmd.AddCommand(vpn.Cmd)
 
 	if !isBoxMode {
 		rootCmd.AddCommand(daemon_cmd.Cmd)

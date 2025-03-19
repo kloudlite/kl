@@ -9,6 +9,7 @@ import (
 
 	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/clients"
+	"github.com/kloudlite/kl/domain/envclient"
 	fn "github.com/kloudlite/kl/pkg/functions"
 	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/kloudlite/kl/pkg/ui/spinner"
@@ -108,7 +109,10 @@ func startIntercept(apic apiclient.ApiClient) error {
 	}
 
 	fn.Log(text.Green(fmt.Sprintf("intercept service port forwarded to localhost:%v", devicePort)))
-	fn.Log("Please check if vpn is connected to your device, if not please connect it using sudo kl vpn start. Ignore this message if already connected.")
+
+	if !envclient.IsBoxMode() {
+		fn.Log("Please check if vpn is connected to your device, if not please connect it using sudo kl vpn start. Ignore this message if already connected.")
+	}
 
 	return nil
 }
