@@ -208,11 +208,11 @@ checkDev:
 	if err != nil {
 		return functions.NewE(err)
 	}
-	query := "cli_removeDeviceIntercepts"
+	query := "cli_deleteServiceIntercept"
 
 	respData, err := klFetch(query, map[string]any{
-		"envName":    currentEnv,
-		"deviceName": devName,
+		"envName":     currentEnv,
+		"serviceName": devName,
 		//"deviceName": config.ClusterName,
 	}, &cookie)
 	if err != nil {
