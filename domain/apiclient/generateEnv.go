@@ -244,5 +244,9 @@ func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 		}
 	}
 
+	for _, ne := range kt.EnvVars.GetEnvs() {
+		result[ne.Key] = ne.Value
+	}
+
 	return result, mountMap, nil
 }

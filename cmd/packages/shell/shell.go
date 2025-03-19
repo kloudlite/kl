@@ -39,9 +39,10 @@ func Shell(cmd *cobra.Command, args []string) error {
 
 	apic := clients.Api
 
+	onlyPrint := fn.ParseBoolFlag(cmd, "onlyprint")
 	isOnlyPkgMode := utils.IsOnlyPkgMode()
 
-	if !isOnlyPkgMode && !rawMode {
+	if !isOnlyPkgMode && !rawMode && !onlyPrint {
 		dclient, err := daemon_server.NewProxyWithService(false)
 		if err != nil {
 			return err
@@ -125,8 +126,6 @@ func Shell(cmd *cobra.Command, args []string) error {
 	for k, v := range envMap {
 		envs = append(envs, fmt.Sprintf("%s=%s", k, v))
 	}
-
-	onlyPrint := fn.ParseBoolFlag(cmd, "onlyprint")
 
 	if err := NixShell(cmd, ShellArgs{
 		RawExport: rawMode,
