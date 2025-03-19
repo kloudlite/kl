@@ -111,8 +111,11 @@ func NixShell(cmd *cobra.Command, args ShellArgs) error {
 		output := ""
 
 		for k, v := range newenvs {
-			// fmt.Println("export", k, v)
 			output += fmt.Sprintf("%s=%q\n", k, v)
+		}
+
+		for _, v := range args.EnvVars {
+			fmt.Println(v)
 		}
 
 		output += fmt.Sprintf("KL_HASH=%s\n", envMap["KL_HASH"])
@@ -128,6 +131,10 @@ func NixShell(cmd *cobra.Command, args ShellArgs) error {
 		for k, v := range newenvs {
 			// fmt.Println("export", k, v)
 			output += fmt.Sprintf("export %s=%q\n", k, v)
+		}
+
+		for _, v := range args.EnvVars {
+			fmt.Println(v)
 		}
 
 		output += fmt.Sprintf("export KL_HASH=%s\n", envMap["KL_HASH"])
