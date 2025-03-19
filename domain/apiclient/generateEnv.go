@@ -248,5 +248,7 @@ func (apic *apiClient) GetLoadMaps() (map[string]string, MountMap, error) {
 		result[ne.Key] = ne.Value
 	}
 
+	result["KL_ENV"] = env
+
 	return result, mountMap, nil
 }

@@ -42,7 +42,7 @@ func Shell(cmd *cobra.Command, args []string) error {
 	onlyPrint := fn.ParseBoolFlag(cmd, "onlyprint")
 	isOnlyPkgMode := utils.IsOnlyPkgMode()
 
-	if !isOnlyPkgMode && !rawMode && !onlyPrint {
+	if !isOnlyPkgMode && !rawMode && !onlyPrint && !envclient.IsBoxMode() {
 		dclient, err := daemon_server.NewProxyWithService(false)
 		if err != nil {
 			return err
