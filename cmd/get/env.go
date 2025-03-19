@@ -16,13 +16,13 @@ var envCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fc := clients.File
 
-		s, err := fc.GetDataContext().GetEnv()
+		ev, err := fc.DirEnv()
 		if err != nil {
 			fn.PrintError(err)
 			return
 		}
 
-		fmt.Printf("%s", s)
+		fmt.Print(ev)
 	},
 }
 
