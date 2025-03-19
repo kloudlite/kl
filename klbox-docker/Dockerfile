@@ -33,6 +33,7 @@ RUN groupadd -g 1000 kl && useradd -u 1000 -g 1000 -m kl && usermod -aG sudo kl 
 
 # Optionally change the SSH port and other settings
 #RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
 # SSH login fix. Otherwise user is kicked off after login
 RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
 
@@ -50,7 +51,6 @@ RUN mkdir -p "/home/kl/.config/zsh"
 RUN git clone https://github.com/sindresorhus/pure.git "/home/kl/.config/zsh/pure"
 
 USER root
-
 
 RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting.git  "/usr/share/zsh/plugins/zsh-syntax-highlighting"
 

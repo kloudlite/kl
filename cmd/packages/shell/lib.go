@@ -40,6 +40,7 @@ func resetEnvs(envMap map[string]string, env []string) map[string]string {
 
 type ShellArgs struct {
 	OnlyPrint bool
+	RawExport bool
 	ShellData *fileclient.ShellData
 	Shell     string
 	EnvVars   []string
@@ -106,8 +107,22 @@ func NixShell(cmd *cobra.Command, args ShellArgs) error {
 		envMap[k] = v
 	}
 
-	if args.OnlyPrint {
+	if args.RawExport {
+		output := ""
 
+		for k, v := range newenvs {
+			// fmt.Println("export", k, v)
+			output += fmt.Sprintf("%s=%q\n", k, v)
+		}
+
+		output += fmt.Sprintf("KL_HASH=%s\n", envMap["KL_HASH"])
+		output += fmt.Sprintf("PATH=%s:%s\n", newenvs["KL_NIX_PATH"], envMap["KL_OLD_PATH"])
+
+		fmt.Println(output)
+		return nil
+	}
+
+	if args.OnlyPrint {
 		output := ""
 
 		for k, v := range newenvs {

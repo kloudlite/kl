@@ -126,9 +126,11 @@ func Shell(cmd *cobra.Command, args []string) error {
 	}
 
 	onlyPrint := fn.ParseBoolFlag(cmd, "onlyprint")
+	raw := fn.ParseBoolFlag(cmd, "rawprint")
 
 	if err := NixShell(cmd, ShellArgs{
-		Shell: os.Getenv("SHELL"),
+		RawExport: raw,
+		Shell:     os.Getenv("SHELL"),
 		EnvVars: append(envs, "KL_SHELL=true", fmt.Sprintf("kl_mounts=%s", mountpath),
 			fmt.Sprintf("KL_HASH=%s", ck.Hash),
 		),
@@ -145,5 +147,6 @@ func Shell(cmd *cobra.Command, args []string) error {
 
 func init() {
 	Cmd.Flags().BoolP("onlyprint", "p", false, "print vars export command")
+	Cmd.Flags().BoolP("rawprint", "r", false, "print raw command")
 	Cmd.Flags().StringP("exec", "e", "", "print vars export command")
 }
