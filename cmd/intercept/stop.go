@@ -46,7 +46,7 @@ Examples:
 			}
 		}
 		if len(filteredApps) == 0 {
-			fn.Log("no intercepted apps found")
+			fn.Log("no intercepted services found")
 			return
 		}
 
