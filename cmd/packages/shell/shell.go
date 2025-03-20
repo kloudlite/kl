@@ -52,7 +52,12 @@ func Shell(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain()
+		env, err := apic.GetFClient().DirEnv()
+		if err != nil {
+			return err
+		}
+
+		searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain(env)
 		if err != nil {
 			return err
 		}

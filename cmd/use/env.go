@@ -83,7 +83,8 @@ func switchEnv(*cobra.Command, []string) error {
 	}
 
 	if !envclient.IsBoxMode() {
-		searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain()
+
+		searchDomain, err := apic.GetFClient().GetDataContext().GetSearchDomain(env.Metadata.Name)
 		if err != nil {
 			return err
 		}

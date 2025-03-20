@@ -24,12 +24,12 @@ type Session interface {
 	GetWsTeam() (string, error)
 	SetTeam(team string) error
 
-	GetEnv() (string, error)
-	SetEnv(env string) error
+	// GetEnv() (string, error)
+	// SetEnv(env string) error
 
 	Clear() error
 
-	GetSearchDomain() (string, error)
+	GetSearchDomain(env string) (string, error)
 
 	Reload() error
 }
@@ -77,7 +77,7 @@ func (c *sed) Reload() error {
 	return nil
 }
 
-func (c *sed) GetSearchDomain() (string, error) {
+func (c *sed) GetSearchDomain(env string) (string, error) {
 	ed, err := getExtraData()
 	if err != nil {
 		return "", fn.NewE(err)
@@ -91,11 +91,6 @@ func (c *sed) GetSearchDomain() (string, error) {
 	team, err := c.GetTeam()
 	if err != nil {
 		return "", nil
-	}
-
-	env, err := c.GetEnv()
-	if err != nil {
-		return "", err
 	}
 
 	return fmt.Sprintf("%s.%s.%s", env, team, hostsuffix), nil
@@ -224,17 +219,17 @@ func (s *sed) GetSession() (string, error) {
 	return s.Session, nil
 }
 
-func (s *sed) GetEnv() (string, error) {
-	if s.Env == "" {
-		return "", ErrEnvNotFound
-	}
-	return s.Env, nil
-}
-
-func (s *sed) SetEnv(env string) error {
-	s.Env = env
-	return s.Save()
-}
+// func (s *sed) GetEnv() (string, error) {
+// 	if s.Env == "" {
+// 		return "", ErrEnvNotFound
+// 	}
+// 	return s.Env, nil
+// }
+//
+// func (s *sed) SetEnv(env string) error {
+// 	s.Env = env
+// 	return s.Save()
+// }
 
 func (s *sed) SetTeam(team string) error {
 	s.Team = team

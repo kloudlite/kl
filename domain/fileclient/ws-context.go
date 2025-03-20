@@ -66,33 +66,33 @@ func (w wsContext) GetEnv() (string, error) {
 		return "", ErrEnvNotSelected
 	}
 
-	s, err := getCtxData()
-	if err != nil {
-		return "", err
-	}
+	// s, err := getCtxData()
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	menv, err := s.GetEnv()
-	if err != nil {
-		return "", err
-	}
+	// menv, err := s.GetEnv()
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	if menv != w.EnvName {
-		return "", ErrEnvMismatch
-	}
+	// if menv != w.EnvName {
+	// 	return "", ErrEnvMismatch
+	// }
 
 	return w.EnvName, nil
 }
 
 func (w wsContext) SetEnv(env string) error {
-	s, err := getCtxData()
-	if err != nil {
-		return err
-	}
+	// s, err := getCtxData()
+	// if err != nil {
+	// 	return err
+	// }
 
-	if err := s.SetEnv(env); err != nil {
-		return err
-	}
-
+	// if err := s.SetEnv(env); err != nil {
+	// 	return err
+	// }
+	//
 	w.EnvName = env
 	return w.handler.Write()
 }
