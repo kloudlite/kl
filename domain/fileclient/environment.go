@@ -1,5 +1,7 @@
 package fileclient
 
+import "fmt"
+
 func (fc *fclient) WorkspaceEnv() (string, error) {
 	wc, err := getNewWsContext()
 	if err != nil {
@@ -10,15 +12,15 @@ func (fc *fclient) WorkspaceEnv() (string, error) {
 }
 
 func (fc *fclient) DirEnv() (string, error) {
+	wsEnv, err := fc.WorkspaceEnv()
+	if err == nil {
+		return wsEnv, nil
+	}
+
 	ctxEnv, err := fc.GetDataContext().GetEnv()
 	if err == nil {
 		return ctxEnv, nil
 	}
 
-	wsEnv, err := fc.WorkspaceEnv()
-	if err != nil {
-		return "", err
-	}
-
-	return wsEnv, nil
+	return "", fmt.Errorf("no env found")
 }
