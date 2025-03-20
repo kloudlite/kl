@@ -56,9 +56,9 @@ type EnvData struct {
 }
 
 type SessionData struct {
-	Session   string               `json:"session"`
-	Team      string               `json:"team,omitempty"`
-	Env       string               `json:"env,omitempty"`
+	Session string `json:"session"`
+	Team    string `json:"team,omitempty"`
+	// Env       string               `json:"env,omitempty"`
 	TeamsData map[string]*TeamData `json:"teamsData,omitempty"`
 }
 
@@ -233,7 +233,7 @@ func (s *sed) GetSession() (string, error) {
 
 func (s *sed) SetTeam(team string) error {
 	s.Team = team
-	s.Env = ""
+	// s.Env = ""
 
 	if team != "" {
 		configFolder, err := GetConfigFolder()
