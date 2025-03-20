@@ -1,10 +1,8 @@
 package intercept
 
 import (
-	"github.com/kloudlite/kl/domain/apiclient"
 	"github.com/kloudlite/kl/domain/clients"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/pkg/ui/fzf"
 	"github.com/spf13/cobra"
 )
 
@@ -27,40 +25,7 @@ Examples:
 			return
 		}
 
-		currentEnv, err := fc.DirEnv()
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		apps, err := apic.ListServices(currentAcc, currentEnv)
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		filteredApps := make([]apiclient.Service, 0)
-		for _, app := range apps {
-			if app.InterceptStatus.Intercepted {
-				filteredApps = append(filteredApps, app)
-			}
-		}
-		if len(filteredApps) == 0 {
-			fn.Log("no intercepted apps found")
-			return
-		}
-
-		appToStop, err := fzf.FindOne(filteredApps, func(item apiclient.Service) string {
-			return item.Spec.ServiceRef.Name
-		}, fzf.WithPrompt("Select service to stop"))
-		if err != nil {
-			fn.PrintError(err)
-			return
-		}
-
-		if err := apic.InterceptService(appToStop, false, nil, currentEnv, []fn.Option{
-			fn.MakeOption("appName", appToStop.Metadata.Name),
-		}...); err != nil {
+		if err := apic.RemoveAllIntercepts(fn.MakeOption("teamName", currentAcc)); err != nil {
 			fn.PrintError(err)
 			return
 		}
