@@ -54,7 +54,7 @@ type ApiClient interface {
 	ListSecrets(teamName string, envName string) ([]Secret, error)
 	GetSecret(teamName string, secretName string) (*Secret, error)
 
-	RemoveAllIntercepts(options ...fn.Option) error
+	// RemoveAllIntercepts(options ...fn.Option) error
 }
 
 func (a *apiClient) GetFClient() fileclient.FileClient {

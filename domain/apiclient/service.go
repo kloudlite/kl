@@ -4,10 +4,8 @@ import (
 	"fmt"
 
 	"github.com/kloudlite/kl/domain/envclient"
-	"github.com/kloudlite/kl/domain/fileclient"
 	"github.com/kloudlite/kl/pkg/functions"
 	fn "github.com/kloudlite/kl/pkg/functions"
-	"github.com/kloudlite/kl/pkg/ui/spinner"
 )
 
 var paginationDefault = map[string]any{
@@ -154,74 +152,74 @@ checkDev:
 	}
 }
 
-func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
-	defer spinner.Client.UpdateMessage("Cleaning up intercepts...")()
-	devName := fn.GetOption(options, "deviceName")
-	teamName := fn.GetOption(options, "teamName")
-	currentEnv, err := apic.EnsureEnv()
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	fc := fileclient.File
-
-	if teamName == "" {
-		kt, err := fc.GetKlFile()
-		if err != nil {
-			return functions.NewE(err)
-		}
-
-		if kt.TeamName == "" {
-			return fn.Errorf("team name is required")
-		}
-
-		teamName = kt.TeamName
-		options = append(options, fn.MakeOption("teamName", teamName))
-	}
-
-checkDev:
-	if devName == "" {
-		if envclient.IsBoxMode() {
-			if s, err := envclient.GetDeviceNameFromEnv(); err == nil {
-				devName = s
-				goto checkDev
-			} else {
-				return fn.Errorf("device name is required")
-			}
-		}
-
-		avc, err := fc.GetDataContext().GetDevice()
-		if err != nil {
-			return functions.NewE(err)
-		}
-
-		if avc.DeviceName == "" {
-			return fn.Errorf("device name is required")
-		}
-
-		devName = avc.DeviceName
-	}
-
-	cookie, err := getCookie([]fn.Option{
-		fn.MakeOption("teamName", teamName),
-	}...)
-	if err != nil {
-		return functions.NewE(err)
-	}
-	query := "cli_deleteServiceIntercept"
-
-	respData, err := klFetch(query, map[string]any{
-		"envName":     currentEnv,
-		"serviceName": devName,
-		//"deviceName": config.ClusterName,
-	}, &cookie)
-	if err != nil {
-		return functions.NewE(err)
-	}
-
-	if _, err := getFromResp[bool](respData); err != nil {
-		return functions.NewE(err)
-	} else {
-		return nil
-	}
-}
+// func (apic *apiClient) RemoveAllIntercepts(options ...fn.Option) error {
+// 	defer spinner.Client.UpdateMessage("Cleaning up intercepts...")()
+// 	devName := fn.GetOption(options, "deviceName")
+// 	teamName := fn.GetOption(options, "teamName")
+// 	currentEnv, err := apic.EnsureEnv()
+// 	if err != nil {
+// 		return functions.NewE(err)
+// 	}
+//
+// 	fc := fileclient.File
+//
+// 	if teamName == "" {
+// 		kt, err := fc.GetKlFile()
+// 		if err != nil {
+// 			return functions.NewE(err)
+// 		}
+//
+// 		if kt.TeamName == "" {
+// 			return fn.Errorf("team name is required")
+// 		}
+//
+// 		teamName = kt.TeamName
+// 		options = append(options, fn.MakeOption("teamName", teamName))
+// 	}
+//
+// checkDev:
+// 	if devName == "" {
+// 		if envclient.IsBoxMode() {
+// 			if s, err := envclient.GetDeviceNameFromEnv(); err == nil {
+// 				devName = s
+// 				goto checkDev
+// 			} else {
+// 				return fn.Errorf("device name is required")
+// 			}
+// 		}
+//
+// 		avc, err := fc.GetDataContext().GetDevice()
+// 		if err != nil {
+// 			return functions.NewE(err)
+// 		}
+//
+// 		if avc.DeviceName == "" {
+// 			return fn.Errorf("device name is required")
+// 		}
+//
+// 		devName = avc.DeviceName
+// 	}
+//
+// 	cookie, err := getCookie([]fn.Option{
+// 		fn.MakeOption("teamName", teamName),
+// 	}...)
+// 	if err != nil {
+// 		return functions.NewE(err)
+// 	}
+// 	query := "cli_deleteServiceIntercept"
+//
+// 	respData, err := klFetch(query, map[string]any{
+// 		"envName":     currentEnv,
+// 		"serviceName": devName,
+// 		//"deviceName": config.ClusterName,
+// 	}, &cookie)
+// 	if err != nil {
+// 		return functions.NewE(err)
+// 	}
+//
+// 	if _, err := getFromResp[bool](respData); err != nil {
+// 		return functions.NewE(err)
+// 	} else {
+// 		return nil
+// 	}
+// }
